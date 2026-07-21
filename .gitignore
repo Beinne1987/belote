@@ -1,0 +1,18 @@
+# Flutter / Dart build artifacts
+**/build/
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/ephemeral/
+.packages
+*.iml
+
+# Signing / secrets — must never be committed to this public repo
+*.jks
+*.keystore
+key.properties
+google-services*.json
+GoogleService-Info.plist
+*.p12
+*.mobileprovision
+*.env

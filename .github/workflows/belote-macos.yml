@@ -1,0 +1,102 @@
+name: Belote macOS Release
+
+# يُشغَّل يدوياً أو عند الدفع إلى main — يبني Belote.app ويحزّمه DMG كـ artifact
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'app/**'
+      - 'packages/**'
+      - '.github/workflows/belote-macos.yml'
+
+concurrency:
+  group: belote-macos-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Belote.app + DMG
+    runs-on: macos-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: ./app
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter 3.44.6
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.6'
+          channel: 'stable'
+          cache: true
+
+      - name: Enable macOS desktop
+        run: flutter config --enable-macos-desktop
+
+      - name: Install native build deps
+        run: brew install automake libtool create-dmg
+
+      - name: Flutter doctor
+        run: flutter doctor -v
+        continue-on-error: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      # ⚠️ --dart-define ليس اختياريّاً (نفسُ درس الويندوز والأندرويد)
+      - name: Build macOS release
+        run: >
+          flutter build macos --release --no-pub
+          --dart-define=BELOTE_SERVER=https://hisabipro.com/belote
+          --build-number=${{ github.run_number }}
+
+      # التحقّق + إعادةُ توقيعٍ ad-hoc تحفظ الـ entitlements (وإلّا فقدت النسخةُ
+      # المنشورة صلاحيةَ الشبكة داخل الصندوق الرمليّ = بلا إنترنت بصمت).
+      - name: Verify bundle & re-sign (keep entitlements)
+        run: |
+          set -e
+          APP="build/macos/Build/Products/Release/Belote.app"
+          EXEC="$APP/Contents/MacOS/Belote"
+          if [ ! -f "$EXEC" ]; then echo "::error::Executable missing at $EXEC"; exit 1; fi
+          file "$EXEC"
+          xattr -cr "$APP" || true
+          # 1) توقيعٌ عميقٌ صالحٌ لكلّ ما بالداخل (يمنع kLSNoExecutableErr)
+          codesign --force --deep --sign - --timestamp=none "$APP"
+          # 2) إعادةُ توقيع القشرة العليا مع الـ entitlements كي تبقى صلاحيةُ الشبكة
+          codesign --force --sign - --timestamp=none \
+            --entitlements macos/Runner/Release.entitlements "$APP"
+          codesign --verify --deep --strict --verbose=2 "$APP"
+          codesign -d --entitlements :- "$APP" | grep -q network.client \
+            && echo "✅ network.client entitlement present" \
+            || { echo "::error::network entitlement missing after re-sign"; exit 1; }
+
+      - name: Build installer (.dmg)
+        id: dmg
+        run: |
+          set -e
+          APP="build/macos/Build/Products/Release/Belote.app"
+          DMG="belote-macos.dmg"
+          create-dmg \
+            --volname "Belote" \
+            --window-size 600 360 \
+            --icon-size 110 \
+            --icon "Belote.app" 150 185 \
+            --app-drop-link 450 185 \
+            "$DMG" "$APP" || true
+          if [ ! -f "$DMG" ]; then
+            echo "create-dmg لم يُنتج ملفاً — احتياط hdiutil"
+            hdiutil create -volname "Belote" -srcfolder "$APP" -ov -format UDZO "$DMG"
+          fi
+          ls -lh "$DMG"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: belote-macos
+          path: app/belote-macos.dmg
+          retention-days: 7
+          if-no-files-found: error

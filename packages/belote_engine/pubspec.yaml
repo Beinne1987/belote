@@ -1,0 +1,12 @@
+name: belote_engine
+description: >-
+  محرك Belote الموريتاني — منطق خالص: بلا Flutter، بلا واجهة، بلا ملفات، بلا شبكة.
+  يُترجَم من reference/src/engine.js ويُثبَّت بمتجهات JS الذهبية (fixtures/golden.json).
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.5.0
+
+dev_dependencies:
+  test: ^1.25.0

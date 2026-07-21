@@ -1,0 +1,7 @@
+# Dart / pub — https://dart.dev/guides/libraries/private-files
+.dart_tool/
+.packages
+build/
+
+# حزمة مكتبة (لا تطبيق) → لا يُودَع ملف القفل
+pubspec.lock

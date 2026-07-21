@@ -1,0 +1,74 @@
+name: Belote Windows Release
+
+# يُشغَّل يدوياً أو عند الدفع إلى main — يبني belote.exe ويحزّمه ZIP كـ artifact
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'app/**'
+      - 'packages/**'
+      - '.github/workflows/belote-windows.yml'
+
+concurrency:
+  group: belote-windows-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build belote.exe + ZIP
+    runs-on: windows-2022
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: ./app
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # نُثبّت نفسَ نسخة Flutter التي يُبنى بها محلياً (/opt/flutter-belote)
+      - name: Setup Flutter 3.44.6
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.6'
+          channel: 'stable'
+          cache: true
+
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Flutter doctor
+        run: flutter doctor -v
+        continue-on-error: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      # ⚠️ --dart-define ليس اختياريّاً: بدونه يشير التطبيقُ لخادمٍ محلّيّ فيخرج ميّتاً
+      - name: Build Windows release
+        run: >
+          flutter build windows --release --no-pub
+          --dart-define=BELOTE_SERVER=https://hisabipro.com/belote
+          --build-number=${{ github.run_number }}
+
+      - name: Package as ZIP
+        id: pack
+        shell: pwsh
+        run: |
+          $src = "build/windows/x64/runner/Release"
+          if (!(Test-Path $src)) { throw "Build output not found at $src" }
+          foreach ($f in @("belote.exe","flutter_windows.dll","data\app.so")) {
+            if (!(Test-Path (Join-Path $src $f))) { throw "Required file missing: $f" }
+          }
+          $zip = "belote-windows.zip"
+          Compress-Archive -Path "$src/*" -DestinationPath $zip -Force
+          Get-Item $zip | Select-Object Name, @{N='SizeMB';E={[math]::Round($_.Length/1MB,1)}}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: belote-windows
+          path: app/belote-windows.zip
+          retention-days: 7
+          if-no-files-found: error
