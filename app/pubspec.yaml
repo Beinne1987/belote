@@ -98,6 +98,10 @@ flutter_launcher_icons:
   remove_alpha_ios: true
   adaptive_icon_foreground: "assets/icon/foreground.png"
   adaptive_icon_background: "assets/icon/background.png"
+  # ماك لا يدوّر الأيقونة تلقائياً — مصدرٌ مدوّرُ الزوايا بهوامش شفّافة (نمط ماك)
+  macos:
+    generate: true
+    image_path: "assets/icon/icon_macos.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

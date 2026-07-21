@@ -13,8 +13,8 @@ class MainFlutterWindow: NSWindow {
     // (`AppStage`) لا يجد ما يقتطعه. الرقمان نظيرا ما في `win32_window.cpp`.
     self.contentMinSize = NSSize(width: 640, height: 560)
 
-    // نافذةُ بدءٍ طوليّةُ الميل متمركزةٌ على الشاشة — نظيرُ حجم بدء ويندوز.
-    self.setContentSize(NSSize(width: 1000, height: 820))
+    // نافذةُ بدءٍ متمركزةٌ على الشاشة — بنفس مقاس نافذة حسابي (800×600).
+    self.setContentSize(NSSize(width: 800, height: 600))
     self.center()
 
     RegisterGeneratedPlugins(registry: flutterViewController)
