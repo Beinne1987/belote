@@ -39,6 +39,23 @@ jobs:
           channel: 'stable'
           cache: true
 
+      # **Xcode 26 إلزاميّ** على مشغّل Intel: افتراضُه 16.4 بحزمةِ تطويرِ 15.5،
+      # و`connectivity_plus` يستدعي `NWPath.isUltraConstrained` (واجهةُ macOS 26)
+      # خلف `#available` — والفحصُ زمنَ تشغيلٍ لا يُغني عن وجودها في الـSDK
+      # زمنَ الترجمة ⇒ `BUILD FAILED`. نختار الأحدثَ من عائلة 26 لا رقمًا مثبَّتًا
+      # كي لا ينكسر البناءُ مع كلّ تحديثِ صورةٍ للمشغّل.
+      - name: Select newest Xcode 26 (macOS 26 SDK)
+        run: |
+          set -e
+          XC=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          if [ -z "$XC" ]; then
+            echo "::error::No Xcode 26 on this runner — connectivity_plus needs the macOS 26 SDK"
+            ls -d /Applications/Xcode*.app || true
+            exit 1
+          fi
+          sudo xcode-select -s "$XC"
+          xcodebuild -version
+
       - name: Enable macOS desktop
         run: flutter config --enable-macos-desktop
 
