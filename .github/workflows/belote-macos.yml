@@ -166,18 +166,37 @@ jobs:
       # بالضبط (توقيعٌ مكسورٌ يكراش أيضًا). عشرُ ثوانٍ تكفي: كراشُ المعماريّة
       # وكراشُ اللقطة (snapshot) كلاهما يقع في أوّل ثانية. عند الموت يُطبَع أحدثُ
       # تقريرِ تعطّلٍ كاملًا — بلا ذلك يبقى «التطبيقُ أُغلق فجأة» بلا سبب.
-      - name: Smoke test (launch and survive 10s)
+      # **«حيٌّ» ليست «يعمل».** كان هذا الاختبارُ يسأل: هل العمليّة موجودةٌ بعد
+      # عشر ثوانٍ؟ والتطبيقُ المعلَّق قبل أوّل إطارٍ **حيٌّ تمامًا** — فمرّت حزمةٌ
+      # لا تفتح نافذةً على ماك المالك، مرّتين. الآن نطالب بدليلٍ إيجابيّ:
+      # التطبيقُ نفسُه يطبع `BELOTE_UI_READY` بعد أن يُرسَم إطارُ المحتوى، ولا
+      # يطبعه إلّا حينئذٍ. ونشغّل الثنائيّ مباشرةً (لا `open`) لالتقاط مخرجاته.
+      - name: Smoke test (must draw a real frame, not just stay alive)
         run: |
           set -e
           APP="build/macos/Build/Products/Release/Belote.app"
-          open "$APP" || { echo "::error::open failed for $APP"; exit 1; }
-          sleep 10
-          if pgrep -x Belote >/dev/null; then
-            echo "✅ Belote is still running after 10s"
-            pkill -x Belote || true
-            exit 0
+          OUT="$RUNNER_TEMP/belote-run.log"
+          "$APP/Contents/MacOS/Belote" > "$OUT" 2>&1 &
+          PID=$!
+          for i in $(seq 1 30); do
+            if grep -q BELOTE_UI_READY "$OUT"; then
+              echo "✅ Belote drew its first content frame after ${i}s"
+              kill "$PID" 2>/dev/null || true
+              exit 0
+            fi
+            kill -0 "$PID" 2>/dev/null || break
+            sleep 1
+          done
+          if kill -0 "$PID" 2>/dev/null; then
+            echo "::error::Belote is alive but never drew a frame in 30s (hung before first frame)"
+            echo "── sample of the stuck main thread ──"
+            sample "$PID" 3 -file /dev/stdout 2>/dev/null | sed -n '1,60p' || true
+            kill "$PID" 2>/dev/null || true
+            echo "── app output ──"; cat "$OUT"
+            exit 1
           fi
-          echo "::error::Belote died within 10s of launch"
+          echo "::error::Belote died within 30s of launch"
+          echo "── app output ──"; cat "$OUT"
           for DIR in "$HOME/Library/Logs/DiagnosticReports" /Library/Logs/DiagnosticReports; do
             [ -d "$DIR" ] || continue
             LATEST=$(ls -t "$DIR" 2>/dev/null | head -1)

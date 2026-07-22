@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 import 'app_settings.dart';
+import 'boot.dart';
 import 'game/game_controller.dart';
 import 'game/view_model.dart';
 import 'net/api_client.dart';
@@ -24,7 +24,6 @@ import 'theme/belote_theme.dart';
 import 'theme/theme_manager.dart';
 import 'platform/app_platform.dart';
 import 'ui/app_frame.dart';
-import 'ui/card_face.dart';
 import 'ui/friends_screen.dart';
 import 'ui/invite_dialog.dart';
 import 'ui/about_screen.dart';
@@ -39,23 +38,13 @@ import 'ui/store_screen.dart';
 import 'ui/table_screen.dart';
 import 'ui/tournaments_screen.dart';
 
-Future<void> main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  await _initFirebase(); // مصادقة الهاتف (Phone Auth) — لا يحجب الإقلاع عند الفشل
-  await preloadCardArt(); // حلّل رسوم الأوراق مرة واحدة قبل أول إطار
-  await Sfx.instance.init(); // مشغّلات الصوت جاهزة قبل أول توزيع
+  // **النافذةُ أوّلًا.** لا نداءَ لإضافةٍ أصليّةٍ قبل `runApp`: خيطُ الواجهة
+  // مدموجٌ بالخيط الرئيس في فلاتر الحديث، فإضافةٌ متعثّرةٌ هنا تعني تطبيقًا حيًّا
+  // **بلا نافذة** — وهو ما حدث فعلًا على ماك. التفصيلُ في [AppBoot].
   runApp(const BeloteApp());
-}
-
-/// يهيّئ Firebase من ملفّات الإعداد الأصليّة (google-services.json / GoogleService-Info.plist).
-/// الفشل لا يمنع التطبيق المحليّ من العمل — فقط الدخول الأونلاين يتعطّل حتى الإصلاح.
-Future<void> _initFirebase() async {
-  try {
-    await Firebase.initializeApp();
-  } catch (e) {
-    // ignore: avoid_print
-    debugPrint('تعذّرت تهيئة Firebase: $e');
-  }
+  AppBoot.instance.startNative();
 }
 
 class BeloteApp extends StatefulWidget {
@@ -253,17 +242,46 @@ void openNotificationTarget(
 }
 
 /// بوّابة الجذر: تُظهر شاشة تحميل حتى تُقرأ الإعدادات، ثم شاشة الاسم إن لزم، وإلا الرئيسية.
-class _Root extends StatelessWidget {
+class _Root extends StatefulWidget {
   const _Root();
+
+  @override
+  State<_Root> createState() => _RootState();
+}
+
+class _RootState extends State<_Root> {
+  /// **رسومُ الأوراق تُنتظَر هنا لا في `main`** — فالنافذةُ تُرسَم أوّلًا (خلفيّةُ
+  /// المجلس) ثمّ يظهر المحتوى. هذا تحليلُ SVG في الذاكرة: Dart خالصٌ بلا قناةٍ
+  /// أصليّة ⇒ لا يمكن أن يعلّق على منصّة ([AppBoot]).
+  bool _artReady = false;
+
+  @override
+  void initState() {
+    super.initState();
+    AppBoot.instance.artReady().then((_) {
+      if (mounted) setState(() => _artReady = true);
+    });
+  }
+
+  bool _announced = false;
+
+  /// تُطبَع مرّةً واحدةً في عمر العمليّة — إعلانٌ لا سجلٌّ دوريّ.
+  void _announceReady() {
+    if (_announced) return;
+    _announced = true;
+    debugPrint(uiReadyMarker);
+  }
 
   @override
   Widget build(BuildContext context) {
     final settings = AppSettingsScope.of(context);
     final session = SessionScope.of(context);
     final t = BeloteTheme.of(context);
-    if (!settings.loaded || !session.loaded) {
+    if (!_artReady || !settings.loaded || !session.loaded) {
       return Scaffold(backgroundColor: t.bg, body: const SizedBox.shrink());
     }
+    // **إثباتُ أنّ إطارًا حقيقيًّا رُسم** — يقرؤه مشغّلُ ماك (انظر [uiReadyMarker]).
+    WidgetsBinding.instance.addPostFrameCallback((_) => _announceReady());
     // غير مصادَقٍ وغير ضيف ⇒ بوّابة الدخول (تسجيل/إنشاء/ضيف). أوّل شاشة يراها اللاعب.
     if (!session.isSignedIn && !settings.isGuest) {
       return AuthLandingScreen(
