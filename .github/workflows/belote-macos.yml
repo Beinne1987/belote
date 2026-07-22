@@ -52,22 +52,24 @@ jobs:
           key: pub-${{ runner.os }}-${{ hashFiles('app/pubspec.lock') }}
           restore-keys: pub-${{ runner.os }}-
 
-      # **Xcode 26 إلزاميّ** على مشغّل Intel: افتراضُه 16.4 بحزمةِ تطويرِ 15.5،
-      # و`connectivity_plus` يستدعي `NWPath.isUltraConstrained` (واجهةُ macOS 26)
-      # خلف `#available` — والفحصُ زمنَ تشغيلٍ لا يُغني عن وجودها في الـSDK
-      # زمنَ الترجمة ⇒ `BUILD FAILED`. نختار الأحدثَ من عائلة 26 لا رقمًا مثبَّتًا
-      # كي لا ينكسر البناءُ مع كلّ تحديثِ صورةٍ للمشغّل.
-      - name: Select newest Xcode 26 (macOS 26 SDK)
+      # **أقربُ حزمةِ تطويرٍ إلى جهاز اللاعب، لا الأحدث.** كان هنا اختيارُ
+      # Xcode 26 (SDK 26) لأنّ `connectivity_plus ≥ 7.1.1` يستدعي واجهةَ
+      # macOS 26؛ ثُبِّتت الحزمةُ على 7.0.0 في `pubspec.yaml` فسقط الاشتراط.
+      # نبني الآن بـXcode 16 (SDK 15.x): نشحن لأجهزةٍ على macOS 11–12 وأقدمُ
+      # مشغّلٍ متاحٍ هو macOS 15 ⇒ ما يكسره تباعدُ حزمةِ التطوير عن نظام اللاعب
+      # لا يظهر في أيّ اختبارٍ عندنا. يحرسه `verify_min_macos.py … 16.0`.
+      - name: Select Xcode 16 (ship close to the users' macOS)
         run: |
           set -e
-          XC=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          XC=$(ls -d /Applications/Xcode_16*.app 2>/dev/null | sort -V | tail -1)
           if [ -z "$XC" ]; then
-            echo "::error::No Xcode 26 on this runner — connectivity_plus needs the macOS 26 SDK"
+            echo "::error::No Xcode 16 on this runner"
             ls -d /Applications/Xcode*.app || true
             exit 1
           fi
           sudo xcode-select -s "$XC"
           xcodebuild -version
+          xcrun --sdk macosx --show-sdk-version
 
       - name: Enable macOS desktop
         run: flutter config --enable-macos-desktop
@@ -140,7 +142,7 @@ jobs:
       # (الجاني كان `objective_c.framework` بـmin 13.0: يبنيه Flutter برقمٍ
       # ثابتٍ في أداته متجاهلًا `MACOSX_DEPLOYMENT_TARGET`.)
       - name: Verify minimum macOS of every binary (11.0)
-        run: python3 tool/verify_min_macos.py build/macos/Build/Products/Release/Belote.app 11.0
+        run: python3 tool/verify_min_macos.py build/macos/Build/Products/Release/Belote.app 11.0 16.0
 
       # التحقّق + إعادةُ توقيعٍ ad-hoc تحفظ الـ entitlements (وإلّا فقدت النسخةُ
       # المنشورة صلاحيةَ الشبكة داخل الصندوق الرمليّ = بلا إنترنت بصمت).
@@ -259,7 +261,7 @@ jobs:
           codesign --verify --deep --strict "$A"
           codesign -d --entitlements :- "$A" | grep -q network.client || {
             echo "::error::network.client entitlement lost inside the DMG"; exit 1; }
-          python3 tool/verify_min_macos.py "$A" 11.0
+          python3 tool/verify_min_macos.py "$A" 11.0 16.0
           echo "✅ DMG contents match what was tested"
 
       - name: Upload artifact

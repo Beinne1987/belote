@@ -11,10 +11,14 @@
 يقرأ الملفّات مباشرةً (Mach-O fat وthin) فلا يحتاج أدواتِ Xcode ⇒ يعمل على
 لينكس أيضًا لفحص حزمةٍ مفكوكةٍ من DMG.
 
+ويفحص اختيارًا **سقفَ حزمة التطوير** (SDK) لما نبنيه نحن: نشحن لأجهزةٍ على
+macOS 11–12، وأقدمُ مشغّلٍ في CI هو macOS 15 ⇒ البناءُ بأحدثِ حزمةِ تطويرٍ يفتح
+بابَ سلوكٍ لا يكشفه أيُّ اختبارٍ عندنا. السقفُ يُمرَّر رقمًا صريحًا من المشغّل.
+
 الاستعمال:
-    python3 tool/verify_min_macos.py <Belote.app> <أقصى نسخةٍ مسموحة>
+    python3 tool/verify_min_macos.py <Belote.app> <أقصى نسخةٍ مسموحة> [سقفُ SDK]
 مثال:
-    python3 tool/verify_min_macos.py build/.../Belote.app 11.0
+    python3 tool/verify_min_macos.py build/.../Belote.app 11.0 16.0
 """
 
 import os
@@ -36,7 +40,7 @@ def _fmt(t):
 
 
 def _slice_minos(data, off):
-    """يردّ [(معماريّة, أدنى نسخة)] لشريحةٍ واحدة — منصّةَ macOS وحدَها."""
+    """يردّ [(معماريّة, أدنى نسخة, حزمةُ التطوير)] لشريحة — منصّةَ macOS وحدَها."""
     _magic, cpu, _sub, _ft, ncmds, _scs, _fl, _res = struct.unpack_from(
         "<IIIIIIII", data, off
     )
@@ -45,18 +49,18 @@ def _slice_minos(data, off):
     for _ in range(ncmds):
         cmd, size = struct.unpack_from("<II", data, pos)
         if cmd == LC_BUILD_VERSION:
-            platform, minos, _sdk, _n = struct.unpack_from("<IIII", data, pos + 8)
+            platform, minos, sdk, _n = struct.unpack_from("<IIII", data, pos + 8)
             if platform == PLATFORM_MACOS:
-                found.append((arch, _ver(minos)))
+                found.append((arch, _ver(minos), _ver(sdk)))
         elif cmd == LC_VERSION_MIN_MACOSX:
-            minos, _sdk = struct.unpack_from("<II", data, pos + 8)
-            found.append((arch, _ver(minos)))
+            minos, sdk = struct.unpack_from("<II", data, pos + 8)
+            found.append((arch, _ver(minos), _ver(sdk)))
         pos += size
     return found
 
 
 def mach_o_minos(path):
-    """يردّ [(معماريّة, أدنى نسخة)] للملفّ، أو [] إن لم يكن Mach-O."""
+    """يردّ [(معماريّة, أدنى نسخة, حزمةُ التطوير)] للملفّ، أو [] إن لم يكن Mach-O."""
     with open(path, "rb") as fh:
         data = fh.read()
     if len(data) < 8:
@@ -84,26 +88,36 @@ def mach_o_minos(path):
 
 
 def main():
-    if len(sys.argv) != 3:
+    if len(sys.argv) not in (3, 4):
         print(__doc__)
         return 2
     app, limit_s = sys.argv[1], sys.argv[2]
+    max_sdk_s = sys.argv[3] if len(sys.argv) == 4 else None
     limit = tuple(int(x) for x in limit_s.split("."))
     while len(limit) < 3:
         limit += (0,)
+    max_sdk = None
+    if max_sdk_s:
+        max_sdk = tuple(int(x) for x in max_sdk_s.split("."))
+        while len(max_sdk) < 3:
+            max_sdk += (0,)
 
-    rows, offenders = [], []
+    rows, offenders, sdk_offenders = [], [], []
     for dirpath, _dirs, files in os.walk(app):
         for name in files:
             path = os.path.join(dirpath, name)
             if os.path.islink(path):
                 continue
             try:
-                for arch, minos in mach_o_minos(path):
+                for arch, minos, sdk in mach_o_minos(path):
                     rel = os.path.relpath(path, app)
-                    rows.append((minos, arch, rel))
+                    rows.append((minos, sdk, arch, rel))
                     if minos > limit:
                         offenders.append((minos, arch, rel))
+                    # حزمةُ التطوير تُفحَص على ما **نبنيه نحن** وحدَه: الأطرُ
+                    # الجاهزةُ (WebRTC مثلًا) تأتي مبنيّةً بحزمةِ صاحبها.
+                    if max_sdk and sdk > max_sdk and rel.startswith("Contents/MacOS/"):
+                        sdk_offenders.append((sdk, arch, rel))
             except (OSError, struct.error):
                 continue
 
@@ -111,8 +125,8 @@ def main():
         print(f"::error::No Mach-O binaries found under {app}")
         return 1
 
-    for minos, arch, rel in sorted(rows):
-        print(f"  min {_fmt(minos):<9} {arch:<7} {rel}")
+    for minos, sdk, arch, rel in sorted(rows):
+        print(f"  min {_fmt(minos):<9} sdk {_fmt(sdk):<9} {arch:<7} {rel}")
 
     if offenders:
         print()
@@ -123,7 +137,18 @@ def main():
             )
         return 1
 
-    print(f"\n✅ every binary runs on macOS {limit_s} or newer")
+    if sdk_offenders:
+        print()
+        for sdk, arch, rel in sorted(sdk_offenders):
+            print(
+                f"::error::{rel} ({arch}) was linked against the macOS "
+                f"{_fmt(sdk)} SDK > {max_sdk_s} — pick an older Xcode: we ship "
+                f"to macOS 11–12 and no CI runner is that old to catch it"
+            )
+        return 1
+
+    tail = f" (linked SDK ≤ {max_sdk_s})" if max_sdk_s else ""
+    print(f"\n✅ every binary runs on macOS {limit_s} or newer{tail}")
     return 0
 
 

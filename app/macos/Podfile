@@ -1,4 +1,8 @@
-platform :osx, '10.15'
+# 11.0 يطابق `MACOSX_DEPLOYMENT_TARGET` في `project.pbxproj` (وهو ما تعلنه
+# الصفحةُ للمستخدم). تركُها 10.15 يجعل أهدافَ الـPods تُبنى بهدفٍ يخالف هدفَ
+# التطبيق — تباينٌ بلا فائدة، وأهدافُ النشر هي بالضبط ما قتل الحزمةَ على
+# مونتيري من قبل (`objective_c` بـmin 13).
+platform :osx, '11.0'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
@@ -48,6 +52,8 @@ post_install do |installer|
     # مشروعُ Pods مشروعٌ آخر.
     target.build_configurations.each do |config|
       config.build_settings['ONLY_ACTIVE_ARCH'] = 'NO'
+      # هدفُ نشرٍ واحدٌ لكلّ pod — لا يُترك لافتراض الحزمة.
+      config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '11.0'
     end
   end
 end
