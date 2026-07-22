@@ -4,6 +4,7 @@ import 'package:flutter/material.dart' hide Card;
 import '../game/view_model.dart';
 import '../strings_ar.dart';
 import '../theme/belote_theme.dart';
+import 'suit_pip.dart';
 
 /// شريط الضمانة — **فوق يدك مباشرة**، لا نافذة تغطّي الشاشة: ترى أوراقك وأنت
 /// تقرّر. الضمانات الأضعف **معطّلة لا مخفيّة**. عرضٌ محض: يرسم [BidBarView]
@@ -95,14 +96,29 @@ class _BidChip extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: border, width: 1.2),
             ),
-            child: Text(
-              option.label,
-              style: TextStyle(
-                color: fg,
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
+            // **ضماناتُ الألوان رموزٌ لا أسماء** (طلبُ المالك 2026-07-22):
+            // «أبيك» و«كير» أسماءٌ تُقرَأ، والرمزُ يُعرَف بلمحة — وهو نفسُه
+            // الذي على الورق في يدك. صن وتو وأكوينس تبقى نصًّا (لا رمزَ لها).
+            // الاسمُ يبقى في `Semantics` فلا يخسر قارئُ الشاشة شيئًا.
+            child: option.suit == null
+                ? Text(
+                    option.label,
+                    style: TextStyle(
+                      color: fg,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  )
+                : Semantics(
+                    label: option.label,
+                    child: SuitPip(
+                      suit: option.suit!,
+                      size: 20,
+                      color: enabled
+                          ? SuitPip.inkOnDark(option.suit!, t.feltInk)
+                          : t.text3,
+                    ),
+                  ),
           ),
         ),
       ),

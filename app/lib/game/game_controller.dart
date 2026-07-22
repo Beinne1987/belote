@@ -241,6 +241,7 @@ class GameController extends ChangeNotifier {
       for (final name in bids)
         BidOption(
           label: S.bidLabel(_bidForName(name)),
+          suit: _bidForName(name).suit,
           action: BidAction.ofBid(_bidForName(name)),
           enabled: legalHas(
               (a) => a.kind == BidKind.bid && a.bid == _bidForName(name)),

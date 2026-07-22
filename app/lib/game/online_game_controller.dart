@@ -940,6 +940,7 @@ class OnlineGameController extends ChangeNotifier {
       for (final name in bids)
         BidOption(
           label: S.bidLabel(_bidForName(name)),
+          suit: _bidForName(name).suit,
           action: BidAction.ofBid(_bidForName(name)),
           enabled: has((b) => b.kind == 'bid' && b.bid == _bidForName(name).code),
         ),

@@ -22,6 +22,7 @@ import 'player_seat_round.dart';
 import 'quick_chat_picker.dart';
 import 'reaction_picker.dart';
 import 'result_panel.dart';
+import 'table/table_geometry.dart';
 import 'table/table_surface.dart';
 import 'table_controls.dart';
 import 'table_metrics.dart';
@@ -391,6 +392,19 @@ class TableScreen extends StatelessWidget {
               );
               // قاعُ الأزرار: فوق صندوق المروحة بفرجةٍ يسيرة.
               final aboveHand = hand.height + 16;
+
+              // **خطُّ العدّاد يجلس على حدّ العلم** (طلبُ المالك 2026-07-22):
+              // ينزل قليلًا حتى ينطبق على الفصل بين الشريط الأحمر السفليّ
+              // والأخضر — خطٌّ موجودٌ في اللبّاد أصلًا فيبدو جزءًا من الطاولة.
+              // يُحسَب من نفس الهندسة التي يرسم بها اللبّاد ⇒ لا انحراف.
+              final tableInset =
+                  vipRoom ? VipRoom.inset(math.min(w, h)) : 0.0;
+              final tableGeo = TableGeometry.of(
+                Size(w - 2 * tableInset, h - 2 * tableInset),
+                vipRoom ? TableSurface.vip : TableSurface.hall,
+              );
+              final timerBottom = tableInset +
+                  (tableGeo.outer.height - tableGeo.flagBottomBandTop);
               final bidderName =
                   view.bidderSeat == null ? null : _seat(view.bidderSeat!).name;
 
@@ -599,18 +613,21 @@ class TableScreen extends StatelessWidget {
                     ),
 
                   // ── عدّاد دورك: يخفت خلال المهلة، ثم يلعب الذكاء مكانك ──
-                  // **فوق صندوق المروحة كلِّه** (طلبُ المالك 2026-07-21: «ارفع خطّ
-                  // المؤقّت»): كان قاعُه داخل الصندوق فيبدو خطًّا مرسومًا على ظهور
-                  // الأوراق — وقد يبتلع لمسةَ ورقةٍ عاليةٍ في المنتصف.
+                  // **على حدّ الشريط الأحمر السفليّ في العلم** (2026-07-22): كان
+                  // فوق صندوق المروحة كلِّه فأُنزل ليطابق خطًّا موجودًا في اللبّاد.
+                  // وقد يمرّ عندئذٍ فوق قمم المروحة ⇒ **`IgnorePointer` لازم**:
+                  // درسُ 2026-07-21 أنّ ما يعلو الورقَ قد يبتلع لمستَها.
                   if (view.humanCanPlay && view.humanTurnLimit != null)
                     Positioned(
                       left: 40,
                       right: 40,
-                      bottom: aboveHand + 8,
-                      child: _TurnTimer(
-                        key: ValueKey(view.humanTurnSeq),
-                        duration: view.humanTurnLimit!,
-                        onTick: onTurnTick,
+                      bottom: timerBottom,
+                      child: IgnorePointer(
+                        child: _TurnTimer(
+                          key: ValueKey(view.humanTurnSeq),
+                          duration: view.humanTurnLimit!,
+                          onTick: onTurnTick,
+                        ),
                       ),
                     ),
 

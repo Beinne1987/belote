@@ -262,7 +262,7 @@ class PremiumTablePainter extends CustomPainter {
     );
 
     // الشريطان الأحمران — يمتدّان بعرض اللبّاد كاملًا (القصُّ يقصّهما بالحافّة).
-    final band = rect.height * 0.15;
+    final band = rect.height * TableGeometry.flagBandRatio;
     final red = Paint()..color = cfg.flagRed;
     canvas.drawRect(
         Rect.fromLTWH(rect.left, rect.top, rect.width, band), red);

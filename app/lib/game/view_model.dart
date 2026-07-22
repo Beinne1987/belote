@@ -98,6 +98,11 @@ class MatchSummaryView {
 /// (عبر المحرك)؛ الشريط يعرض المعطّل ولا يخفيه، ولا يقرّر شيئًا.
 class BidOption {
   final String label;
+
+  /// لونُ الضمانة إن كانت ضمانةَ لون (`trefle`·`carreau`·`coeur`·`pique`)؛
+  /// null لتمريرٍ أو صنٍّ أو توٍّ أو أكوينس. الواجهةُ ترسم **رمزَ اللون** بدله
+  /// (طلبُ المالك 2026-07-22) — و[label] يبقى للقراءة والوصول (semantics).
+  final String? suit;
   final BidAction action;
   final bool enabled;
   final bool isPass;
@@ -107,6 +112,7 @@ class BidOption {
     required this.label,
     required this.action,
     required this.enabled,
+    this.suit,
     this.isPass = false,
     this.isAkwins = false,
   });

@@ -17,7 +17,12 @@ concurrency:
 jobs:
   build:
     name: Build Belote.app + DMG
-    runs-on: macos-latest
+    # ⚠️ **مشغّلٌ Intel عمدًا** (`macos-15-intel`): `macos-latest` صار Apple
+    # Silicon، وحزمةُ arm64 وحدَها تكراش فورَ الإقلاع على ماك Intel. البناءُ
+    # هنا شاملٌ (`ARCHS = arm64 x86_64`)، لكنّ مشغّلَ Intel يجعل **اختبارَ
+    # الإقلاع أدناه حقيقيًّا** على المعماريّة التي انكسرت. (`macos-13` سُحب
+    # نهائيًّا في ديسمبر 2025.)
+    runs-on: macos-15-intel
     timeout-minutes: 45
     defaults:
       run:
@@ -54,6 +59,25 @@ jobs:
           --dart-define=BELOTE_SERVER=https://hisabipro.com/belote
           --build-number=${{ github.run_number }}
 
+      # **حارسُ المعماريّة**: الحزمةُ يجب أن تكون شاملةً (arm64 + x86_64).
+      # كراشُ 2026-07-22 على ماك Intel كان حزمةَ arm64 وحدَها، ولا شيءَ في
+      # البناء يشتكي — يفشل عند المستخدم صامتًا. هنا يفشل البناءُ بدلَه.
+      - name: Verify universal binary (must include x86_64)
+        run: |
+          set -e
+          BIN=build/macos/Build/Products/Release/Belote.app/Contents/MacOS/Belote
+          if [ ! -f "$BIN" ]; then echo "::error::Executable missing at $BIN"; exit 1; fi
+          echo "runner arch: $(uname -m)"
+          lipo -archs "$BIN"
+          lipo -archs "$BIN" | grep -q x86_64 || {
+            echo "::error::Belote binary has no x86_64 slice — Intel Macs will crash on launch"
+            exit 1
+          }
+          lipo -archs "$BIN" | grep -q arm64 || {
+            echo "::error::Belote binary has no arm64 slice — Apple Silicon Macs will run under Rosetta"
+            exit 1
+          }
+
       # التحقّق + إعادةُ توقيعٍ ad-hoc تحفظ الـ entitlements (وإلّا فقدت النسخةُ
       # المنشورة صلاحيةَ الشبكة داخل الصندوق الرمليّ = بلا إنترنت بصمت).
       - name: Verify bundle & re-sign (keep entitlements)
@@ -73,6 +97,31 @@ jobs:
           codesign -d --entitlements :- "$APP" | grep -q network.client \
             && echo "✅ network.client entitlement present" \
             || { echo "::error::network entitlement missing after re-sign"; exit 1; }
+
+      # **اختبارُ إقلاعٍ حقيقيّ** — بعد إعادة التوقيع عمدًا: يُشغَّل ما يُشحَن
+      # بالضبط (توقيعٌ مكسورٌ يكراش أيضًا). عشرُ ثوانٍ تكفي: كراشُ المعماريّة
+      # وكراشُ اللقطة (snapshot) كلاهما يقع في أوّل ثانية. عند الموت يُطبَع أحدثُ
+      # تقريرِ تعطّلٍ كاملًا — بلا ذلك يبقى «التطبيقُ أُغلق فجأة» بلا سبب.
+      - name: Smoke test (launch and survive 10s)
+        run: |
+          set -e
+          APP="build/macos/Build/Products/Release/Belote.app"
+          open "$APP" || { echo "::error::open failed for $APP"; exit 1; }
+          sleep 10
+          if pgrep -x Belote >/dev/null; then
+            echo "✅ Belote is still running after 10s"
+            pkill -x Belote || true
+            exit 0
+          fi
+          echo "::error::Belote died within 10s of launch"
+          for DIR in "$HOME/Library/Logs/DiagnosticReports" /Library/Logs/DiagnosticReports; do
+            [ -d "$DIR" ] || continue
+            LATEST=$(ls -t "$DIR" 2>/dev/null | head -1)
+            [ -n "$LATEST" ] || continue
+            echo "── $DIR/$LATEST ──"
+            cat "$DIR/$LATEST"
+          done
+          exit 1
 
       - name: Build installer (.dmg)
         id: dmg
