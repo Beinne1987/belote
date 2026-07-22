@@ -32,12 +32,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # ⛔ **بلا كاشِ محرّك** (`cache: false`): الكاشُ هنا يخزّن شجرةَ Flutter
+      # كاملةً بما فيها `bin/cache/artifacts/engine` — ومنها يُنسَخ
+      # `FlutterMacOS.framework` إلى الحزمة. كاشٌ بائتٌ (أو محرّكُ debug) يعطي
+      # حزمةً رموزُها في `App.framework` سليمةٌ و`FlutterMacOS` لا يطابقها.
+      # يُنزَّل المحرّكُ نظيفًا بـ`flutter precache --macos` أدناه.
       - name: Setup Flutter 3.44.6
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.44.6'
           channel: 'stable'
-          cache: true
+          cache: false
+
+      # الكاشُ الوحيدُ المسموح: حزمُ pub (دارتٌ خالصٌ، لا علاقةَ له بالمحرّك).
+      - name: Cache pub packages only
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('app/pubspec.lock') }}
+          restore-keys: pub-${{ runner.os }}-
 
       # **Xcode 26 إلزاميّ** على مشغّل Intel: افتراضُه 16.4 بحزمةِ تطويرِ 15.5،
       # و`connectivity_plus` يستدعي `NWPath.isUltraConstrained` (واجهةُ macOS 26)
@@ -66,8 +79,16 @@ jobs:
         run: flutter doctor -v
         continue-on-error: true
 
-      - name: Get dependencies
-        run: flutter pub get
+      # **أرضٌ نظيفةٌ قبل البناء**: كلُّ ما قد يحمل محرّكًا قديمًا أو أثرَ بناءٍ
+      # سابقٍ يُمحى، ثمّ يُنزَّل محرّكُ ماك من جديدٍ للنسخة المثبَّتة (3.44.6).
+      # هذا علاجُ «App.framework سليمٌ وFlutterMacOS لا يطابقه».
+      - name: Clean slate (no stale engine or build residue)
+        run: |
+          set -e
+          flutter clean
+          rm -rf macos/Flutter/ephemeral macos/Pods macos/Podfile.lock build
+          flutter precache --macos
+          flutter pub get
 
       # ⚠️ --dart-define ليس اختياريّاً (نفسُ درس الويندوز والأندرويد)
       - name: Build macOS release
@@ -94,6 +115,23 @@ jobs:
             echo "::error::Belote binary has no arm64 slice — Apple Silicon Macs will run under Rosetta"
             exit 1
           }
+
+      # **حارسُ المحرّك**: `FlutterMacOS` موجودٌ فعلًا في الحزمة، و**لا
+      # `kernel_blob.bin`** — وجودُه يعني حزمةً بمحرّك debug/JIT (تفسيرُ دارت من
+      # الـkernel) لا AOT، وهي بالضبط الحالةُ التي تُرى فيها رموزُ AOT في
+      # `App.framework` بينما لا يطابقها المحرّكُ المنسوخ.
+      - name: Verify embedded Flutter engine (AOT, not debug)
+        run: |
+          set -e
+          APP=build/macos/Build/Products/Release/Belote.app
+          ls -l "$APP/Contents/Frameworks/FlutterMacOS.framework/Versions/A/FlutterMacOS"
+          lipo -archs "$APP/Contents/Frameworks/FlutterMacOS.framework/Versions/A/FlutterMacOS"
+          lipo -archs "$APP/Contents/Frameworks/App.framework/Versions/A/App"
+          if [ -e "$APP/Contents/Frameworks/App.framework/Versions/A/Resources/flutter_assets/kernel_blob.bin" ]; then
+            echo "::error::kernel_blob.bin present — this is a debug/JIT bundle, not an AOT release"
+            exit 1
+          fi
+          echo "✅ AOT bundle: FlutterMacOS present, no kernel_blob.bin"
 
       # التحقّق + إعادةُ توقيعٍ ad-hoc تحفظ الـ entitlements (وإلّا فقدت النسخةُ
       # المنشورة صلاحيةَ الشبكة داخل الصندوق الرمليّ = بلا إنترنت بصمت).
@@ -140,24 +178,60 @@ jobs:
           done
           exit 1
 
+      # **مصدرٌ واحدٌ لا لبس**: نُرحّل `$APP` — الحزمةَ التي فُحصت وأُقلعت —
+      # إلى مجلّدِ تجهيزٍ فارغٍ بـ`ditto` (تحفظ الروابطَ الرمزيّةَ للأطر
+      # والبياناتِ الوصفيّة؛ `cp -R` تفسدها) ونبني الـDMG من ذلك المجلّد وحدَه،
+      # فلا يلتقط `create-dmg` أيَّ حزمةٍ أخرى من الشجرة.
       - name: Build installer (.dmg)
         id: dmg
         run: |
           set -e
           APP="build/macos/Build/Products/Release/Belote.app"
           DMG="belote-macos.dmg"
+          STAGE="dmg-stage"
+          rm -rf "$STAGE" "$DMG"
+          mkdir -p "$STAGE"
+          ditto "$APP" "$STAGE/Belote.app"
+          [ -d "$STAGE/Belote.app" ] || { echo "::error::staging failed"; exit 1; }
           create-dmg \
             --volname "Belote" \
             --window-size 600 360 \
             --icon-size 110 \
             --icon "Belote.app" 150 185 \
             --app-drop-link 450 185 \
-            "$DMG" "$APP" || true
+            "$DMG" "$STAGE" || true
           if [ ! -f "$DMG" ]; then
             echo "create-dmg لم يُنتج ملفاً — احتياط hdiutil"
-            hdiutil create -volname "Belote" -srcfolder "$APP" -ov -format UDZO "$DMG"
+            hdiutil create -volname "Belote" -srcfolder "$STAGE" -ov -format UDZO "$DMG"
           fi
           ls -lh "$DMG"
+
+      # **ما في الـDMG هو ما فُحص**: نركّبه ونعيد الفحوصَ على نسخته — معماريّةً
+      # ومحرّكًا وتوقيعًا. الفحصُ على `build/` وحدَه لا يُثبت شيئًا عمّا يُشحَن.
+      - name: Verify the DMG contents (not just the build dir)
+        run: |
+          set -e
+          DMG="belote-macos.dmg"
+          MNT=$(mktemp -d)
+          hdiutil attach "$DMG" -nobrowse -readonly -mountpoint "$MNT"
+          A="$MNT/Belote.app"
+          trap 'hdiutil detach "$MNT" -quiet || true' EXIT
+          [ -d "$A" ] || { echo "::error::Belote.app not found inside the DMG"; exit 1; }
+          lipo -archs "$A/Contents/MacOS/Belote"
+          lipo -archs "$A/Contents/MacOS/Belote" | grep -q x86_64 || {
+            echo "::error::DMG copy has no x86_64 slice"; exit 1; }
+          [ -f "$A/Contents/Frameworks/FlutterMacOS.framework/Versions/A/FlutterMacOS" ] || {
+            echo "::error::FlutterMacOS missing inside the DMG"; exit 1; }
+          # `[ -e … ] && { … }` تحت `set -e` **تُفشل الخطوةَ في الحالة السليمة**
+          # (القائمةُ كلُّها تردّ 1 حين لا يوجد الملفّ) ⇒ `if` لا `&&`.
+          if [ -e "$A/Contents/Frameworks/App.framework/Versions/A/Resources/flutter_assets/kernel_blob.bin" ]; then
+            echo "::error::kernel_blob.bin inside the DMG — debug bundle shipped"
+            exit 1
+          fi
+          codesign --verify --deep --strict "$A"
+          codesign -d --entitlements :- "$A" | grep -q network.client || {
+            echo "::error::network.client entitlement lost inside the DMG"; exit 1; }
+          echo "✅ DMG contents match what was tested"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

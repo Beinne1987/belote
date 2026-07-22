@@ -18,7 +18,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # of the product and file versions while build-number is used as the build suffix.
 # الاسمُ المعروض 1.8.0؛ رقمُ البناء يُمرَّر في سطر الأمر (--build-number=2062
 # ⇒ versionCode 4062 مع --split-per-abi على arm64). لا تكتب 4xxx هنا.
-version: 1.18.5+2083
+version: 1.18.6+2084
 
 environment:
   sdk: ^3.5.0
