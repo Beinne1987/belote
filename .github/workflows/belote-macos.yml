@@ -133,6 +133,15 @@ jobs:
           fi
           echo "✅ AOT bundle: FlutterMacOS present, no kernel_blob.bin"
 
+      # **حارسُ أدنى نسخةِ نظام** — الدرسُ الأغلى (2026-07-22): مكتبةٌ واحدةٌ
+      # تشترط نسخةً أحدثَ من جهاز اللاعب تُميت التطبيقَ قبل أن يُرسَم إطار،
+      # و`dyld` وحدَه يعرف ذلك. المشغّلُ يعمل macOS 15 فلا يظهر عليه شيء مهما
+      # طال اختبارُ الإقلاع ⇒ لا بدّ من فحصٍ صريحٍ لكلّ ثنائيّةٍ في الحزمة.
+      # (الجاني كان `objective_c.framework` بـmin 13.0: يبنيه Flutter برقمٍ
+      # ثابتٍ في أداته متجاهلًا `MACOSX_DEPLOYMENT_TARGET`.)
+      - name: Verify minimum macOS of every binary (11.0)
+        run: python3 tool/verify_min_macos.py build/macos/Build/Products/Release/Belote.app 11.0
+
       # التحقّق + إعادةُ توقيعٍ ad-hoc تحفظ الـ entitlements (وإلّا فقدت النسخةُ
       # المنشورة صلاحيةَ الشبكة داخل الصندوق الرمليّ = بلا إنترنت بصمت).
       - name: Verify bundle & re-sign (keep entitlements)
@@ -231,6 +240,7 @@ jobs:
           codesign --verify --deep --strict "$A"
           codesign -d --entitlements :- "$A" | grep -q network.client || {
             echo "::error::network.client entitlement lost inside the DMG"; exit 1; }
+          python3 tool/verify_min_macos.py "$A" 11.0
           echo "✅ DMG contents match what was tested"
 
       - name: Upload artifact

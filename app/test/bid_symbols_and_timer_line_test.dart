@@ -90,7 +90,7 @@ void main() {
       await pump(
         tester,
         BidBar(
-          view: BidBarView(
+          view: const BidBarView(
             options: [
               BidOption(
                 label: 'كير',

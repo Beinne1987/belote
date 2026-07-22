@@ -65,6 +65,15 @@ dependencies:
   permission_handler: ^12.0.3
   open_filex: ^4.7.0
   path_provider: ^2.1.6
+  # ⚠️ **مثبَّتةٌ عمدًا على 2.5.1 — لا ترفعها.** نسخةُ 2.6.0 تجرّ حزمةَ
+  # `objective_c` (أصلٌ أصليٌّ يُبنى عبر build hook)، وFlutter 3.44.6 يبني كلَّ
+  # أصلٍ أصليٍّ لماك بـ`-mmacos-version-min=13` **رقمًا ثابتًا في أداته**
+  # (`targetMacOSVersion = 13`، وفوقه TODO أن يُقرأ من المشروع) — فيتجاهل
+  # `MACOSX_DEPLOYMENT_TARGET = 11.0` عندنا. النتيجة: `objective_c.framework`
+  # يشترط macOS 13، و`dyld` على مونتيري (12) يرفض تحميلَه ⇒ **التطبيق يموت عند
+  # الإقلاع بلا نافذة**، ولا يظهر ذلك على مشغّل البناء (macOS 15).
+  # يحرسه `tool/verify_min_macos.py` في مشغّل ماك.
+  path_provider_foundation: 2.5.1
   livekit_client: ^2.8.1
   # اختيار صورة الملفّ (معرض/كاميرا). **يصغّر ويضغط أصلًا** (maxWidth/imageQuality)
   # ⇒ لا حاجة لحزمة معالجة صور ثانية: الخادم يحدّ بـ512KB وnginx بميغابايت.
