@@ -1,4 +1,5 @@
 import 'package:app/ui/gift_picker.dart';
+import 'package:app/l10n/app_localizations_ar.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// **حارسُ الانجراف بين كتالوجَي هدايا VIP.**
@@ -17,7 +18,7 @@ void main() {
 
   test('لكلّ هديّةٍ اسمٌ عربيٌّ وأصلٌ من مجلّد VIP', () {
     for (final g in vipGiftCatalogUi) {
-      expect(g.name.trim(), isNotEmpty, reason: g.id);
+      expect(g.name(AppLocalizationsAr()).trim(), isNotEmpty, reason: g.id);
       expect(g.asset, startsWith('assets/VIP/'), reason: g.id);
       expect(g.asset, endsWith('.png'), reason: 'الشفافيّةُ تلزم على الطاولة');
     }

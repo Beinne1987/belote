@@ -3,6 +3,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../app_settings.dart';
+import '../l10n/app_text.dart';
 import '../net/api_client.dart';
 import '../theme/belote_theme.dart';
 import 'rules_screen.dart';
@@ -16,6 +17,7 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = BeloteTheme.of(context);
+    final l = context.l10n;
     final s = AppSettingsScope.of(context);
     return Scaffold(
       body: Container(
@@ -29,7 +31,7 @@ class SettingsScreen extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              const SimpleTopBar(title: 'الإعدادات'),
+              SimpleTopBar(title: l.settingsTitle),
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
@@ -37,7 +39,7 @@ class SettingsScreen extends StatelessWidget {
                     _tile(
                       t,
                       icon: Icons.person,
-                      title: 'الاسم',
+                      title: l.settingsName,
                       trailing: Text(s.name,
                           style: TextStyle(color: t.text2, fontSize: 14)),
                       onTap: () => _editName(context, s),
@@ -45,21 +47,33 @@ class SettingsScreen extends StatelessWidget {
                     _tile(
                       t,
                       icon: Icons.palette_outlined,
-                      title: 'الثيم',
+                      title: l.settingsTheme,
                       trailing: Icon(Icons.chevron_left, color: t.text3),
                       onTap: () => showThemeSheet(context),
+                    ),
+                    _tile(
+                      t,
+                      icon: Icons.language,
+                      title: l.settingsLanguage,
+                      trailing: Text(
+                        s.locale.languageCode == 'fr'
+                            ? l.settingsLanguageFrench
+                            : l.settingsLanguageArabic,
+                        style: TextStyle(color: t.text2, fontSize: 14),
+                      ),
+                      onTap: () => _pickLanguage(context, s),
                     ),
                     _switchTile(
                       t,
                       icon: Icons.volume_up,
-                      title: 'الصوت',
+                      title: l.settingsSound,
                       value: s.soundOn,
                       onChanged: s.setSound,
                     ),
                     _tile(
                       t,
                       icon: Icons.menu_book,
-                      title: 'كيف تلعب',
+                      title: l.howToPlay,
                       trailing: Icon(Icons.chevron_left, color: t.text3),
                       onTap: () => Navigator.of(context).push(
                           MaterialPageRoute<void>(
@@ -134,14 +148,65 @@ class SettingsScreen extends StatelessWidget {
                     style: TextStyle(
                         color: t.text2, fontWeight: FontWeight.w700, fontSize: 15)),
                 const SizedBox(height: 2),
-                Text('الإصدار $v',
-                    textDirection: TextDirection.ltr,
+                Text(context.l10n.appVersion(v),
                     style: TextStyle(color: t.text3, fontSize: 12)),
               ],
             ),
           );
         },
       );
+
+  /// **اختيارُ اللغة** — عربيّةٌ أو فرنسيّة. يُحفَظ فورًا ويُعاد بناءُ التطبيق
+  /// كلِّه (الاتّجاهُ معه): لا إعادةَ تشغيلٍ ولا تأكيد.
+  void _pickLanguage(BuildContext context, AppSettings s) {
+    final t = BeloteTheme.of(context);
+    final l = context.l10n;
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: t.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              child: Text(l.settingsLanguage,
+                  style: TextStyle(
+                      color: t.text, fontSize: 16, fontWeight: FontWeight.w800)),
+            ),
+            for (final locale in AppSettings.supportedLocales)
+              ListTile(
+                leading: Icon(
+                  locale.languageCode == s.locale.languageCode
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_unchecked,
+                  color: t.accent,
+                ),
+                // **كلُّ لغةٍ باسمها في لغتها**: من يبحث عن الفرنسيّة يقرأ
+                // «Français» ولو كانت الواجهةُ عربيّة، والعكس.
+                title: Text(
+                  locale.languageCode == 'fr'
+                      ? 'Français'
+                      : context.l10n.languageArabicNative,
+                  textDirection: locale.languageCode == 'fr'
+                      ? TextDirection.ltr
+                      : TextDirection.rtl,
+                  style: TextStyle(color: t.text, fontWeight: FontWeight.w600),
+                ),
+                onTap: () {
+                  s.setLocale(locale);
+                  Navigator.pop(ctx);
+                },
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
 
   void _editName(BuildContext context, AppSettings s) {
     final controller = TextEditingController(text: s.name);
@@ -150,7 +215,8 @@ class SettingsScreen extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: t.surface,
-        title: Text('الاسم', style: TextStyle(color: t.text)),
+        title: Text(context.l10n.settingsName,
+            style: TextStyle(color: t.text)),
         content: TextField(
           controller: controller,
           autofocus: true,
@@ -167,7 +233,8 @@ class SettingsScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('إلغاء', style: TextStyle(color: t.text3)),
+            child: Text(context.l10n.cancel,
+                style: TextStyle(color: t.text3)),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
@@ -178,7 +245,7 @@ class SettingsScreen extends StatelessWidget {
               }
               Navigator.pop(ctx);
             },
-            child: const Text('حفظ'),
+            child: Text(context.l10n.save),
           ),
         ],
       ),
@@ -226,8 +293,9 @@ class _SupportSectionState extends State<_SupportSection> {
     if (!ok && mounted) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(
-          content: Text('تعذّر الفتح على هذا الجهاز.', textAlign: TextAlign.center),
+        ..showSnackBar(SnackBar(
+          content: Text(context.l10n.openFailed,
+              textAlign: TextAlign.center),
           behavior: SnackBarBehavior.floating,
         ));
     }
@@ -268,21 +336,21 @@ class _SupportSectionState extends State<_SupportSection> {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(4, 8, 4, 8),
-          child: Text('الدعم الفنّي',
+          child: Text(context.l10n.supportSection,
               style: TextStyle(
                   color: t.text2, fontSize: 13, fontWeight: FontWeight.w800)),
         ),
         if (_whatsapp.isNotEmpty)
           tile(
             icon: Icons.chat,
-            title: 'واتساب',
+            title: context.l10n.supportWhatsapp,
             subtitle: '+$_whatsapp',
             onTap: () => _open(Uri.parse('https://wa.me/$_whatsapp')),
           ),
         if (_email.isNotEmpty)
           tile(
             icon: Icons.mail_outline,
-            title: 'البريد الإلكتروني',
+            title: context.l10n.supportEmail,
             subtitle: _email,
             onTap: () => _open(Uri(scheme: 'mailto', path: _email)),
           ),

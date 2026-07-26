@@ -24,10 +24,18 @@ class SuitPip extends StatelessWidget {
   /// الألوانُ الحمراء — قرارٌ بصريٌّ لا قاعدة (كالورق).
   static const redSuits = {'coeur', 'carreau'};
 
-  /// حبرُ الرمز على خلفيّةٍ داكنة: الأحمرُ أفتحُ من حبرِ الورق كي يُقرأ على
-  /// اللبّاد، والأسودُ يصير [onDarkInk] وإلّا اختفى.
-  static Color inkOnDark(String suit, Color onDarkInk) =>
-      redSuits.contains(suit) ? const Color(0xFFFF5A62) : onDarkInk;
+  /// **حبرُ الورق نفسُه** — مطابقٌ لـ`card_face.dart` (`_inkRed`/`_inkBlack`):
+  /// حيثما رُسِم الرمزُ على وجهٍ عاجيّ (بطاقاتُ شريط الضمانة) يظهر اللونُ كما
+  /// هو في يدك: أحمرُ الكير والكارو، وأسودُ البيك والأتريف. لا تُستعمل على
+  /// اللبّاد الداكن — هناك يختفي الأسود.
+  static const Color cardInkRed = Color(0xFFC8102E);
+  static const Color cardInkBlack = Color(0xFF16161D);
+
+  /// ورقُ الوجه العاجيّ (`_pa` في `card_face.dart`).
+  static const Color cardPaper = Color(0xFFF7F3E8);
+
+  static Color cardInk(String suit) =>
+      redSuits.contains(suit) ? cardInkRed : cardInkBlack;
 
   /// مسارُ الرمز في فضاء 100×100 — يُفحَص بالأرقام في الاختبار.
   static Path pathOf(String suit) {

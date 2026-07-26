@@ -30,15 +30,28 @@ class AppBoot {
   static const Duration nativeTimeout = Duration(seconds: 8);
 
   Future<void>? _art;
+  Future<void>? _fb;
 
   /// **رسومُ الأوراق** — تحليلُ SVG في الذاكرة: Dart خالصٌ بلا قناةٍ أصليّة، فلا
   /// يمكن أن يعلّق على منصّة. هذه وحدَها يُنتظَر تمامُها قبل عرض المحتوى، حتى
   /// لا تُرسَم ورقةٌ بلا وجه. تُطلَق مرّةً ويُعاد الوعدُ نفسُه بعدها.
   Future<void> artReady() => _art ??= preloadCardArt();
 
+  /// **بوّابةُ Firebase** — ينتظرها كلُّ من يلمس `FirebaseMessaging.instance` أو
+  /// `FirebaseAuth.instance`.
+  ///
+  /// حين صارت التهيئةُ تقع **بعد** `runApp`، صار كلُّ نداءٍ لـ`.instance` قبل
+  /// تمامِها يرمي `[core/no-app]`. ومن ناداها في **مُهيّئِ حقلٍ** (لا داخل
+  /// دالّة) رمى أثناء بناء الشجرة ⇒ شاشةُ الخطأ تملأ التطبيق. فالقاعدة:
+  /// **لا `.instance` إلّا بعد `await AppBoot.instance.firebaseReady()`.**
+  ///
+  /// تُطلَق مرّةً ويُعاد الوعدُ نفسُه، وتكتمل حتى لو فشلت التهيئة ([guarded]
+  /// يبتلع) — المنتظِرُ لا يعلّق أبدًا، وعليه أن يحتمل فشلَ ما بعدها.
+  Future<void> firebaseReady() => _fb ??= guarded('Firebase', _initFirebase);
+
   /// يُطلق التهيئاتِ الأصليّة **بعد** `runApp`. لا `await` له في `main`.
   void startNative() {
-    unawaited(guarded('Firebase', _initFirebase));
+    unawaited(firebaseReady());
     unawaited(guarded('الصوت', Sfx.instance.init));
   }
 

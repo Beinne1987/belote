@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../l10n/app_text.dart';
 import '../services/update_installer.dart';
 import '../services/update_service.dart';
 
@@ -60,14 +61,13 @@ class _UpdateDialogState extends State<UpdateDialog> {
     return PopScope(
       canPop: !info.mandatory,
       child: AlertDialog(
-        title: Text('نسخة جديدة ${info.version}', textDirection: TextDirection.rtl),
+        title: Text(context.l10n.updateNewVersion(info.version)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              info.notes.isEmpty ? 'تتوفّر نسخة أحدث من اللعبة.' : info.notes,
-              textDirection: TextDirection.rtl,
+              info.notes.isEmpty ? context.l10n.updateAvailable : info.notes,
             ),
             if (_downloading) ...[
               const SizedBox(height: 20),
@@ -75,8 +75,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
             ],
             if (_isError) ...[
               const SizedBox(height: 14),
-              Text(_progress!.message ?? 'تعذّر التحديث',
-                  textDirection: TextDirection.rtl,
+              Text(_progress!.message ?? context.l10n.updateFailed,
                   style: const TextStyle(color: Colors.redAccent, fontSize: 13.5)),
             ],
           ],
@@ -98,8 +97,9 @@ class _UpdateDialogState extends State<UpdateDialog> {
         ),
         const SizedBox(height: 8),
         Text(
-          installing ? 'جارٍ التثبيت…' : 'جارٍ التنزيل… ${p.percent}%',
-          textDirection: TextDirection.rtl,
+          installing
+              ? context.l10n.installing
+              : context.l10n.downloading(p.percent),
           textAlign: TextAlign.center,
           style: const TextStyle(fontSize: 13),
         ),
@@ -114,11 +114,11 @@ class _UpdateDialogState extends State<UpdateDialog> {
       if (!widget.info.mandatory && !_started)
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('لاحقًا'),
+          child: Text(context.l10n.later),
         ),
       FilledButton(
         onPressed: _startUpdate,
-        child: Text(_isError ? 'إعادة المحاولة' : 'تحديث الآن'),
+        child: Text(_isError ? context.l10n.retry : context.l10n.updateNow),
       ),
     ];
   }

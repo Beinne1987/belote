@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../game/online_game_controller.dart' show ChatLogEntry;
 import '../game/quick_chat.dart';
 import '../game/seat_player.dart';
+import '../l10n/app_text.dart';
 import '../theme/belote_theme.dart';
 
 /// **لوحةُ الدردشة** — نصٌّ حرٌّ، والعباراتُ الجاهزةُ ردودٌ سريعةٌ على حافّتها
@@ -116,7 +117,7 @@ class _ChatSheetState extends State<_ChatSheet> {
                   Icon(Icons.chat_bubble_outline,
                       color: t.accentBright, size: 20),
                   const SizedBox(width: 8),
-                  Text('الدردشة',
+                  Text(context.l10n.chatTitle,
                       style: TextStyle(
                           color: t.text,
                           fontSize: 16,
@@ -138,7 +139,7 @@ class _ChatSheetState extends State<_ChatSheet> {
                   final entries = widget.log();
                   if (entries.isEmpty) {
                     return Center(
-                      child: Text('لا رسائلَ بعد — ابدأ الحديث.',
+                      child: Text(context.l10n.noMessagesYet,
                           style: TextStyle(color: t.text3, fontSize: 13)),
                     );
                   }
@@ -190,7 +191,7 @@ class _ChatSheetState extends State<_ChatSheet> {
                           null, // بلا عدّادٍ يشغل السطر
                       style: TextStyle(color: t.text, fontSize: 14),
                       decoration: InputDecoration(
-                        hintText: 'اكتب رسالةً…',
+                        hintText: context.l10n.writeMessageHint,
                         hintStyle: TextStyle(color: t.text3),
                         filled: true,
                         fillColor: t.surface2,
@@ -220,11 +221,12 @@ class _ChatSheetState extends State<_ChatSheet> {
 
   Widget _bubble(BeloteTheme t, ChatLogEntry e) {
     final seatsNow = widget.seats();
+    final l = context.l10n;
     final name = e.mine
-        ? 'أنت'
+        ? l.seatYou
         : (e.viewSeat >= 0 && e.viewSeat < seatsNow.length
             ? seatsNow[e.viewSeat].name
-            : 'لاعب');
+            : l.playerFallback);
     // البلاغُ على رسالة **بشريٍّ غيري** وحدها: رسالتي لا أُبلغ عنها، والذكاء
     // لا معرّفَ له (senderId=null) ولا معنى للبلاغ عنه.
     final reportable =

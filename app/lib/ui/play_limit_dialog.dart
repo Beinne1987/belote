@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../net/api_client.dart';
 import '../net/session_controller.dart';
+import '../l10n/app_text.dart';
 import '../theme/belote_theme.dart';
 
 /// **عرضُ «افتح يومًا كاملًا»** — يظهر حين تنفد لعباتُ اليوم (طلبُ المالك 2026-07-16:
@@ -82,12 +83,12 @@ class _PlayLimitOfferState extends State<_PlayLimitOffer> {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تعذّر الاستلام — حاول ثانيةً')));
+          SnackBar(content: Text(context.l10n.claimFailedRetry)));
     } catch (_) {
       if (!mounted) return;
       setState(() => _busy = false);
       ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('تعذّر الاتّصال')));
+          .showSnackBar(SnackBar(content: Text(context.l10n.connectionFailed)));
     }
   }
 
@@ -107,18 +108,19 @@ class _PlayLimitOfferState extends State<_PlayLimitOffer> {
       }
       setState(() => _busy = false);
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تعذّر التفعيل — حاول ثانيةً')));
+          SnackBar(content: Text(context.l10n.activateFailedRetry)));
     } catch (_) {
       if (!mounted) return;
       setState(() => _busy = false);
       ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('تعذّر الاتّصال')));
+          .showSnackBar(SnackBar(content: Text(context.l10n.connectionFailed)));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final t = BeloteTheme.of(context);
+    final l = context.l10n;
     final k = _day;
     // **أوّلُ نفادٍ في العمر ⇒ هديّةٌ لا فاتورة** ([[conversion-strategy]]): يذوق
     // «بلا حدود» مرّةً فيعرف في الثانية *ما* يشتري — لا يشتري وصفًا.
@@ -132,8 +134,7 @@ class _PlayLimitOfferState extends State<_PlayLimitOffer> {
           const SizedBox(width: 8),
           // **العنوانُ عرضٌ لا نعي**: يبيع ما يريده لا يُعلن ما فقده.
           Expanded(
-            child: Text(gift ? 'هديّةٌ منّا: يومٌ كامل' : 'افتح يومًا كاملًا',
-                textDirection: TextDirection.rtl,
+            child: Text(gift ? l.giftDayTitle : l.openFullDayTitle,
                 style: TextStyle(
                     color: t.text, fontSize: 18, fontWeight: FontWeight.w800)),
           ),
@@ -145,27 +146,23 @@ class _PlayLimitOfferState extends State<_PlayLimitOffer> {
         children: [
           Text(
             gift
-                ? 'انتهت لعباتُك الخمسُ اليوم — وهذه أوّلُ مرّة. خذ 24 ساعةً بلا '
-                    'حدودٍ منّا، والعب ما شئت مع أصدقائك.'
+                ? l.playLimitGiftBody
                 : k == null
-                    ? 'انتهت لعباتُك اليوم — تعود غدًا.'
-                    : 'انتهت لعباتُك الخمسُ اليوم. فعّل اللعب بلا حدودٍ 24 ساعةً '
-                        'والعب ما شئت مع أصدقائك.',
-            textDirection: TextDirection.rtl,
+                    ? l.playLimitPlainBody
+                    : l.playLimitOfferBody,
             style: TextStyle(color: t.text2, fontSize: 13.5, height: 1.5),
           ),
           const SizedBox(height: 10),
           // **لا يُحاصَر بلا مخرج**: الأوفلاين حرٌّ بلا حدّ — وهو المخرجُ الصادقُ
           // لمن لا يدفع اليوم.
-          Text('واللعبُ مع الذكاء يبقى مجّانيًّا بلا حدود.',
-              textDirection: TextDirection.rtl,
+          Text(l.offlineAlwaysFree,
               style: TextStyle(color: t.text3, fontSize: 12)),
         ],
       ),
       actions: [
         TextButton(
           onPressed: _busy ? null : () => Navigator.pop(context, false),
-          child: const Text('لاحقًا'),
+          child: Text(l.later),
         ),
         if (_loading)
           const Padding(
@@ -185,7 +182,7 @@ class _PlayLimitOfferState extends State<_PlayLimitOffer> {
                     width: 16,
                     height: 16,
                     child: CircularProgressIndicator(strokeWidth: 2))
-                : const Text('استلم الهديّة'),
+                : Text(l.claimGift),
           )
         else if (k != null)
           FilledButton(
@@ -200,7 +197,7 @@ class _PlayLimitOfferState extends State<_PlayLimitOffer> {
                 : Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text('فعّل الآن'),
+                      Text(l.activateNow),
                       const SizedBox(width: 6),
                       const Icon(Icons.diamond, size: 14),
                       const SizedBox(width: 3),

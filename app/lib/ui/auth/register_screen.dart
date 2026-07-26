@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../../data/countries.dart';
 import '../../net/api_client.dart';
 import '../../services/phone_auth.dart';
+import '../../l10n/app_text.dart';
 import '../../theme/belote_theme.dart';
 import 'auth_common.dart';
 
@@ -62,11 +63,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _sendCode() async {
     final local = _phone.text.replaceAll(RegExp(r'[^0-9]'), '');
     if (local.length < 6) {
-      setState(() => _error = 'أدخل رقم هاتف صالحًا');
+      setState(() => _error = context.l10n.invalidPhone);
       return;
     }
     if (!_auth.supported) {
-      setState(() => _error = 'الدخول بالهاتف غير مدعوم على هذه المنصّة');
+      setState(() => _error = context.l10n.phoneAuthUnsupported);
       return;
     }
     setState(() {
@@ -100,7 +101,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _verifyCode() async {
     if (_code.text.trim().length < 6) {
-      setState(() => _error = 'أدخل الرمز المكوَّن من ٦ أرقام');
+      setState(() => _error = context.l10n.enterSixDigitCode);
       return;
     }
     setState(() { _busy = true; _error = null; });
@@ -115,15 +116,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _createAccount() async {
     if (_password.text.length < 6) {
-      setState(() => _error = 'كلمة السرّ ٦ أحرف على الأقلّ');
+      setState(() => _error = context.l10n.passwordTooShort);
       return;
     }
     if (_name.text.trim().isEmpty) {
-      setState(() => _error = 'أدخل اسمك');
+      setState(() => _error = context.l10n.enterYourName);
       return;
     }
     if (_city.text.trim().isEmpty) {
-      setState(() => _error = 'أدخل مدينتك');
+      setState(() => _error = context.l10n.enterYourCity);
       return;
     }
     setState(() { _busy = true; _error = null; });
@@ -145,10 +146,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final t = BeloteTheme.of(context);
+    final l = context.l10n;
     final (icon, title, subtitle, label, action) = switch (_phase) {
-      _Phase.phone => (Icons.person_add, 'إنشاء حساب', 'سنرسل رمزًا لتأكيد رقمك', 'إرسال الرمز', _sendCode),
-      _Phase.code => (Icons.sms_outlined, 'رمز التأكيد', 'أدخل الرمز المُرسَل إلى $_sentPhone', 'تحقّق', _verifyCode),
-      _Phase.details => (Icons.badge_outlined, 'أكمل حسابك', 'كلمة سرّ للدخول لاحقًا، واسمك ودولتك ومدينتك', 'إنشاء الحساب', _createAccount),
+      _Phase.phone => (
+          Icons.person_add,
+          l.createAccount,
+          l.registerPhoneSub,
+          l.sendCode,
+          _sendCode
+        ),
+      _Phase.code => (
+          Icons.sms_outlined,
+          l.codeTitle,
+          l.codeSentTo(_sentPhone),
+          l.verify,
+          _verifyCode
+        ),
+      _Phase.details => (
+          Icons.badge_outlined,
+          l.completeAccount,
+          l.completeAccountSub,
+          l.createAccountAction,
+          _createAccount
+        ),
     };
     return AuthScaffold(
       icon: icon,
@@ -167,7 +187,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ? [
               TextButton(
                 onPressed: _busy ? null : widget.onLogin,
-                child: Text('لديك حساب؟ سجّل الدخول',
+                child: Text(l.haveAccountSignIn,
                     style: TextStyle(color: t.accentBright, fontWeight: FontWeight.w700)),
               ),
             ]
@@ -191,7 +211,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               cursorColor: t.accent,
               enabled: !_busy,
               onSubmitted: (_) => _sendCode(),
-              decoration: authDecoration(t, 'رقم الهاتف'),
+              decoration: authDecoration(t, context.l10n.fieldPhone),
             ),
           ),
         ],
@@ -211,7 +231,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         decoration: authDecoration(t, '••••••').copyWith(counterText: ''),
       );
 
-  List<Widget> _detailFields(BeloteTheme t) => [
+  List<Widget> _detailFields(BeloteTheme t) {
+    final l = context.l10n;
+    return [
         TextField(
           controller: _password,
           obscureText: _obscure,
@@ -219,7 +241,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           style: TextStyle(color: t.text, fontSize: 18),
           cursorColor: t.accent,
           enabled: !_busy,
-          decoration: authDecoration(t, 'كلمة السرّ (٦ أحرف على الأقلّ)',
+          decoration: authDecoration(t, l.fieldPasswordMin,
               suffix: IconButton(
                 icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility, color: t.text3),
                 onPressed: () => setState(() => _obscure = !_obscure),
@@ -233,7 +255,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           style: TextStyle(color: t.text, fontSize: 18),
           cursorColor: t.accent,
           enabled: !_busy,
-          decoration: authDecoration(t, 'الاسم').copyWith(counterText: ''),
+          decoration: authDecoration(t, l.fieldName).copyWith(counterText: ''),
         ),
         const SizedBox(height: 12),
         InkWell(
@@ -254,7 +276,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               children: [
                 Text(_country.flag, style: const TextStyle(fontSize: 20)),
                 const SizedBox(width: 10),
-                Text(_country.ar, style: TextStyle(color: t.text, fontSize: 16)),
+                Text(
+                    _country.nameIn(Localizations.localeOf(context).languageCode),
+                    style: TextStyle(color: t.text, fontSize: 16)),
                 const Spacer(),
                 Icon(Icons.expand_more, color: t.text3),
               ],
@@ -269,7 +293,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           style: TextStyle(color: t.text, fontSize: 18),
           cursorColor: t.accent,
           enabled: !_busy,
-          decoration: authDecoration(t, 'المدينة / الولاية').copyWith(counterText: ''),
+          decoration: authDecoration(t, l.fieldCity).copyWith(counterText: ''),
         ),
-      ];
+    ];
+  }
 }

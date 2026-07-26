@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_text.dart';
 import '../theme/belote_theme.dart';
 import '../theme/theme_manager.dart';
 import '../theme/themes.dart';
@@ -22,7 +23,7 @@ void showThemeSheet(BuildContext context) {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
-              child: Text('الثيم',
+              child: Text(context.l10n.settingsTheme,
                   style: TextStyle(
                       color: t.text, fontWeight: FontWeight.w800, fontSize: 16)),
             ),

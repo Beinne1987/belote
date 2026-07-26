@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../net/api_client.dart';
+import '../l10n/app_text.dart';
 import '../theme/belote_theme.dart';
 import 'rank_badge.dart';
 import 'honor_badge.dart';
@@ -45,7 +46,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              const SimpleTopBar(title: 'التصنيف'),
+              SimpleTopBar(title: context.l10n.navLeaderboard),
               Expanded(
                 child: FutureBuilder<List<LeaderEntry>>(
                   future: _future,
@@ -60,7 +61,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                         icon: Icons.cloud_off,
                         text: snap.error is ApiException
                             ? (snap.error as ApiException).message
-                            : 'تعذّر جلب التصنيف',
+                            : context.l10n.leaderboardFetchFailed,
                         onRetry: _reload,
                       );
                     }
@@ -69,7 +70,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                       return _message(
                         t,
                         icon: Icons.leaderboard_outlined,
-                        text: 'لا تصنيف بعد — العب مباريات أونلاين لتظهر هنا.',
+                        text: context.l10n.leaderboardEmpty,
                         onRetry: _reload,
                       );
                     }
@@ -115,7 +116,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                 style: OutlinedButton.styleFrom(
                     foregroundColor: t.text, side: BorderSide(color: t.line)),
                 icon: const Icon(Icons.refresh),
-                label: const Text('إعادة المحاولة'),
+                label: Text(context.l10n.retry),
               ),
             ],
           ),
@@ -155,7 +156,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                       color: Color(0xFF1A1A1A), fontWeight: FontWeight.w900)),
             ),
             const SizedBox(height: 6),
-            Text(_name(r),
+            Text(_name(context.l10n, r),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
@@ -201,7 +202,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             const SizedBox(width: 8),
             PlayerAvatar(
               url: r.avatarUrl,
-              fallback: _name(r).characters.first,
+              fallback: _name(context.l10n, r).characters.first,
               size: 32,
               borderColor: t.surface2,
             ),
@@ -213,7 +214,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                   Row(
                     children: [
                       Flexible(
-                        child: Text(_name(r),
+                        child: Text(_name(context.l10n, r),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
@@ -231,7 +232,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                       ],
                     ],
                   ),
-                  Text('${r.matches} مباراة · ${r.wins} فوز',
+                  Text(context.l10n.matchesAndWins(r.matches, r.wins),
                       style: TextStyle(color: t.text3, fontSize: 11.5)),
                 ],
               ),
@@ -243,5 +244,6 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
         ),
       );
 
-  String _name(LeaderEntry r) => r.displayName.isNotEmpty ? r.displayName : 'لاعب';
+  String _name(AppLocalizations l, LeaderEntry r) =>
+      r.displayName.isNotEmpty ? r.displayName : l.playerFallback;
 }

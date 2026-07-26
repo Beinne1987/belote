@@ -2,6 +2,7 @@ import 'package:belote_engine/belote_engine.dart' as engine;
 import 'package:flutter/material.dart';
 
 import '../game/view_model.dart';
+import '../l10n/app_text.dart';
 import '../theme/belote_theme.dart';
 import 'card_face.dart';
 
@@ -21,41 +22,42 @@ class MatchSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = BeloteTheme.of(context);
+    final l = context.l10n;
     final i = summary.insights;
     final mvp = i.seatPerf(i.mvpSeat);
 
     final cards = <Widget>[
       _MomentCard(
         icon: '⭐',
-        label: 'رجل المباراة',
+        label: l.momentMvp,
         title: summary.nameOf(i.mvpSeat),
-        detail: _mvpDetail(mvp),
+        detail: _mvpDetail(l, mvp),
         mine: summary.isMe(i.mvpSeat),
         highlight: true,
       ),
       if (i.bestBid != null)
         _MomentCard(
           icon: '📣',
-          label: 'أفضل إعلان',
-          title: '${summary.nameOf(i.bestBid!.seat)} · ${_bidName(i.bestBid!)}',
-          detail: 'جنى ${i.bestBid!.points} نقطة في الجولة ${i.bestBid!.round}',
+          label: l.momentBestBid,
+          title: '${summary.nameOf(i.bestBid!.seat)} · ${_bidName(l, i.bestBid!)}',
+          detail: l.momentBestBidDetail(i.bestBid!.points, i.bestBid!.round),
           mine: summary.isMe(i.bestBid!.seat),
         ),
       if (i.strongestCard != null)
         _MomentCard(
           icon: '🔥',
-          label: 'أقوى ورقة',
+          label: l.momentStrongestCard,
           title: summary.nameOf(i.strongestCard!.seat),
-          detail: 'خطفت ${i.strongestCard!.units} وحدةً في أبليٍّ واحد',
+          detail: l.momentStrongestCardDetail(i.strongestCard!.units),
           mine: summary.isMe(i.strongestCard!.seat),
           trailing: _cardOf(i.strongestCard!.card),
         ),
       if (i.longestStreak != null)
         _MomentCard(
           icon: '⚡',
-          label: 'أطول سلسلة',
+          label: l.momentLongestStreak,
           title: summary.nameOf(i.longestStreak!.seat),
-          detail: '${i.longestStreak!.length} أبالٍ متتاليةً بلا أن يقطعها أحد',
+          detail: l.momentLongestStreakDetail(i.longestStreak!.length),
           mine: summary.isMe(i.longestStreak!.seat),
         ),
     ];
@@ -68,7 +70,7 @@ class MatchSummary extends StatelessWidget {
           children: [
             Text('✨ ', style: TextStyle(fontSize: 14, color: t.accent)),
             Text(
-              'لحظات المباراة',
+              l.matchMoments,
               style: TextStyle(
                 color: t.accent,
                 fontSize: 14,
@@ -84,27 +86,27 @@ class MatchSummary extends StatelessWidget {
   }
 
   /// سببُ استحقاقه اللقب — رقمٌ يُسنِد الحكم، لا مدحٌ مرسَل.
-  String _mvpDetail(engine.SeatPerformance p) {
+  String _mvpDetail(AppLocalizations l, engine.SeatPerformance p) {
     final bits = <String>[
-      '${p.tricks} أبالٍ',
-      '${p.units} وحدة',
-      if (p.bidsWon > 0) 'وفّى بـ${p.bidsWon} ضمانة',
-      if (p.rightAccusations > 0) 'كشف ${p.rightAccusations} فوجة',
+      l.tricksCount(p.tricks),
+      l.unitsCount(p.units),
+      if (p.bidsWon > 0) l.bidsWonCount(p.bidsWon),
+      if (p.rightAccusations > 0) l.foujaCaughtCount(p.rightAccusations),
     ];
     return bits.join(' · ');
   }
 
-  String _bidName(engine.BestBidMoment b) {
+  String _bidName(AppLocalizations l, engine.BestBidMoment b) {
     final name = switch (b.bid) {
-      'A' => 'تو',
-      'N' => 'صن',
-      'T' => 'أتريف',
-      'C' => 'كارو',
-      'H' => 'كير',
-      'S' => 'أبيك',
+      'A' => l.bidTout,
+      'N' => l.bidSans,
+      'T' => l.suitTrefle,
+      'C' => l.suitCarreau,
+      'H' => l.suitCoeur,
+      'S' => l.suitPique,
       _ => b.bid,
     };
-    return b.akwins ? '$name أكوينس' : name;
+    return b.akwins ? l.bidWithAkwinsShort(name) : name;
   }
 
   /// ورقةٌ مرسومةٌ صغيرةً بجانب لقطتها — الرمزُ وحدَه («SJ») لا يعني شيئًا للاعب.
@@ -164,7 +166,6 @@ class _MomentCard extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  textDirection: TextDirection.rtl,
                   style: TextStyle(
                       color: t.accent,
                       fontSize: 11,
@@ -172,8 +173,7 @@ class _MomentCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  mine ? '$title (أنت)' : title,
-                  textDirection: TextDirection.rtl,
+                  mine ? context.l10n.youSuffix(title) : title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -187,7 +187,6 @@ class _MomentCard extends StatelessWidget {
                 // بأرقامٍ داخله ⇒ `rtl` للجملة، والأرقامُ لاتينيّةٌ بأصلها.
                 Text(
                   detail,
-                  textDirection: TextDirection.rtl,
                   style: TextStyle(color: t.feltInk2, fontSize: 12),
                 ),
               ],

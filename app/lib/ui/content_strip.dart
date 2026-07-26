@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../net/api_client.dart';
+import '../l10n/app_text.dart';
 import '../theme/belote_theme.dart';
 import 'player_avatar.dart' show PlayerAvatar;
 
@@ -187,7 +188,7 @@ class _ContentStripState extends State<ContentStrip> {
           shrinkWrap: true,
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 20),
           children: [
-            Text('آخر الأخبار',
+            Text(context.l10n.latestNews,
                 style: TextStyle(
                     color: t.text, fontSize: 16, fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),

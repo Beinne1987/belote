@@ -3,7 +3,8 @@ import 'package:flutter/widgets.dart';
 
 import '../game/seat_player.dart';
 import '../net/player_rank.dart';
-import '../strings_ar.dart';
+import '../l10n/app_text.dart';
+import '../l10n/labels.dart';
 import '../theme/belote_theme.dart';
 import 'player_avatar.dart';
 
@@ -75,8 +76,8 @@ class PlayerCardSquare extends StatelessWidget {
 
   /// نصُّ الشارة: رتبةُ الخادم إن ترشّح صاحبُها، وإلّا المشتقّةُ محلّيًّا.
   /// **لا «غير مصنَّف» على الطاولة**: خبرٌ لا يفيد الجالسين ويزاحم الاسم.
-  String get _rankText =>
-      (skill?.placed ?? false) ? skill!.title : S.rankLabel(rank);
+  String _rankText(AppLocalizations l) =>
+      (skill?.placed ?? false) ? skill!.title : Labels.rank(l, rank);
 
   @override
   Widget build(BuildContext context) {
@@ -182,7 +183,7 @@ class PlayerCardSquare extends StatelessWidget {
               borderRadius: BorderRadius.circular(999),
             ),
             child: Text(
-              _rankText,
+              _rankText(context.l10n),
               style: TextStyle(
                 color: badgeInk,
                 fontWeight: FontWeight.w800,
@@ -202,7 +203,7 @@ class PlayerCardSquare extends StatelessWidget {
         ? card
         : Semantics(
             button: true,
-            label: 'ملفّ $name',
+            label: context.l10n.profileOf(name),
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: onTap,

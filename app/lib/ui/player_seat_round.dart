@@ -4,7 +4,8 @@ import 'package:flutter/widgets.dart';
 
 import '../game/seat_player.dart';
 import '../net/player_rank.dart';
-import '../strings_ar.dart';
+import '../l10n/app_text.dart';
+import '../l10n/labels.dart';
 import '../theme/belote_theme.dart';
 import 'app_frame.dart';
 import 'player_avatar.dart';
@@ -116,8 +117,8 @@ class PlayerSeatRound extends StatelessWidget {
 
   /// نصُّ الشارة: رتبةُ الخادم إن ترشّح صاحبُها، وإلّا المشتقّةُ محلّيًّا.
   /// **لا «غير مصنَّف» على الطاولة**: خبرٌ لا يفيد الجالسين ويزاحم الاسم.
-  String get _rankText =>
-      (skill?.placed ?? false) ? skill!.title : S.rankLabel(rank);
+  String _rankText(AppLocalizations l) =>
+      (skill?.placed ?? false) ? skill!.title : Labels.rank(l, rank);
 
   @override
   Widget build(BuildContext context) {
@@ -222,7 +223,7 @@ class PlayerSeatRound extends StatelessWidget {
             ],
           ),
           Text(
-            _rankText,
+            _rankText(context.l10n),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
@@ -244,10 +245,10 @@ class PlayerSeatRound extends StatelessWidget {
           // الجميع · رماديٌّ ⇒ مقطوعٌ (ولذلك ليس أحمرَ: القطعُ اختيارٌ لا عطل)
           // · أحمرُ ⇒ تعذّر، والضغطةُ تُعيد المحاولة وتُظهر السبب.
           tip: switch (voiceState) {
-            SeatVoice.live => 'صوتي مفتوح — اضغط لقطع الصوت',
-            SeatVoice.connecting => 'يتّصل…',
-            SeatVoice.failed => 'تعذّر الصوت — اضغط للمحاولة',
-            SeatVoice.off => 'الصوت مقطوع — اضغط لتتكلّم',
+            SeatVoice.live => context.l10n.voiceLive,
+            SeatVoice.connecting => context.l10n.voiceConnecting,
+            SeatVoice.failed => context.l10n.voiceFailed,
+            SeatVoice.off => context.l10n.voiceOff,
           },
           icon: switch (voiceState) {
             SeatVoice.live => Icons.mic,
@@ -265,7 +266,7 @@ class PlayerSeatRound extends StatelessWidget {
         ),
       if (onGift != null)
         _SeatButton(
-          tip: mine ? 'هديّة للجميع' : 'هديّة لِ$name',
+          tip: mine ? context.l10n.giftToAllTip : context.l10n.giftToPlayer(name),
           // **`redeem` لا `card_giftcard`**: الأخيرةُ أيقونةُ زرّ الهدايا في شريط
           // الأدوات؛ لو تشابهتا لَبدا الزرّان واحدًا في مكانين.
           icon: Icons.redeem,
@@ -275,7 +276,7 @@ class PlayerSeatRound extends StatelessWidget {
         ),
       if (!mine && onMute != null)
         _SeatButton(
-          tip: muted ? 'إلغاء كتم $name' : 'كتم $name',
+          tip: muted ? context.l10n.unmutePlayer(name) : context.l10n.mutePlayer(name),
           icon: muted ? Icons.volume_off : Icons.volume_up,
           bg: muted ? t.error : t.surface2,
           size: size,

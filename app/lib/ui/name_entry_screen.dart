@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../app_settings.dart';
+import '../l10n/app_text.dart';
 import '../theme/belote_theme.dart';
 
 /// شاشة إدخال الاسم المحلّي — تُستعمل لـ**الدخول كضيف** (اسمٌ يُحفظ محلّيًّا بلا حساب).
@@ -68,7 +69,7 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text('أهلًا بك — اكتب اسمك للبدء',
+                  Text(context.l10n.nameEntryPrompt,
                       style: TextStyle(color: t.text2, fontSize: 15)),
                   const SizedBox(height: 26),
                   TextField(
@@ -79,7 +80,7 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
                     maxLength: 20,
                     onSubmitted: (_) => _submit(),
                     decoration: InputDecoration(
-                      hintText: 'اسمك',
+                      hintText: context.l10n.nameHint,
                       hintStyle: TextStyle(color: t.text3),
                       filled: true,
                       fillColor: t.surface,
@@ -104,8 +105,8 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
                         foregroundColor: t.onAccent,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      child: const Text('ابدأ',
-                          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                      child: Text(context.l10n.start,
+                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
                     ),
                   ),
                 ],

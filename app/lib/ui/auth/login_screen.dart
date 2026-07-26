@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../data/countries.dart';
 import '../../net/api_client.dart';
+import '../../l10n/app_text.dart';
 import '../../theme/belote_theme.dart';
 import 'auth_common.dart';
 
@@ -44,11 +45,11 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _login() async {
     final local = _phone.text.replaceAll(RegExp(r'[^0-9]'), '');
     if (local.length < 6) {
-      setState(() => _error = 'أدخل رقم هاتف صالحًا');
+      setState(() => _error = context.l10n.invalidPhone);
       return;
     }
     if (_password.text.isEmpty) {
-      setState(() => _error = 'أدخل كلمة السرّ');
+      setState(() => _error = context.l10n.enterPassword);
       return;
     }
     setState(() {
@@ -72,13 +73,14 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final t = BeloteTheme.of(context);
+    final l = context.l10n;
     return AuthScaffold(
       icon: Icons.login,
-      title: 'تسجيل الدخول',
-      subtitle: 'ادخل برقم هاتفك وكلمة السرّ',
+      title: l.signInAction,
+      subtitle: l.loginSub,
       busy: _busy,
       error: _error,
-      primaryLabel: 'دخول',
+      primaryLabel: l.signIn,
       onPrimary: _login,
       fields: [
         Row(
@@ -96,7 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: TextStyle(color: t.text, fontSize: 18, letterSpacing: 1.2),
                 cursorColor: t.accent,
                 enabled: !_busy,
-                decoration: authDecoration(t, 'رقم الهاتف'),
+                decoration: authDecoration(t, context.l10n.fieldPhone),
               ),
             ),
           ],
@@ -110,7 +112,7 @@ class _LoginScreenState extends State<LoginScreen> {
           cursorColor: t.accent,
           enabled: !_busy,
           onSubmitted: (_) => _login(),
-          decoration: authDecoration(t, 'كلمة السرّ',
+          decoration: authDecoration(t, l.fieldPassword,
               suffix: IconButton(
                 icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility, color: t.text3),
                 onPressed: () => setState(() => _obscure = !_obscure),
@@ -120,11 +122,11 @@ class _LoginScreenState extends State<LoginScreen> {
       secondary: [
         TextButton(
           onPressed: _busy ? null : widget.onForgot,
-          child: Text('نسيت كلمة السرّ؟', style: TextStyle(color: t.text2)),
+          child: Text(l.forgotPassword, style: TextStyle(color: t.text2)),
         ),
         TextButton(
           onPressed: _busy ? null : widget.onRegister,
-          child: Text('ليس لديك حساب؟ أنشئ حسابًا',
+          child: Text(l.noAccountCreateOne,
               style: TextStyle(color: t.accentBright, fontWeight: FontWeight.w700)),
         ),
       ],

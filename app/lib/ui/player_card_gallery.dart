@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import '../game/seat_player.dart';
+import '../l10n/app_text.dart';
 import '../theme/belote_theme.dart';
 import 'player_card_square.dart';
 
@@ -9,12 +10,12 @@ import 'player_card_square.dart';
 class PlayerCardGallery extends StatelessWidget {
   const PlayerCardGallery({super.key});
 
-  static const _demo = <(PlayerRank, String, String)>[
-    (PlayerRank.beginner, 'أحمدو', '🐣'),
-    (PlayerRank.pro, 'المختار', '🎩'),
-    (PlayerRank.expert, 'سيدي أحمد', '🦅'),
-    (PlayerRank.legend, 'بَبَّه', '🦁'),
-  ];
+  static List<(PlayerRank, String, String)> _demo(AppLocalizations l) => [
+        (PlayerRank.beginner, l.demoNameOne, '🐣'),
+        (PlayerRank.pro, l.demoNameTwo, '🎩'),
+        (PlayerRank.expert, l.demoNameThree, '🦅'),
+        (PlayerRank.legend, l.demoNameFour, '🦁'),
+      ];
 
   @override
   Widget build(BuildContext context) {
@@ -26,11 +27,11 @@ class PlayerCardGallery extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('بطاقة اللاعب',
+              Text(context.l10n.playerCardDemo,
                   style: TextStyle(
                       color: t.text, fontSize: 22, fontWeight: FontWeight.w900)),
               const SizedBox(height: 4),
-              Text('عاديّة · نشطة (صاحب الدور)',
+              Text(context.l10n.playerCardDemoSub,
                   style: TextStyle(color: t.text2, fontSize: 13)),
               const SizedBox(height: 24),
               Wrap(
@@ -38,7 +39,7 @@ class PlayerCardGallery extends StatelessWidget {
                 runSpacing: 28,
                 alignment: WrapAlignment.center,
                 children: [
-                  for (final (rank, name, emoji) in _demo)
+                  for (final (rank, name, emoji) in _demo(context.l10n))
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [

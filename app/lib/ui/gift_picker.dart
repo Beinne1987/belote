@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../game/seat_player.dart';
+import '../l10n/app_text.dart';
 import '../theme/belote_theme.dart';
 
 /// هديّةٌ كما تُعرَض. **يجب أن تطابق `giftCatalog`** في `server/lib/game/gifts.dart`
@@ -9,35 +10,46 @@ import '../theme/belote_theme.dart';
 class GiftItem {
   final String id;
   final String emoji;
-  final String name;
+  final String Function(AppLocalizations) name;
   final int price;
   const GiftItem(this.id, this.emoji, this.name, this.price);
 }
 
 const giftCatalogUi = <GiftItem>[
-  GiftItem('rose', '🌹', 'وردة', 5),
-  GiftItem('tea', '🫖', 'أتاي', 10),
-  GiftItem('sweet', '🍬', 'حلوى', 20),
-  GiftItem('crown', '👑', 'تاج', 50),
-  GiftItem('camel', '🐪', 'جمل', 100),
-  GiftItem('car', '🚗', 'سيّارة', 200),
+  GiftItem('rose', '🌹', _rose, 5),
+  GiftItem('tea', '🫖', _tea, 10),
+  GiftItem('sweet', '🍬', _sweet, 20),
+  GiftItem('crown', '👑', _crown, 50),
+  GiftItem('camel', '🐪', _camel, 100),
+  GiftItem('car', '🚗', _car, 200),
 ];
+
+String _rose(AppLocalizations l) => l.giftRose;
+String _tea(AppLocalizations l) => l.giftTea;
+String _sweet(AppLocalizations l) => l.giftSweet;
+String _crown(AppLocalizations l) => l.giftCrown;
+String _camel(AppLocalizations l) => l.giftCamel;
+String _car(AppLocalizations l) => l.giftCar;
 
 /// **هديّةُ VIP الحصريّة** — أصلٌ فنّيٌّ لا إيموجي: الحصريّةُ تُرى بالعين، وإيموجيٌّ
 /// يملكه كلُّ هاتفٍ ليس حصريًّا. **يجب أن تطابق `vipGiftCatalog` في الخادم** معرّفًا
 /// وترتيبًا — يحرسه `vip_gift_sync_test`.
 class VipGiftItem {
   final String id;
-  final String name;
+  final String Function(AppLocalizations) name;
   final String asset;
   const VipGiftItem(this.id, this.name, this.asset);
 }
 
 const vipGiftCatalogUi = <VipGiftItem>[
-  VipGiftItem('vip_flower', 'وردةُ VIP', 'assets/VIP/gift_flower.png'),
-  VipGiftItem('vip_box', 'صندوقُ VIP', 'assets/VIP/gift_box.png'),
-  VipGiftItem('vip_pitcher', 'بَراد VIP', 'assets/VIP/gift_pitcher.png'),
+  VipGiftItem('vip_flower', _vipFlower, 'assets/VIP/gift_flower.png'),
+  VipGiftItem('vip_box', _vipBox, 'assets/VIP/gift_box.png'),
+  VipGiftItem('vip_pitcher', _vipPitcher, 'assets/VIP/gift_pitcher.png'),
 ];
+
+String _vipFlower(AppLocalizations l) => l.giftVipFlower;
+String _vipBox(AppLocalizations l) => l.giftVipBox;
+String _vipPitcher(AppLocalizations l) => l.giftVipPitcher;
 
 /// أصلُ هديّة VIP [id]، أو null إن لم تكن منها.
 String? vipGiftAsset(String id) {
@@ -120,7 +132,7 @@ class _GiftSheetState extends State<_GiftSheet> {
               children: [
                 Icon(Icons.card_giftcard, color: t.accentBright),
                 const SizedBox(width: 8),
-                Text('إهداء',
+                Text(context.l10n.giftTitle,
                     style: TextStyle(
                         color: t.text, fontSize: 18, fontWeight: FontWeight.w800)),
               ],
@@ -135,15 +147,14 @@ class _GiftSheetState extends State<_GiftSheet> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'الهدايا للاعبين البشر — ولا يجلس معك الآن غير الذكاء.\n'
-                      'ادعُ صاحبك إلى طاولةٍ خاصّة لتُهديه.',
+                      context.l10n.giftHumansOnly,
                       style: TextStyle(color: t.text2, fontSize: 13, height: 1.6),
                     ),
                   ),
                 ],
               ),
             ] else ...[
-              Text('إلى مَن؟', style: TextStyle(color: t.text2, fontSize: 13)),
+              Text(context.l10n.giftToWhom, style: TextStyle(color: t.text2, fontSize: 13)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -166,7 +177,7 @@ class _GiftSheetState extends State<_GiftSheet> {
                   ChoiceChip(
                     avatar: Icon(Icons.groups,
                         size: 17, color: _to == kGiftAll ? t.accent : t.text2),
-                    label: const Text('للجميع'),
+                    label: Text(context.l10n.giftToAll),
                     selected: _to == kGiftAll,
                     onSelected: (_) => setState(() => _to = kGiftAll),
                     selectedColor: t.accent.withValues(alpha: 0.28),
@@ -187,13 +198,13 @@ class _GiftSheetState extends State<_GiftSheet> {
                 children: [
                   Icon(Icons.workspace_premium, color: t.accent, size: 16),
                   const SizedBox(width: 6),
-                  Text('هدايا VIP',
+                  Text(context.l10n.vipGifts,
                       style: TextStyle(
                           color: t.accent,
                           fontSize: 13,
                           fontWeight: FontWeight.w800)),
                   const SizedBox(width: 6),
-                  Text('بقيت ${widget.vipStock}',
+                  Text(context.l10n.remainingCount(widget.vipStock),
                       textDirection: TextDirection.ltr,
                       style: TextStyle(color: t.text3, fontSize: 12)),
                 ],
@@ -222,7 +233,7 @@ class _GiftSheetState extends State<_GiftSheet> {
                           children: [
                             Image.asset(g.asset, height: 34),
                             const SizedBox(height: 6),
-                            Text(g.name,
+                            Text(g.name(context.l10n),
                                 style: TextStyle(color: t.text, fontSize: 12)),
                           ],
                         ),
@@ -232,7 +243,7 @@ class _GiftSheetState extends State<_GiftSheet> {
               ),
               const SizedBox(height: 14),
             ],
-            Text('ماذا تُهدي؟', style: TextStyle(color: t.text2, fontSize: 13)),
+            Text(context.l10n.giftWhat, style: TextStyle(color: t.text2, fontSize: 13)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 10,
@@ -267,7 +278,7 @@ class _GiftSheetState extends State<_GiftSheet> {
                           children: [
                             Text(g.emoji, style: const TextStyle(fontSize: 26)),
                             const SizedBox(height: 4),
-                            Text(g.name,
+                            Text(g.name(context.l10n),
                                 style: TextStyle(color: t.text, fontSize: 12)),
                             const SizedBox(height: 2),
                             // **ما تملكه لا ثمنَ له**: عرضُ الثمن على هديّةٍ ستخرج
@@ -304,8 +315,8 @@ class _GiftSheetState extends State<_GiftSheet> {
             // كان هنا «يقبض صاحبك أغلبه» — وعدٌ صار كذبًا بعد تغيّر الاقتصاد.
             Text(
                 _to == kGiftAll
-                    ? 'تصل الهديّةُ إلى ${widget.targets.length} لاعبين — ويُخصم ثمنُها لكلٍّ منهم.'
-                    : 'يُخصم الثمن من ماسك.',
+                    ? context.l10n.giftAllCostNote(widget.targets.length)
+                    : context.l10n.giftCostNote,
                 style: TextStyle(color: t.text3, fontSize: 12.5)),
             ],
           ],

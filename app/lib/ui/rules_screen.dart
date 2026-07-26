@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_text.dart';
 import '../theme/belote_theme.dart';
 import 'simple_top_bar.dart';
 
@@ -7,57 +8,22 @@ import 'simple_top_bar.dart';
 class RulesScreen extends StatelessWidget {
   const RulesScreen({super.key});
 
-  static const _sections = <(IconData, String, String)>[
-    (
-      Icons.groups,
-      'الأساس',
-      'أربعة لاعبين، فريقان (المقعدان 0 و2 ضدّ 1 و3). 32 ورقة (من 7 إلى الآس). '
-          'اتجاه اللعب عكس عقارب الساعة — التالي هو من على يمينك.'
-    ),
-    (
-      Icons.style,
-      'التوزيع',
-      'يوزَّع 3 ثم 2، ثم دور الضمانة، ثم 3 أخيرة (8 لكل لاعب). '
-          'يمين الموزّع أوّل من يضمن ويلعب، وهو موزّع الجولة القادمة.'
-    ),
-    (
-      Icons.campaign,
-      'الضمانة',
-      'دورة واحدة بالضبط (4 أدوار). اللاعب الأول لا يمرّ. الرفع فقط — لا فتح دورة جديدة بعد الرفع. '
-          'اللون المضمون هو الحكم.'
-    ),
-    (
-      Icons.flash_on,
-      'الأكوينس',
-      'للخصم فقط، في دوره فقط — يوقف الضمانة فورًا ويضاعف قيمة الجولة (32 للّون · 52 لصن/تو).'
-    ),
-    (
-      Icons.rule,
-      'اللعب',
-      'إن ملكتَ لون الافتتاح فالْزَمه. إن لم تملكه فالعب أي ورقة — ولا تُجبر على القصّ بالحكم ولا على تجاوز أعلى حكم.'
-    ),
-    (
-      Icons.calculate,
-      'الوحدات',
-      'في الحكم: J=20 و9=14. في اللون العادي: J=2 و9=0. الآس 11، العشرة 10، K=4، Q=3، و8/7 صفر. '
-          'صن/تو: كل الألوان بسُلَّم الحكم.'
-    ),
-    (
-      Icons.gavel,
-      'الفوجة',
-      'عدم اتباع اللون رغم امتلاكه. للخصم أن يعترض متى اكتشفها؛ إن ثبتت أخذ المعترِض قيمة الضمانة كاملة، '
-          'وإن كان الاتهام خاطئًا أخذها الطرف الآخر. وتتوقف الجولة فورًا.'
-    ),
-    (
-      Icons.emoji_events,
-      'الفوز',
-      'أوّل من يبلغ 100 نقطة والأعلى يفوز بالمباراة. عند التعادل عند 100 فأكثر تُلعب جولة فاصلة.'
-    ),
-  ];
+  /// أقسامُ الشاشة — الأيقونةُ ثابتةٌ والنصُّ من لغة اللاعب.
+  static List<(IconData, String, String)> _sections(AppLocalizations l) => [
+        (Icons.groups, l.ruleBasicsTitle, l.ruleBasicsBody),
+        (Icons.style, l.ruleDealTitle, l.ruleDealBody),
+        (Icons.campaign, l.ruleBidTitle, l.ruleBidBody),
+        (Icons.flash_on, l.ruleAkwinsTitle, l.ruleAkwinsBody),
+        (Icons.rule, l.rulePlayTitle, l.rulePlayBody),
+        (Icons.calculate, l.ruleUnitsTitle, l.ruleUnitsBody),
+        (Icons.gavel, l.ruleFoujaTitle, l.ruleFoujaBody),
+        (Icons.emoji_events, l.ruleWinTitle, l.ruleWinBody),
+      ];
 
   @override
   Widget build(BuildContext context) {
     final t = BeloteTheme.of(context);
+    final l = context.l10n;
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -70,11 +36,11 @@ class RulesScreen extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              const SimpleTopBar(title: 'كيف تلعب'),
+              SimpleTopBar(title: l.howToPlay),
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(16, 6, 16, 24),
-                  children: [for (final s in _sections) _card(t, s)],
+                  children: [for (final s in _sections(l)) _card(t, s)],
                 ),
               ),
             ],

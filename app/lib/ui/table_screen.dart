@@ -8,10 +8,12 @@ import '../game/seat_player.dart';
 import '../game/view_model.dart';
 import '../net/player_rank.dart';
 import '../motion.dart';
-import '../strings_ar.dart';
+import '../l10n/app_text.dart';
+import '../l10n/labels.dart';
 import '../theme/belote_theme.dart';
 import '../voice/voice_controller.dart';
 import 'bid_bar.dart';
+import 'bid_visuals.dart';
 import 'card_back.dart';
 import 'card_face.dart';
 import 'gift_picker.dart';
@@ -168,10 +170,10 @@ class TableScreen extends StatelessWidget {
 
   /// من يصحّ إهداؤه: البشر الآخرون (الذكاء لا محفظة له فلا يُهدى).
   /// للمتفرّج يدخل المقعدُ السفليّ (عرض 0) أيضًا — ليس «أنا» بل لاعبٌ حقيقيّ.
-  List<({int viewSeat, SeatPlayer player})> get _giftTargets => [
+  List<({int viewSeat, SeatPlayer player})> _giftTargets(AppLocalizations l) => [
         for (var pos = spectator ? 0 : 1; pos < 4; pos++)
           if (seatPlayerIds != null && seatPlayerIds![pos] != null)
-            (viewSeat: pos, player: _seat(pos)),
+            (viewSeat: pos, player: _seat(l, pos)),
       ];
 
   /// هل يتكلّم صاحبُ المقعد [pos] (بترتيب العرض) الآن؟
@@ -188,11 +190,11 @@ class TableScreen extends StatelessWidget {
       v.phase == GamePhase.dealing ? v.dealerSeat : v.turn;
 
   /// هويّة المقعد [i] — من [seats] إن توفّرت، وإلا نائبٌ من الأسماء الثابتة.
-  SeatPlayer _seat(int i) {
+  SeatPlayer _seat(AppLocalizations l, int i) {
     if (seats != null && i < seats!.length) return seats![i];
     final name = i == 0 && (playerName?.trim().isNotEmpty ?? false)
         ? playerName!
-        : S.seatNames[i];
+        : Labels.seat(l, i);
     return SeatPlayer(name: name);
   }
 
@@ -233,7 +235,8 @@ class TableScreen extends StatelessWidget {
   }
 
   Widget _seatCard(BuildContext context, int i, TableView v, double size) {
-    final p = _seat(i);
+    final l = context.l10n;
+    final p = _seat(l, i);
     final emoji = _at(reactions, i);
     final giftId = _at(gifts, i);
     // **النصُّ محسومٌ في الكنترولر** (عبارةٌ مُترجَمةٌ أو نصٌّ حرٌّ حرفيّ) ⇒ يُعرَض
@@ -251,12 +254,12 @@ class TableScreen extends StatelessWidget {
     // **الهديّة**: من مقعدي تُفتَح اللوحةُ على كلّ الأهداف (وفيها «للجميع»)، ومن
     // مقعدِ لاعبٍ تُفتَح عليه وحدَه — ضغطةٌ أقلُّ وقصدٌ أوضح.
     final canGiftHim =
-        onGift != null && _giftTargets.any((g) => g.viewSeat == i);
+        onGift != null && _giftTargets(l).any((g) => g.viewSeat == i);
     void openGift({required bool toAll}) => showGiftSheet(
           context,
           targets: toAll
-              ? _giftTargets
-              : _giftTargets.where((g) => g.viewSeat == i).toList(),
+              ? _giftTargets(l)
+              : _giftTargets(l).where((g) => g.viewSeat == i).toList(),
           onSend: onGift!,
           stock: giftStock,
           vipStock: vipGiftStock,
@@ -406,7 +409,9 @@ class TableScreen extends StatelessWidget {
               final timerBottom = tableInset +
                   (tableGeo.outer.height - tableGeo.flagBottomBandTop);
               final bidderName =
-                  view.bidderSeat == null ? null : _seat(view.bidderSeat!).name;
+                  view.bidderSeat == null
+                      ? null
+                      : _seat(context.l10n, view.bidderSeat!).name;
 
               return Stack(
                 children: [
@@ -492,7 +497,7 @@ class TableScreen extends StatelessWidget {
                     if (view.seatBids[s] != null)
                       Align(
                         alignment: _bubbleFor(s),
-                        child: _BidBubble(text: view.seatBids[s]!),
+                        child: _BidBubble(bid: view.seatBids[s]!),
                       ),
 
                   // ── دائرة اللعب في مركز الطاولة تمامًا: البئر + عقرب الدور + الأوراق ──
@@ -551,19 +556,36 @@ class TableScreen extends StatelessWidget {
                     ),
 
                   // ── زرّ التفاعلات (أونلاين): يقابل زرّ الفوجة على اليسار. يُخفى
-                  // أثناء الفوجة والنتيجة كي لا يزاحم لحظةً حاسمة. ──
-                  if (onReact != null && !view.claimingFouja && result == null)
+                  // أثناء الفوجة والنتيجة كي لا يزاحم لحظةً حاسمة — و**أثناء
+                  // ضمانتي** لنفس السبب: شريطُ الضمانة يحتلّ ما فوق المروحة
+                  // كلَّه، فكان الزرُّ يركب ركنَ «تمرير» ويسرق لمسةَ ضمانة.
+                  // (تصادمٌ قائمٌ كشفه حارسُ التخطيط، لا وليدُ الرفع.)
+                  //
+                  // **يجلس على اللبّاد لا على الإطار الخشبيّ** (طلبُ المالك
+                  // 2026-07-23): كان عند `left: 12` فيركب حافّةَ الطاولة ويبدو
+                  // ملقًى خارجها. حدُّه الآن حافّةُ اللبّاد نفسُها محسوبةً من
+                  // هندسة الطاولة ⇒ يدخل معها ويخرج مهما تغيّر المقاسُ أو
+                  // سُمكُ الإطار (إطارُ VIP أسمك). ويرتفع فوق المروحة فرجةً
+                  // زائدةً كي لا يلتصق بالورق.
+                  if (onReact != null &&
+                      !view.claimingFouja &&
+                      result == null &&
+                      bidBar == null)
                     Positioned(
-                      left: 12,
-                      bottom: aboveHand,
+                      left: tableInset + tableGeo.felt.left + 6,
+                      bottom: aboveHand + 14,
                       child: _ReactionButton(onReact: onReact!),
                     ),
 
                   // ── زرّ الفوجة: يفتح لوحة الاختيار ويكشف الورق ──
+                  // **يقابل زرَّ التفاعلات تمامًا**: نفسُ المقدار من حافّة اللبّاد
+                  // ونفسُ الارتفاع فوق المروحة. والطاولةُ متمركزةٌ في مساحتها
+                  // (أو تملؤها) ⇒ بُعدُ اللبّاد عن اليمين هو بُعدُه عن اليسار،
+                  // فيكفي `felt.left` للجانبين ولا ينحرف أحدُهما عن الآخر.
                   if (view.canAccuseFouja && onStartFoujaClaim != null)
                     Positioned(
-                      right: 12,
-                      bottom: aboveHand, // فوق صندوق المروحة
+                      right: tableInset + tableGeo.felt.left + 6,
+                      bottom: aboveHand + 14, // فوق صندوق المروحة
                       child: _FoujaButton(onPressed: onStartFoujaClaim!),
                     ),
 
@@ -587,7 +609,7 @@ class TableScreen extends StatelessWidget {
                     left: 12,
                     child: TableToolButton(
                       icon: Icons.logout,
-                      tip: 'خروج من اللعبة',
+                      tip: context.l10n.exitGame,
                       danger: true,
                       onTap: onExit ?? () => Navigator.maybePop(context),
                     ),
@@ -608,7 +630,7 @@ class TableScreen extends StatelessWidget {
                   if (view.foujaClaimBy != null && !view.claimingFouja)
                     Positioned.fill(
                       child: _FoujaFreezeBanner(
-                        name: _seat(view.foujaClaimBy!).name,
+                        name: _seat(context.l10n, view.foujaClaimBy!).name,
                       ),
                     ),
 
@@ -744,6 +766,7 @@ class _MatchPlaque extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = BeloteTheme.of(context);
+    final l = context.l10n;
     // قبل استقرار الضمانة يظهر حالُ الجولة (توزيعٌ/ضمانة) مكانَها.
     final official =
         view.phase == GamePhase.playing || view.phase == GamePhase.done;
@@ -755,7 +778,7 @@ class _MatchPlaque extends StatelessWidget {
         children: [
           // **لونُ الفريق يبقى مميِّزًا** (نحن بلون التمييز · هم بالثانويّ)،
           // أمّا الأرقامُ فبحبر اللوحة الكريميّ: يُقرأ على الداكن دائمًا.
-          _score(S.us, view.usScore, t.accent),
+          _score(l.teamUs, view.usScore, t.accent),
           const SizedBox(width: 12),
           Container(
             width: 1,
@@ -765,7 +788,7 @@ class _MatchPlaque extends StatelessWidget {
           const SizedBox(width: 12),
           if (!official)
             Text(
-              view.phase == GamePhase.dealing ? S.dealing : S.bidding,
+              view.phase == GamePhase.dealing ? l.phaseDealing : l.phaseBidding,
               style: const TextStyle(
                   color: _TablePlaque.ink2,
                   fontSize: 14,
@@ -776,7 +799,7 @@ class _MatchPlaque extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  S.bidLabel(view.bid, akwins: view.akwins),
+                  Labels.bid(l, view.bid, akwins: view.akwins),
                   style: const TextStyle(
                       color: _TablePlaque.ink,
                       fontSize: 16,
@@ -795,7 +818,7 @@ class _MatchPlaque extends StatelessWidget {
             color: _TablePlaque.ink2.withValues(alpha: 0.25),
           ),
           const SizedBox(width: 12),
-          _score(S.them, view.themScore, t.text2),
+          _score(l.teamThem, view.themScore, t.text2),
         ],
       ),
     );
@@ -1063,7 +1086,7 @@ class _FoujaButton extends StatelessWidget {
             boxShadow: const [BoxShadow(color: Colors.black45, blurRadius: 8)],
           ),
           child: Text(
-            S.fouja,
+            context.l10n.fouja,
             style: TextStyle(
               color: t.accent,
               fontWeight: FontWeight.w800,
@@ -1132,8 +1155,7 @@ class _FoujaClaimPanel extends StatelessWidget {
               border: Border.all(color: t.accent, width: 1.2),
             ),
             child: Text(
-              S.whoFouja,
-              textDirection: TextDirection.rtl,
+              context.l10n.foujaWho,
               style: TextStyle(
                   color: t.feltInk,
                   fontWeight: FontWeight.w800,
@@ -1143,11 +1165,13 @@ class _FoujaClaimPanel extends StatelessWidget {
         ),
         Align(
           alignment: const Alignment(0.82, 0.05),
-          child: _ClaimSide(label: S.opponentRight, onTap: onRight),
+          child: _ClaimSide(
+              label: context.l10n.opponentRight, onTap: onRight),
         ),
         Align(
           alignment: const Alignment(-0.82, 0.05),
-          child: _ClaimSide(label: S.opponentLeft, onTap: onLeft),
+          child: _ClaimSide(
+              label: context.l10n.opponentLeft, onTap: onLeft),
         ),
         Align(
           alignment: const Alignment(0, 0.9),
@@ -1169,7 +1193,7 @@ class _FoujaClaimPanel extends StatelessWidget {
                   children: [
                     Icon(Icons.close_rounded, color: t.error, size: 18),
                     const SizedBox(width: 6),
-                    Text(S.cancelFouja,
+                    Text(context.l10n.foujaCancel,
                         style: TextStyle(
                             color: t.error, fontWeight: FontWeight.w800, fontSize: 15)),
                   ],
@@ -1214,8 +1238,7 @@ class _FoujaFreezeBanner extends StatelessWidget {
                   child: CircularProgressIndicator(strokeWidth: 2.2, color: t.accentBright),
                 ),
                 const SizedBox(width: 10),
-                Text(S.foujaClaimedBy(name),
-                    textDirection: TextDirection.rtl,
+                Text(context.l10n.foujaClaimedBy(name),
                     style: TextStyle(
                         color: t.feltInk, fontWeight: FontWeight.w800, fontSize: 16)),
               ],
@@ -1337,12 +1360,29 @@ Alignment _dealTargetFor(int seat) => switch (seat) {
 
 /// فقاعة صغيرة تُظهر ما نطق به لاعبٌ أثناء الضمانة (تنبثق بلطف عند ظهورها).
 class _BidBubble extends StatelessWidget {
-  final String text;
-  const _BidBubble({required this.text});
+  final SeatBid bid;
+  const _BidBubble({required this.bid});
+
+  /// أصغرُ من زرّ الشريط: خبرٌ يُقرأ لا هدفُ لمس، وأمامه مقعدٌ ضيّق.
+  static const double _side = 38;
 
   @override
   Widget build(BuildContext context) {
-    final t = BeloteTheme.of(context);
+    // **بشكل الشريط نفسِه** (طلبُ المالك 2026-07-23): ضمانةُ اللون رمزٌ على
+    // قرصٍ فاتح لا كلمة «كير»، وما لا لونَ له يبقى قرصًا بنصّه. ما تضغطه هو
+    // ما يراه الآخرون أمامك.
+    final Widget face = bid.suit != null
+        ? SuitBidChip(suit: bid.suit!, side: _side)
+        : BidPill(
+            label: bid.label,
+            tone: bid.isAkwins
+                ? BidPillTone.akwins
+                : bid.isPass
+                    ? BidPillTone.pass
+                    : BidPillTone.high,
+            shrinkWrap: true,
+          );
+
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
       duration: const Duration(milliseconds: 170),
@@ -1351,23 +1391,18 @@ class _BidBubble extends StatelessWidget {
         scale: 0.7 + 0.3 * v,
         child: Opacity(opacity: v.clamp(0.0, 1.0), child: child),
       ),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: t.accent,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: const [
-            BoxShadow(color: Colors.black45, blurRadius: 6, offset: Offset(0, 2)),
-          ],
-        ),
-        child: Text(
-          text,
-          textDirection: TextDirection.rtl,
-          style: TextStyle(
-            color: t.onAccent,
-            fontSize: 13,
-            fontWeight: FontWeight.w800,
+      child: Semantics(
+        label: bid.label,
+        child: DecoratedBox(
+          // ظلٌّ يرفعها عن اللبّاد — الشكلُ نفسُه لكنّه هنا خبرٌ طائرٌ لا زرّ.
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(_side * 0.58),
+            boxShadow: const [
+              BoxShadow(
+                  color: Colors.black45, blurRadius: 6, offset: Offset(0, 2)),
+            ],
           ),
+          child: face,
         ),
       ),
     );

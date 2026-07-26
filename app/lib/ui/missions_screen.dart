@@ -1,34 +1,48 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_text.dart';
 import '../net/api_client.dart';
 import '../net/session_controller.dart';
 import '../theme/belote_theme.dart';
 import 'simple_top_bar.dart';
 
-/// اسمُ المهمّة عربيًّا. **يجب أن يطابق `missionCatalog`** في
-/// `server/lib/missions/missions.dart` معرّفًا — الخادمُ لا يحمل نصًّا (كالهدايا).
-/// يحرس التطابقَ `test/mission_sync_test.dart`.
+/// **أيقونةُ المهمّة ونصُّها** — المعرّف من الخادم (`missionCatalog` في
+/// `server/lib/missions/missions.dart`) والنصُّ من لغة اللاعب. الخادمُ لا يحمل
+/// نصًّا (كالهدايا)، ويحرس تطابقَ المعرّفات `test/mission_sync_test.dart`.
 class MissionItem {
   final String id;
-  final String title;
+  final String Function(AppLocalizations) title;
   final IconData icon;
   const MissionItem(this.id, this.title, this.icon);
 }
 
 const missionCatalogUi = <MissionItem>[
-  MissionItem('daily_play', 'العب ثلاث مباريات', Icons.sports_esports),
-  MissionItem('daily_win', 'فُزْ بمباراة', Icons.emoji_events),
-  MissionItem('daily_friend', 'العب مع صديق', Icons.people),
-  MissionItem('daily_gift', 'أهدِ هديّة', Icons.card_giftcard),
-  MissionItem('daily_fouja', 'اكشِف فوجةً واحدة', Icons.gavel),
-  MissionItem('weekly_play', 'العب عشرين مباراة', Icons.sports_esports),
-  MissionItem('weekly_win', 'فُزْ بعشر مباريات', Icons.emoji_events),
-  MissionItem('weekly_friend', 'العب ثلاث مباريات مع صديق', Icons.people),
-  MissionItem('weekly_invite', 'ادعُ صديقًا إلى طاولتك', Icons.person_add),
-  MissionItem('weekly_gifts', 'أهدِ عشرَ هدايا', Icons.card_giftcard),
-  MissionItem('weekly_room', 'أنشئ غرفةً خاصّة', Icons.meeting_room),
-  MissionItem('weekly_clean', 'العب عشرَ مبارياتٍ بلا فوجة', Icons.verified),
+  MissionItem('daily_play', _dailyPlay, Icons.sports_esports),
+  MissionItem('daily_win', _dailyWin, Icons.emoji_events),
+  MissionItem('daily_friend', _dailyFriend, Icons.people),
+  MissionItem('daily_gift', _dailyGift, Icons.card_giftcard),
+  MissionItem('daily_fouja', _dailyFouja, Icons.gavel),
+  MissionItem('weekly_play', _weeklyPlay, Icons.sports_esports),
+  MissionItem('weekly_win', _weeklyWin, Icons.emoji_events),
+  MissionItem('weekly_friend', _weeklyFriend, Icons.people),
+  MissionItem('weekly_invite', _weeklyInvite, Icons.person_add),
+  MissionItem('weekly_gifts', _weeklyGifts, Icons.card_giftcard),
+  MissionItem('weekly_room', _weeklyRoom, Icons.meeting_room),
+  MissionItem('weekly_clean', _weeklyClean, Icons.verified),
 ];
+
+String _dailyPlay(AppLocalizations l) => l.missionDailyPlay;
+String _dailyWin(AppLocalizations l) => l.missionDailyWin;
+String _dailyFriend(AppLocalizations l) => l.missionDailyFriend;
+String _dailyGift(AppLocalizations l) => l.missionDailyGift;
+String _dailyFouja(AppLocalizations l) => l.missionDailyFouja;
+String _weeklyPlay(AppLocalizations l) => l.missionWeeklyPlay;
+String _weeklyWin(AppLocalizations l) => l.missionWeeklyWin;
+String _weeklyFriend(AppLocalizations l) => l.missionWeeklyFriend;
+String _weeklyInvite(AppLocalizations l) => l.missionWeeklyInvite;
+String _weeklyGifts(AppLocalizations l) => l.missionWeeklyGifts;
+String _weeklyRoom(AppLocalizations l) => l.missionWeeklyRoom;
+String _weeklyClean(AppLocalizations l) => l.missionWeeklyClean;
 
 MissionItem? missionMeta(String id) {
   for (final m in missionCatalogUi) {
@@ -62,6 +76,8 @@ class _MissionsScreenState extends State<MissionsScreen> {
   }
 
   Future<void> _load() async {
+    // النصوصُ **قبل** الانتظار: بعده قد تكون الشجرةُ ذهبت.
+    final l = AppText.s;
     setState(() => _error = null);
     final s = widget.session.session;
     if (s == null) return;
@@ -72,28 +88,29 @@ class _MissionsScreenState extends State<MissionsScreen> {
       // 503 = المهامّ مُطفأةٌ خادميًّا: حالةٌ تُشرَح لا عطبٌ يُبلَّغ.
       if (mounted) {
         setState(() => _error =
-            e.status == 503 ? 'المهامّ غير متاحةٍ الآن.' : 'تعذّر جلب المهامّ');
+            e.status == 503 ? l.missionsUnavailable : l.missionsFetchFailed);
       }
     } catch (_) {
-      if (mounted) setState(() => _error = 'تعذّر الاتّصال');
+      if (mounted) setState(() => _error = l.connectionFailed);
     }
   }
 
   Future<void> _claim(MissionView m) async {
+    final l = AppText.s;
     setState(() => _claiming = m.id);
     try {
       await widget.session.claimMission(m.id);
       if (!mounted) return;
-      _toast('نلت ${m.diamonds}💎 و${m.xp} خبرة');
+      _toast(l.missionRewardClaimed(m.diamonds, m.xp));
       await _load(); // الحالةُ تغيّرت ⇒ نُعيد جلبها من مصدرها
     } on ApiException catch (e) {
       if (!mounted) return;
       // 409 ⇒ الشاشةُ متأخّرةٌ عن الحقيقة (قُبضت في جهازٍ آخر · انقضى اليوم)
       // ⇒ أعِد الجلبَ بدل أن تُلقي باللوم على اللاعب.
-      _toast(e.status == 409 ? 'تغيّرت حالةُ المهمّة' : 'تعذّر القبض');
+      _toast(e.status == 409 ? l.missionStateChanged : l.claimFailed);
       if (e.status == 409) await _load();
     } catch (_) {
-      if (mounted) _toast('تعذّر الاتّصال');
+      if (mounted) _toast(l.connectionFailed);
     } finally {
       if (mounted) setState(() => _claiming = null);
     }
@@ -117,7 +134,7 @@ class _MissionsScreenState extends State<MissionsScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              const SimpleTopBar(title: 'المهامّ'),
+              SimpleTopBar(title: context.l10n.missions),
               Expanded(child: _body(t)),
             ],
           ),
@@ -133,7 +150,7 @@ class _MissionsScreenState extends State<MissionsScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(_error!, style: TextStyle(color: t.text3)),
-            TextButton(onPressed: _load, child: const Text('إعادة')),
+            TextButton(onPressed: _load, child: Text(context.l10n.retryShort)),
           ],
         ),
       );
@@ -151,12 +168,12 @@ class _MissionsScreenState extends State<MissionsScreen> {
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
         children: [
           if (daily.isNotEmpty) ...[
-            _sectionTitle(t, 'يوميّة', 'تُصفَّر كلَّ يوم'),
+            _sectionTitle(t, context.l10n.missionsDaily, context.l10n.missionsDailyReset),
             for (final m in daily) _tile(t, m),
             const SizedBox(height: 16),
           ],
           if (weekly.isNotEmpty) ...[
-            _sectionTitle(t, 'أسبوعيّة', 'تُصفَّر كلَّ اثنين'),
+            _sectionTitle(t, context.l10n.missionsWeekly, context.l10n.missionsWeeklyReset),
             for (final m in weekly) _tile(t, m),
           ],
         ],
@@ -203,7 +220,7 @@ class _MissionsScreenState extends State<MissionsScreen> {
                   size: 20, color: m.claimed ? t.text3 : t.accentBright),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(meta.title,
+                child: Text(meta.title(context.l10n),
                     style: TextStyle(
                         color: m.claimed ? t.text3 : t.text,
                         fontSize: 13.5,
@@ -249,7 +266,7 @@ class _MissionsScreenState extends State<MissionsScreen> {
               textDirection: TextDirection.ltr,
               style: TextStyle(
                   color: t.text3, fontSize: 11.5, fontWeight: FontWeight.w700)),
-          Text(' خبرة', style: TextStyle(color: t.text3, fontSize: 11.5)),
+          Text(context.l10n.xpSuffix, style: TextStyle(color: t.text3, fontSize: 11.5)),
           const SizedBox(width: 8),
           const Icon(Icons.diamond, size: 12, color: Color(0xFF5BC6F0)),
           const SizedBox(width: 3),
@@ -284,7 +301,7 @@ class _MissionsScreenState extends State<MissionsScreen> {
                 width: 14,
                 height: 14,
                 child: CircularProgressIndicator(strokeWidth: 2))
-            : const Text('اقبض'),
+            : Text(context.l10n.claim),
       ),
     );
   }

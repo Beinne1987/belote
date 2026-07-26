@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../net/api_client.dart';
+import '../l10n/app_text.dart';
 import '../theme/belote_theme.dart';
 import 'honor_badge.dart';
 import 'player_avatar.dart';
@@ -55,7 +56,7 @@ class HonorBoardSection extends StatelessWidget {
               const SizedBox(width: 7),
               Expanded(
                 child: Text(
-                  'لوحة الشرف — هذا الأسبوع',
+                  context.l10n.honorBoardWeek,
                   style: TextStyle(
                       color: t.text, fontSize: 15.5, fontWeight: FontWeight.w900),
                 ),
@@ -63,7 +64,7 @@ class HonorBoardSection extends StatelessWidget {
               TextButton(
                 onPressed: () => Navigator.of(context).push(MaterialPageRoute(
                     builder: (_) => HonorBoardScreen(board: board))),
-                child: Text('الكلّ', style: TextStyle(color: t.accentBright)),
+                child: Text(context.l10n.seeAll, style: TextStyle(color: t.accentBright)),
               ),
             ],
           ),
@@ -85,7 +86,7 @@ class HonorBoardSection extends StatelessWidget {
           ],
           const SizedBox(height: 8),
           Text(
-            'الأوّلُ في كلّ فئةٍ يحمل لقبَها طوال الأسبوع القادم — يراه كلُّ من يجلس معه.',
+            context.l10n.honorBoardNote,
             style: TextStyle(color: t.text3, fontSize: 11.5, height: 1.35),
           ),
         ],
@@ -114,7 +115,7 @@ class _Champion extends StatelessWidget {
         children: [
           PlayerAvatar(
             url: w.avatarUrl,
-            fallback: w.name.isEmpty ? '؟' : w.name.characters.first,
+            fallback: w.name.isEmpty ? context.l10n.unknownInitial : w.name.characters.first,
             size: 56,
             borderColor: t.accent,
             borderWidth: 2,
@@ -188,7 +189,7 @@ class _CategoryTile extends StatelessWidget {
             children: [
               PlayerAvatar(
                 url: w.avatarUrl,
-                fallback: w.name.isEmpty ? '؟' : w.name.characters.first,
+                fallback: w.name.isEmpty ? context.l10n.unknownInitial : w.name.characters.first,
                 size: 30,
               ),
               const SizedBox(width: 7),
@@ -238,7 +239,7 @@ class HonorBoardScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: t.surface,
         foregroundColor: t.text,
-        title: const Text('لوحة الشرف'),
+        title: Text(context.l10n.honorBoard),
       ),
       body: live.isEmpty
           ? Center(
@@ -326,7 +327,9 @@ class _Row extends StatelessWidget {
           const SizedBox(width: 6),
           PlayerAvatar(
             url: entry.avatarUrl,
-            fallback: entry.name.isEmpty ? '؟' : entry.name.characters.first,
+            fallback: entry.name.isEmpty
+                ? context.l10n.unknownInitial
+                : entry.name.characters.first,
             size: gold ? 38 : 30,
             borderColor: gold ? t.accent : null,
             borderWidth: gold ? 2 : 1,

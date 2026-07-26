@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../net/table_client.dart';
+import '../l10n/app_text.dart';
 import '../theme/belote_theme.dart';
 import 'player_avatar.dart';
 
@@ -11,7 +12,9 @@ import 'player_avatar.dart';
 /// إلى معرفة أهو مقابلُه أم لا. وقولُ ما لا نعرف أسوأ من السكوت عنه.
 Future<bool?> showInviteDialog(BuildContext context, InviteEvent invite) {
   final t = BeloteTheme.of(context);
-  final name = invite.fromName.trim().isEmpty ? 'صديقك' : invite.fromName;
+  final l = context.l10n;
+  final name =
+      invite.fromName.trim().isEmpty ? l.friendFallback : invite.fromName;
   return showDialog<bool>(
     context: context,
     builder: (ctx) => AlertDialog(
@@ -27,27 +30,27 @@ Future<bool?> showInviteDialog(BuildContext context, InviteEvent invite) {
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: Text('$name يدعوك',
+            child: Text(l.invitesYou(name),
                 style: TextStyle(
                     color: t.text, fontSize: 16, fontWeight: FontWeight.w800)),
           ),
         ],
       ),
       content: Text(
-        'إلى طاولته الخاصّة — مقعدٌ محجوزٌ لك.',
+        l.inviteToPrivateTable,
         style: TextStyle(color: t.text2, fontSize: 14, height: 1.6),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx, false),
-          child: Text('لاحقًا', style: TextStyle(color: t.text3)),
+          child: Text(l.later, style: TextStyle(color: t.text3)),
         ),
         FilledButton(
           style: FilledButton.styleFrom(
               backgroundColor: t.accent, foregroundColor: t.onAccent),
           onPressed: () => Navigator.pop(ctx, true),
-          child: const Text('انضمّ',
-              style: TextStyle(fontWeight: FontWeight.w800)),
+          child: Text(l.join,
+              style: const TextStyle(fontWeight: FontWeight.w800)),
         ),
       ],
     ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_text.dart';
 import '../net/api_client.dart';
 import '../net/session_controller.dart';
 import '../theme/belote_theme.dart';
@@ -42,23 +43,25 @@ class _VipScreenState extends State<VipScreen> {
       await widget.session.refreshVip();
       if (mounted) setState(() => _plans = p);
     } catch (_) {
-      if (mounted) setState(() => _error = 'تعذّر جلب الاشتراك');
+      if (mounted) setState(() => _error = context.l10n.vipFetchFailed);
     }
   }
 
   Future<void> _subscribe(VipPlanView p) async {
+    // النصوصُ **قبل** الانتظار: بعده قد تكون الشجرةُ ذهبت.
+    final l = context.l10n;
     setState(() => _busy = p.id);
     try {
       await widget.session.subscribeVip(p.id);
       if (!mounted) return;
-      _toast('أهلًا بك في VIP!');
+      _toast(l.vipWelcome);
     } on ApiException catch (e) {
       if (!mounted) return;
       _toast(e.status == 402
-          ? 'ماسك لا يكفي — الاشتراك ${p.price}💎'
-          : 'تعذّر الاشتراك');
+          ? l.notEnoughForVip(p.price)
+          : l.subscribeFailed);
     } catch (_) {
-      if (mounted) _toast('تعذّر الاتّصال');
+      if (mounted) _toast(l.connectionFailed);
     } finally {
       if (mounted) setState(() => _busy = null);
     }
@@ -105,7 +108,7 @@ class _VipScreenState extends State<VipScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(_error!, style: TextStyle(color: t.text3)),
-            TextButton(onPressed: _load, child: const Text('إعادة')),
+            TextButton(onPressed: _load, child: Text(context.l10n.retryShort)),
           ],
         ),
       );
@@ -125,7 +128,7 @@ class _VipScreenState extends State<VipScreen> {
             const SizedBox(height: 18),
             // **مشتركٌ حيٌّ لا يُباع له ما يملك** — بل يُقال له متى ينتهي، وله
             // أن يمدّد.
-            Text(vip ? 'مدّد اشتراكك' : 'اختر اشتراكك',
+            Text(vip ? context.l10n.vipExtend : context.l10n.vipChoosePlan,
                 style: TextStyle(
                     color: t.text, fontSize: 16, fontWeight: FontWeight.w800)),
             const SizedBox(height: 10),
@@ -146,10 +149,11 @@ class _VipScreenState extends State<VipScreen> {
               children: [
                 PlayerAvatar(
                   url: widget.session.player?.avatarUrl ?? '',
-                  fallback: (widget.session.player?.displayName ?? '؟')
-                      .characters
-                      .firstOrNull ??
-                      '؟',
+                  fallback: (widget.session.player?.displayName ??
+                              context.l10n.unknownInitial)
+                          .characters
+                          .firstOrNull ??
+                      context.l10n.unknownInitial,
                   size: 96,
                 ),
                 Image.asset('assets/VIP/player_frame_vip.png',
@@ -157,7 +161,7 @@ class _VipScreenState extends State<VipScreen> {
               ],
             ),
           ),
-          Text('إطارُك الخاصُّ يرافقك على كلّ طاولة',
+          Text(context.l10n.vipFrameNote,
               textAlign: TextAlign.center,
               style: TextStyle(color: t.text2, fontSize: 13)),
         ],
@@ -176,7 +180,7 @@ class _VipScreenState extends State<VipScreen> {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                'أنت VIP — حتى ${_dateText(widget.session.vipUntil!)}',
+                context.l10n.vipActiveUntil(_dateText(widget.session.vipUntil!)),
                 style: TextStyle(
                     color: t.text, fontSize: 15, fontWeight: FontWeight.w800),
               ),
@@ -190,17 +194,17 @@ class _VipScreenState extends State<VipScreen> {
     final gems = _plans!.isEmpty ? 50 : _plans!.first.monthlyDiamonds;
     return Column(
       children: [
-        _perkImage(t, VipRoom.doorAsset, 'مجلسٌ خاصّ',
-            'غرفتُك أنت وأصدقاؤك — لا يدخلها غريب.'),
+        _perkImage(t, VipRoom.doorAsset, context.l10n.vipPerkRoom,
+            context.l10n.vipPerkRoomSub),
         const SizedBox(height: 10),
         _perkGifts(t),
         const SizedBox(height: 10),
-        _perkRow(t, Icons.all_inclusive, 'لعبٌ بلا حدود',
-            'انسَ الخمسَ لعبات — العب ما شئت طوال اشتراكك.'),
-        _perkRow(t, Icons.diamond, '$gems ماسةً كلَّ شهر',
-            'تصلك دفعةً شهريّةً ما دام اشتراكُك قائمًا.'),
-        _perkRow(t, Icons.workspace_premium, 'شارةُ VIP',
-            'ترافق اسمَك أينما جلست.'),
+        _perkRow(t, Icons.all_inclusive, context.l10n.vipPerkUnlimited,
+            context.l10n.vipPerkUnlimitedSub),
+        _perkRow(t, Icons.diamond, context.l10n.vipPerkDiamonds(gems),
+            context.l10n.vipPerkDiamondsSub),
+        _perkRow(t, Icons.workspace_premium, context.l10n.vipPerkBadge,
+            context.l10n.vipPerkBadgeSub),
       ],
     );
   }
@@ -246,11 +250,11 @@ class _VipScreenState extends State<VipScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('هدايا لا يملكها غيرُك',
+            Text(context.l10n.vipGiftsTitle,
                 style: TextStyle(
                     color: t.text, fontSize: 15, fontWeight: FontWeight.w800)),
             const SizedBox(height: 3),
-            Text('ثلاثٌ كلَّ يومٍ مجّانًا — تُرسلها فيراها كلُّ من على الطاولة.',
+            Text(context.l10n.vipGiftsSub,
                 style: TextStyle(color: t.text3, fontSize: 12.5)),
             const SizedBox(height: 10),
             Row(
@@ -318,11 +322,11 @@ class _VipScreenState extends State<VipScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(p.isYear ? 'سنةٌ كاملة' : 'شهرٌ واحد',
+                Text(p.isYear ? context.l10n.planYear : context.l10n.planMonth,
                     style: TextStyle(
                         color: t.text, fontSize: 15, fontWeight: FontWeight.w800)),
                 if (saved > 0)
-                  Text('وفّر $saved% عن الشهريّ',
+                  Text(context.l10n.saveVsMonthly(saved),
                       style: TextStyle(
                           color: t.accent,
                           fontSize: 11.5,

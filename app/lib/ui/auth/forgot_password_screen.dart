@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../../data/countries.dart';
 import '../../net/api_client.dart';
 import '../../services/phone_auth.dart';
+import '../../l10n/app_text.dart';
 import '../../theme/belote_theme.dart';
 import 'auth_common.dart';
 
@@ -52,11 +53,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Future<void> _sendCode() async {
     final local = _phone.text.replaceAll(RegExp(r'[^0-9]'), '');
     if (local.length < 6) {
-      setState(() => _error = 'أدخل رقم هاتف صالحًا');
+      setState(() => _error = context.l10n.invalidPhone);
       return;
     }
     if (!_auth.supported) {
-      setState(() => _error = 'الدخول بالهاتف غير مدعوم على هذه المنصّة');
+      setState(() => _error = context.l10n.phoneAuthUnsupported);
       return;
     }
     setState(() { _busy = true; _error = null; });
@@ -79,7 +80,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   Future<void> _verifyCode() async {
     if (_code.text.trim().length < 6) {
-      setState(() => _error = 'أدخل الرمز المكوَّن من ٦ أرقام');
+      setState(() => _error = context.l10n.enterSixDigitCode);
       return;
     }
     setState(() { _busy = true; _error = null; });
@@ -94,7 +95,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   Future<void> _resetPassword() async {
     if (_password.text.length < 6) {
-      setState(() => _error = 'كلمة السرّ ٦ أحرف على الأقلّ');
+      setState(() => _error = context.l10n.passwordTooShort);
       return;
     }
     setState(() { _busy = true; _error = null; });
@@ -110,10 +111,29 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     final t = BeloteTheme.of(context);
+    final l = context.l10n;
     final (icon, title, subtitle, label, action) = switch (_phase) {
-      _Phase.phone => (Icons.lock_reset, 'استعادة كلمة السرّ', 'أدخل رقمك لنرسل رمز تأكيد', 'إرسال الرمز', _sendCode),
-      _Phase.code => (Icons.sms_outlined, 'رمز التأكيد', 'أدخل الرمز المُرسَل إلى $_sentPhone', 'تحقّق', _verifyCode),
-      _Phase.password => (Icons.password, 'كلمة سرّ جديدة', 'اختر كلمة سرّ جديدة لحسابك', 'حفظ ودخول', _resetPassword),
+      _Phase.phone => (
+          Icons.lock_reset,
+          l.resetPasswordTitle,
+          l.resetPasswordSub,
+          l.sendCode,
+          _sendCode
+        ),
+      _Phase.code => (
+          Icons.sms_outlined,
+          l.codeTitle,
+          l.codeSentTo(_sentPhone),
+          l.verify,
+          _verifyCode
+        ),
+      _Phase.password => (
+          Icons.password,
+          l.newPasswordTitle,
+          l.newPasswordSub,
+          l.saveAndSignIn,
+          _resetPassword
+        ),
     };
     return AuthScaffold(
       icon: icon,
@@ -141,7 +161,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     cursorColor: t.accent,
                     enabled: !_busy,
                     onSubmitted: (_) => _sendCode(),
-                    decoration: authDecoration(t, 'رقم الهاتف'),
+                    decoration: authDecoration(t, context.l10n.fieldPhone),
                   ),
                 ),
               ],
@@ -171,7 +191,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               cursorColor: t.accent,
               enabled: !_busy,
               onSubmitted: (_) => _resetPassword(),
-              decoration: authDecoration(t, 'كلمة السرّ الجديدة',
+              decoration: authDecoration(t, l.fieldNewPassword,
                   suffix: IconButton(
                     icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility, color: t.text3),
                     onPressed: () => setState(() => _obscure = !_obscure),

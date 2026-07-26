@@ -2,13 +2,18 @@ import 'package:belote_engine/belote_engine.dart';
 import 'package:flutter/material.dart' hide Card;
 
 import '../game/view_model.dart';
-import '../strings_ar.dart';
+import '../l10n/app_text.dart';
 import '../theme/belote_theme.dart';
-import 'suit_pip.dart';
+import 'bid_visuals.dart';
 
 /// شريط الضمانة — **فوق يدك مباشرة**، لا نافذة تغطّي الشاشة: ترى أوراقك وأنت
 /// تقرّر. الضمانات الأضعف **معطّلة لا مخفيّة**. عرضٌ محض: يرسم [BidBarView]
 /// ويُطلق [onBid]؛ لا يقرّر قانونيةً بنفسه.
+///
+/// **أزرارٌ حرّةٌ بلا لوحةٍ تجمعها (طلبُ المالك 2026-07-23):** لا صندوقَ داكنًا
+/// كبيرًا يحيط بالكلّ — كلُّ خيارٍ زرٌّ قائمٌ بذاته يحمل خلفيّته، فيطفو الشريطُ
+/// على اللبّاد بدل أن يجلس في علبة. صفّان: رموزُ الألوان فوق، وما لا لونَ له
+/// (تمرير · صن · تو · أكوينس) تحتها مباشرةً في سطرٍ واحد.
 class BidBar extends StatelessWidget {
   final BidBarView view;
   final void Function(BidAction action) onBid;
@@ -18,107 +23,135 @@ class BidBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = BeloteTheme.of(context);
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.42),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white12),
-      ),
+    final l = context.l10n;
+    // التقسيمُ في الواجهة وحدَها — ترتيبُ `options` من المحرّك يبقى كما هو.
+    final suits = view.options.where((o) => o.suit != null).toList();
+    final rest = view.options.where((o) => o.suit == null).toList();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // العنوانُ بلا علبةٍ خلفه ⇒ ظلٌّ رفيعٌ يفصله عن اللبّاد.
           Text(
-            S.yourBid,
+            l.bidYours,
             style: TextStyle(
               color: t.feltInk2,
               fontSize: 12,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
+              shadows: const [
+                Shadow(color: Colors.black54, blurRadius: 3),
+              ],
             ),
           ),
           const SizedBox(height: 8),
           // Wrap لا تمرير: كل الخيارات مرئية — لا شيء مخفيّ خلف السحب.
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            alignment: WrapAlignment.center,
-            children: [
-              for (final o in view.options) _BidChip(option: o, onBid: onBid),
-            ],
-          ),
+          if (suits.isNotEmpty)
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
+              children: [
+                for (final o in suits) _SuitChip(option: o, onBid: onBid),
+              ],
+            ),
+          if (suits.isNotEmpty && rest.isNotEmpty) const SizedBox(height: 8),
+          // صفٌّ واحدٌ مضمون: أنصبةٌ متساويةٌ لا `Wrap` — النصُّ يضمر عند الضيق
+          // ولا ينزل الزرُّ سطرًا. المدى محدودٌ كي لا تمتدّ الأزرارُ عرضَ
+          // الشاشة على اللوح.
+          if (rest.isNotEmpty)
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 340),
+              child: Row(
+                children: [
+                  for (final o in rest) ...[
+                    if (o != rest.first) const SizedBox(width: 6),
+                    Expanded(child: _BidButton(option: o, onBid: onBid)),
+                  ],
+                ],
+              ),
+            ),
         ],
       ),
     );
   }
 }
 
-class _BidChip extends StatelessWidget {
+/// ضمانةُ لونٍ في الشريط: [SuitBidChip] فوق حبرِ لمسٍ. الشكلُ نفسُه يظهر في
+/// الفقاعة أمام من نطق بالضمانة — وحدةٌ واحدةٌ في `bid_visuals.dart`.
+class _SuitChip extends StatelessWidget {
   final BidOption option;
   final void Function(BidAction action) onBid;
 
-  const _BidChip({required this.option, required this.onBid});
+  const _SuitChip({required this.option, required this.onBid});
+
+  /// صغيرٌ كي تسع الأربعةُ صفًّا واحدًا على أضيق هاتف، وأكبرُ من 44 ⇒ يبقى
+  /// هدفَ لمسٍ سليمًا.
+  static const double _side = 46;
 
   @override
   Widget build(BuildContext context) {
     final t = BeloteTheme.of(context);
     final enabled = option.enabled;
-    final Color bg, fg, border;
-    if (!enabled) {
-      bg = Colors.transparent;
-      fg = t.text3;
-      border = t.text3;
-    } else if (option.isAkwins) {
-      bg = t.accent.withValues(alpha: 0.18);
-      fg = t.accent;
-      border = t.accent;
-    } else if (option.isPass) {
-      bg = Colors.transparent;
-      fg = t.feltInk2;
-      border = t.feltInk2;
-    } else {
-      bg = t.feltInk.withValues(alpha: 0.12);
-      fg = t.feltInk;
-      border = t.feltInk;
-    }
 
-    return Opacity(
-      opacity: enabled ? 1 : 0.5,
-      child: Material(
-        color: bg,
-        borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: enabled ? () => onBid(option.action) : null,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: border, width: 1.2),
+    return Semantics(
+      label: option.label,
+      button: true,
+      enabled: enabled,
+      child: Opacity(
+        opacity: enabled ? 1 : 0.42,
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: SuitBidChip.radiusFor(_side),
+          child: InkWell(
+            borderRadius: SuitBidChip.radiusFor(_side),
+            onTap: enabled ? () => onBid(option.action) : null,
+            child: SuitBidChip(
+              suit: option.suit!,
+              side: _side,
+              // المعطّلةُ برمادِ الحبر لا بلونه: تبقى مقروءةً ولا تُغري باللمس.
+              ink: enabled ? null : t.text3,
             ),
-            // **ضماناتُ الألوان رموزٌ لا أسماء** (طلبُ المالك 2026-07-22):
-            // «أبيك» و«كير» أسماءٌ تُقرَأ، والرمزُ يُعرَف بلمحة — وهو نفسُه
-            // الذي على الورق في يدك. صن وتو وأكوينس تبقى نصًّا (لا رمزَ لها).
-            // الاسمُ يبقى في `Semantics` فلا يخسر قارئُ الشاشة شيئًا.
-            child: option.suit == null
-                ? Text(
-                    option.label,
-                    style: TextStyle(
-                      color: fg,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  )
-                : Semantics(
-                    label: option.label,
-                    child: SuitPip(
-                      suit: option.suit!,
-                      size: 20,
-                      color: enabled
-                          ? SuitPip.inkOnDark(option.suit!, t.feltInk)
-                          : t.text3,
-                    ),
-                  ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// ما لا لونَ له: تمرير · صن · تو · أكوينس — **أزرارٌ ممتلئة** في سطرٍ واحدٍ
+/// تحت رموز الألوان مباشرةً.
+class _BidButton extends StatelessWidget {
+  final BidOption option;
+  final void Function(BidAction action) onBid;
+
+  const _BidButton({required this.option, required this.onBid});
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = option.enabled;
+    final tone = !enabled
+        ? BidPillTone.disabled
+        : option.isAkwins
+            ? BidPillTone.akwins
+            : option.isPass
+                ? BidPillTone.pass
+                : BidPillTone.high;
+
+    return Semantics(
+      label: option.label,
+      button: true,
+      enabled: enabled,
+      child: Opacity(
+        opacity: enabled ? 1 : 0.5,
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(22),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(22),
+            onTap: enabled ? () => onBid(option.action) : null,
+            child: BidPill(label: option.label, tone: tone),
           ),
         ),
       ),

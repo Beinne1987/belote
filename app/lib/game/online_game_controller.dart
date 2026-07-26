@@ -6,7 +6,8 @@ import 'package:flutter/foundation.dart';
 
 import '../net/table_client.dart';
 import '../ui/gift_picker.dart' show kGiftAll;
-import '../strings_ar.dart';
+import '../l10n/app_text.dart';
+import '../l10n/labels.dart';
 import '../ui/gifts/gift_flight.dart';
 import 'quick_chat.dart';
 import 'seat_player.dart';
@@ -76,7 +77,7 @@ class OnlineGameController extends ChangeNotifier {
 
   /// فقاعة ضمانة كل مقعد (بترتيب العرض) — تُشتقّ من تغيّر لقطات الخادم كي تُقرأ
   /// كما في الأوفلاين. تُصفَّر عند بداية جولةٍ جديدة وعند العودة إلى اللوبي.
-  List<String?> _seatBids = [null, null, null, null];
+  List<SeatBid?> _seatBids = [null, null, null, null];
 
   /// أثناء مسك الفقاعات في نهاية الضمانة (bidHold): يُخفى شريط الضمانة كي لا يظهر
   /// على لقطة الضمانة الأخيرة (قد تحمل `yourTurn` بعد انتهائها).
@@ -231,7 +232,7 @@ class OnlineGameController extends ChangeNotifier {
           fromViewSeat: null,
           toViewSeat: _view(e.to),
           giftId: e.gift,
-          senderName: e.name.isEmpty ? 'مشاهد' : e.name,
+          senderName: e.name.isEmpty ? AppText.s.spectator : e.name,
         );
         _standsGiftTimer?.cancel();
         _standsGift = e;
@@ -415,16 +416,17 @@ class OnlineGameController extends ChangeNotifier {
   /// في الأوفلاين لكن من فرق اللقطات لا من النيّة.
   void _recordBidBubble(GameEvent prev, GameEvent s) {
     final actor = prev.turn; // مقعد الخادم صاحب النيّة
-    final String label;
+    final SeatBid bubble;
     if (s.akwins && !prev.akwins) {
       final v = _bidFromCode(prev.bid)?.type == BidType.suit ? 32 : 52;
-      label = '${S.akwins} $v';
+      bubble = SeatBid('${AppText.s.bidAkwins} $v', isAkwins: true);
     } else if (s.bidderSeat == actor && s.bid != prev.bid) {
-      label = S.bidLabel(_bidFromCode(s.bid)!);
+      final bid = _bidFromCode(s.bid)!;
+      bubble = SeatBid(Labels.bid(AppText.s, bid), suit: bid.suit);
     } else {
-      label = S.pass;
+      bubble = SeatBid(AppText.s.bidPass, isPass: true);
     }
-    _seatBids[_view(actor)] = label;
+    _seatBids[_view(actor)] = bubble;
   }
 
   // ── حالة ──
@@ -674,13 +676,13 @@ class OnlineGameController extends ChangeNotifier {
   String? get standsGiftLabel {
     final g = _standsGift;
     if (g == null) return null;
-    final from = g.name.isEmpty ? 'مشاهد' : g.name;
-    return '$from أهدى ${seatNameAt(_view(g.to))}';
+    final from = g.name.isEmpty ? AppText.s.spectator : g.name;
+    return AppText.s.giftSentTo(from, seatNameAt(_view(g.to)));
   }
 
   /// اسمُ صاحب مقعد العرض [viewSeat] — للافتة هديّة المدرّجات («أهدى فلانًا»).
   String seatNameAt(int viewSeat) =>
-      (viewSeat >= 0 && viewSeat < 4) ? seatPlayers[viewSeat].name : 'لاعب';
+      (viewSeat >= 0 && viewSeat < 4) ? seatPlayers[viewSeat].name : AppText.s.playerFallback;
 
   /// مغادرةُ المشاهدة طوعًا (زرّ الخروج): تُنزل العدّاد عند الجميع فورًا —
   /// إغلاقُ القناة في dispose يكفي وظيفيًّا لكنّه أبطأ خبرًا.
@@ -766,7 +768,7 @@ class OnlineGameController extends ChangeNotifier {
   /// لاعبًا حقيقيًّا) ورتبةٍ **صادقة** من مستوى الخادم (`LobbySeat.aiLevel`)،
   /// والبشر من بيانات اللوبي (اسم/اتصال).
   List<SeatPlayer> get seatPlayers {
-    final out = List<SeatPlayer>.generate(4, (_) => const SeatPlayer(name: 'لاعب'));
+    final out = List<SeatPlayer>.generate(4, (_) => SeatPlayer(name: AppText.s.playerFallback));
 
     // **هويّاتُ اللقطة أوّلًا**: اللوبي يغيب عمّن جلس على مقعدٍ محجوز (بطولة) أو
     // أعاد الوصلَ في منتصف المباراة — وهما بالضبط الحالتان اللتان تُفقَد فيهما
@@ -780,7 +782,7 @@ class OnlineGameController extends ChangeNotifier {
             ? aiSeatPlayer(Random(s.seat * 7919 + 13), level: _lobbyAiLevel(s.seat))
             : SeatPlayer(
                 playerId: s.playerId,
-                name: s.name.isNotEmpty ? s.name : 'لاعب',
+                name: s.name.isNotEmpty ? s.name : AppText.s.playerFallback,
                 avatarUrl: s.avatarUrl,
                 connected: s.connected,
                 isVip: s.isVip,
@@ -802,7 +804,7 @@ class OnlineGameController extends ChangeNotifier {
               aiSeatPlayer(Random(s.seat * 7919 + 13), level: s.aiLevel);
         } else {
           out[pos] = SeatPlayer(
-            name: (s.name?.isNotEmpty ?? false) ? s.name! : 'لاعب',
+            name: (s.name?.isNotEmpty ?? false) ? s.name! : AppText.s.playerFallback,
             avatarUrl: s.avatarUrl,
             connected: s.connected,
             // **مَن دفع يُرى**: بلا هذا يجلس المشتركُ لاعبًا بسيطًا (بلاغُ المالك
@@ -932,22 +934,22 @@ class OnlineGameController extends ChangeNotifier {
 
     final options = <BidOption>[
       BidOption(
-        label: S.pass,
+        label: AppText.s.bidPass,
         action: const BidAction.pass(),
         enabled: has((b) => b.kind == 'pass'),
         isPass: true,
       ),
       for (final name in bids)
         BidOption(
-          label: S.bidLabel(_bidForName(name)),
+          label: Labels.bid(AppText.s, _bidForName(name)),
           suit: _bidForName(name).suit,
           action: BidAction.ofBid(_bidForName(name)),
           enabled: has((b) => b.kind == 'bid' && b.bid == _bidForName(name).code),
         ),
       if (has((b) => b.kind == 'akwins'))
-        const BidOption(
-          label: S.akwins,
-          action: BidAction.akwins(),
+        BidOption(
+          label: AppText.s.bidAkwins,
+          action: const BidAction.akwins(),
           enabled: true,
           isAkwins: true,
         ),

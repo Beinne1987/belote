@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../net/player_rank.dart';
+import '../l10n/app_text.dart';
 import '../theme/belote_theme.dart';
 
 /// **شارةُ رتبةِ المهارة** — «🏅 محترف» بجانب الاسم.
@@ -75,8 +76,8 @@ class RankBadge extends StatelessWidget {
       message: r.placed
           ? (r.nextTitle.isEmpty
               ? r.title
-              : '${r.title} · التالية: ${r.nextTitle}')
-          : 'تبقّت ${r.remaining} مباراةً مصنَّفةً للتصنيف',
+              : context.l10n.rankNextTitle(r.title, r.nextTitle))
+          : context.l10n.rankedMatchesLeft(r.remaining),
       child: Container(
         padding: EdgeInsets.symmetric(
             horizontal: size * (showText ? 0.55 : 0.32), vertical: size * 0.22),
@@ -125,7 +126,7 @@ class RankProgress extends StatelessWidget {
           children: [
             RankBadge(rank: rank, size: 13, showUnplaced: true),
             const Spacer(),
-            Text('التصنيف ', style: TextStyle(color: t.text2, fontSize: 12)),
+            Text(context.l10n.ratingLabel, style: TextStyle(color: t.text2, fontSize: 12)),
             Text('$rating',
                 textDirection: TextDirection.ltr,
                 style: TextStyle(
@@ -145,11 +146,10 @@ class RankProgress extends StatelessWidget {
         const SizedBox(height: 6),
         Text(
           !rank.placed
-              ? 'تبقّت ${rank.remaining} مباراةً مصنَّفةً لتحصل على رتبتك'
+              ? context.l10n.rankedMatchesLeftLong(rank.remaining)
               : next == null
-                  ? 'بلغتَ أعلى السُّلَّم — الأسطورةُ تُدافع لا تصعد'
-                  : 'إلى ${rank.nextTitle}: ${next - rating} نقطة تصنيف',
-          textDirection: TextDirection.rtl,
+                  ? context.l10n.rankTopReached
+                  : context.l10n.rankPointsToNext(rank.nextTitle, next - rating),
           style: TextStyle(color: t.text2, fontSize: 12),
         ),
       ],

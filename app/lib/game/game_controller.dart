@@ -5,7 +5,8 @@ import 'package:belote_engine/belote_engine.dart';
 import 'package:flutter/foundation.dart';
 
 import '../motion.dart';
-import '../strings_ar.dart';
+import '../l10n/app_text.dart';
+import '../l10n/labels.dart';
 import 'ai.dart';
 import 'seat_player.dart';
 import 'view_model.dart';
@@ -75,7 +76,7 @@ class GameController extends ChangeNotifier {
   Object? _matchOutcome; // فائز المباراة المحسوم (0|1|'tiebreak'|null) — قد تحسمه الجولة البيضاء
   int? _collectingTo; // مقعد الفائز أثناء جمع الأبلي
   int _lastTrickWinner = 0; // لِلدير
-  List<String?> _seatBids = [null, null, null, null]; // فقاعة ضمانة كل مقعد
+  List<SeatBid?> _seatBids = [null, null, null, null]; // فقاعة ضمانة كل مقعد
   bool _dealingRest = false; // نافذة التوزيع الثانية (الثلاث الباقية بعد الضمانة)
   List<bool> _seatFouja = [false, false, false, false]; // هل فوّج كل مقعد هذه الجولة
 
@@ -232,7 +233,7 @@ class GameController extends ChangeNotifier {
 
     final options = <BidOption>[
       BidOption(
-        label: S.pass,
+        label: AppText.s.bidPass,
         action: const BidAction.pass(),
         enabled: legalHas((a) => a.kind == BidKind.pass),
         isPass: true,
@@ -240,7 +241,7 @@ class GameController extends ChangeNotifier {
       // الستّ ضمانات بترتيب المحرك المُلزِم — المعطّلة تُعرض ولا تُخفى.
       for (final name in bids)
         BidOption(
-          label: S.bidLabel(_bidForName(name)),
+          label: Labels.bid(AppText.s, _bidForName(name)),
           suit: _bidForName(name).suit,
           action: BidAction.ofBid(_bidForName(name)),
           enabled: legalHas(
@@ -248,9 +249,9 @@ class GameController extends ChangeNotifier {
         ),
       // الأكوينس يظهر فقط حين يكون قانونيًا (سياق الخصم، بعد ضمانة).
       if (legalHas((a) => a.kind == BidKind.akwins))
-        const BidOption(
-          label: S.akwins,
-          action: BidAction.akwins(),
+        BidOption(
+          label: AppText.s.bidAkwins,
+          action: const BidAction.akwins(),
           enabled: true,
           isAkwins: true,
         ),
@@ -273,13 +274,14 @@ class GameController extends ChangeNotifier {
     _advanceBidding();
   }
 
-  /// نصّ فقاعة الضمانة لمقعدٍ ما (يُحسب **قبل** التطبيق كي يقرأ الأكوينس الضمانة
-  /// الجارية 32/52 قبل أن تُغلَق).
-  String _bidActionLabel(BidAction action) => switch (action.kind) {
-        BidKind.pass => S.pass,
-        BidKind.akwins =>
-          '${S.akwins} ${_bidding.currentBid?.type == BidType.suit ? 32 : 52}',
-        BidKind.bid => S.bidLabel(action.bid),
+  /// فقاعة الضمانة لمقعدٍ ما (تُحسب **قبل** التطبيق كي يقرأ الأكوينس الضمانة
+  /// الجارية 32/52 قبل أن تُغلَق). تحمل اللونَ كي تُرسَم الفقاعةُ رمزًا لا كلمة.
+  SeatBid _bidActionLabel(BidAction action) => switch (action.kind) {
+        BidKind.pass => SeatBid(AppText.s.bidPass, isPass: true),
+        BidKind.akwins => SeatBid(
+            '${AppText.s.bidAkwins} ${_bidding.currentBid?.type == BidType.suit ? 32 : 52}',
+            isAkwins: true),
+        BidKind.bid => SeatBid(Labels.bid(AppText.s, action.bid), suit: action.bid!.suit),
       };
 
   // ── سير الجولة ──

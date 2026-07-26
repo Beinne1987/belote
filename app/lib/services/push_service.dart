@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 
+import '../boot.dart';
+
 /// **توكن الجهاز عند FCM** — عنوانُ إشعارات هذا الهاتف.
 ///
 /// واجهةٌ (لا دالّةٌ ساكنة) كي تُستبدَل في الاختبار: `firebase_messaging` يحتاج
@@ -25,35 +27,76 @@ abstract class PushTokens {
 }
 
 /// التنفيذ الحقيقيّ فوق `firebase_messaging`.
+///
+/// **لا يلمس Firebase في بانيه.** كان `_fm = FirebaseMessaging.instance` في
+/// مُهيّئ الحقل، وحين انتقلت تهيئةُ Firebase إلى ما بعد `runApp` صار هذا السطرُ
+/// يرمي `[core/no-app]` **أثناء إنشاء حالة التطبيق** ⇒ شاشةٌ بيضاءُ عند الفتح
+/// (شاشةُ خطأ فلاتر في الإصدار رماديّةٌ فاتحةٌ بلا نصّ). الآن يُحلّ المرجعُ
+/// **عند الاستعمال** وبعد [AppBoot.firebaseReady] لا قبله.
 class FirebasePushTokens implements PushTokens {
-  final FirebaseMessaging _fm;
-  FirebasePushTokens([FirebaseMessaging? fm])
-      : _fm = fm ?? FirebaseMessaging.instance;
+  final FirebaseMessaging? _injected;
+  final Future<void> Function() _ready;
+
+  FirebasePushTokens({FirebaseMessaging? fm, Future<void> Function()? ready})
+      : _injected = fm,
+        _ready = ready ?? AppBoot.instance.firebaseReady;
+
+  /// المرجعُ بعد اكتمال التهيئة. يرمي إن فشلت — وكلُّ نداءٍ هنا يبتلع الرميَ
+  /// ويردّ «لا توكن»، وهو نفسُ ما يحدث حين يرفض اللاعبُ الإذن.
+  Future<FirebaseMessaging> _messaging() async {
+    final fm = _injected;
+    if (fm != null) return fm;
+    await _ready();
+    return FirebaseMessaging.instance;
+  }
 
   @override
   Future<String?> requestToken() async {
-    final settings = await _fm.requestPermission();
-    // **الرفض ليس عطبًا**: من لا يريد إشعاراتٍ يلعب كما كان، وتُقال لداعيه الحقيقة
-    // («غير متّصل») لأنّ الخادم لا يجد له توكنًا.
-    if (settings.authorizationStatus == AuthorizationStatus.denied) return null;
-    return _fm.getToken();
+    try {
+      final fm = await _messaging();
+      final settings = await fm.requestPermission();
+      // **الرفض ليس عطبًا**: من لا يريد إشعاراتٍ يلعب كما كان، وتُقال لداعيه الحقيقة
+      // («غير متّصل») لأنّ الخادم لا يجد له توكنًا.
+      if (settings.authorizationStatus == AuthorizationStatus.denied) {
+        return null;
+      }
+      return await fm.getToken();
+    } catch (_) {
+      return null;
+    }
   }
 
   @override
-  Stream<String> get onRefresh => _fm.onTokenRefresh;
+  Stream<String> get onRefresh =>
+      _afterReady((fm) => fm.onTokenRefresh);
 
   @override
-  Future<void> delete() => _fm.deleteToken();
+  Future<void> delete() async {
+    try {
+      await (await _messaging()).deleteToken();
+    } catch (_) {/* لا توكنَ أصلًا ⇒ لا شيءَ يُمحى */}
+  }
 
   @override
   Stream<Map<String, String>> get onTap =>
-      FirebaseMessaging.onMessageOpenedApp.map((m) => _data(m));
+      _afterReady((_) => FirebaseMessaging.onMessageOpenedApp).map(_data);
 
   @override
   Future<Map<String, String>?> initialTap() async {
-    final m = await _fm.getInitialMessage();
-    return m == null ? null : _data(m);
+    try {
+      final m = await (await _messaging()).getInitialMessage();
+      return m == null ? null : _data(m);
+    } catch (_) {
+      return null;
+    }
   }
+
+  /// بثٌّ لا يبدأ إلّا بعد التهيئة — وينتهي صامتًا إن فشلت، فلا يقتل المستمعَ
+  /// خطأٌ في منصّةٍ لا دفعَ فيها.
+  Stream<T> _afterReady<T>(Stream<T> Function(FirebaseMessaging fm) source) =>
+      Stream<FirebaseMessaging>.fromFuture(_messaging())
+          .asyncExpand(source)
+          .handleError((_) {});
 
   static Map<String, String> _data(RemoteMessage m) =>
       {for (final e in m.data.entries) e.key: '${e.value}'};

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../game/online_game_controller.dart';
 import '../game/view_model.dart';
 import '../motion.dart';
+import '../l10n/app_text.dart';
 import '../net/api_client.dart';
 import '../platform/app_platform.dart';
 import '../net/presence_link.dart';
@@ -127,7 +128,8 @@ class _OnlineGamePageState extends State<OnlineGamePage> {
     final senderId = entry.senderId;
     if (senderId == null) return;
     final seats = _c.seatPlayers;
-    final name = entry.viewSeat < seats.length ? seats[entry.viewSeat].name : 'لاعب';
+    final name = entry.viewSeat < seats.length ? seats[entry.viewSeat].name
+        : context.l10n.playerFallback;
     final api = widget.apiForFriends ?? ApiClient();
     final token = widget.session.token;
     final action = await showModalBottomSheet<String>(
@@ -138,19 +140,20 @@ class _OnlineGamePageState extends State<OnlineGamePage> {
       ),
       builder: (ctx) {
         final t = BeloteTheme.of(ctx);
+        final l = ctx.l10n;
         return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
                 leading: Icon(Icons.flag_outlined, color: t.text2),
-                title: Text('بلاغ عن $name', style: TextStyle(color: t.text)),
+                title: Text(l.reportPlayer(name), style: TextStyle(color: t.text)),
                 onTap: () => Navigator.pop(ctx, 'report'),
               ),
               ListTile(
                 leading: Icon(Icons.block, color: t.error),
-                title: Text('حظر $name', style: TextStyle(color: t.error)),
-                subtitle: Text('لا يصلك كلامه، ولا يراسلك ولا يدعوك.',
+                title: Text(l.blockPlayer(name), style: TextStyle(color: t.error)),
+                subtitle: Text(l.blockPlayerNote,
                     style: TextStyle(color: t.text3, fontSize: 12)),
                 onTap: () => Navigator.pop(ctx, 'block'),
               ),
@@ -169,13 +172,13 @@ class _OnlineGamePageState extends State<OnlineGamePage> {
         playerName: name,
         area: 'chat',
       );
-      if (sent && mounted) _snack('وصل بلاغك — سيُراجَع.');
+      if (sent && mounted) _snack(context.l10n.reportSent);
     } else if (action == 'block') {
       try {
         await api.blockPlayer(token, senderId);
-        if (mounted) _snack('حُظر $name — لن يصلك كلامه.');
+        if (mounted) _snack(context.l10n.playerBlocked(name));
       } catch (_) {
-        if (mounted) _snack('تعذّر الحظر — تحقّق من الاتّصال.');
+        if (mounted) _snack(context.l10n.blockFailed);
       }
     }
   }
@@ -378,29 +381,30 @@ class _NoticeBanner extends StatelessWidget {
   /// رسالةٌ **لكلّ رمزٍ يبثّه الخادم فعلًا** (`ws.dart`) — يحرسها
   /// `test/online_error_test.dart` من الانجراف. تقول للاعب **ما العمل**، لا
   /// «حدث خطأ»: مَن دعا صديقًا غائبًا يحتاج أن يعرف أنّه غائبٌ لا أنّ شيئًا انكسر.
-  static const _messages = {
-    // ليس «غير متّصل» وحدَه: غيرُ المتّصل تصله الدعوةُ إشعارًا. هذا الخطأ لمن
-    // **لا إشعارَ له** (رفض الإذن أو لم يفتح التطبيق بعد التحديث).
-    'invite_offline': 'صديقك غير متّصل ولا تصله الإشعارات — لن يعلم بدعوتك حتى يفتح اللعبة.',
-    'invite_notFriend': 'أضِفه صديقًا أوّلًا لتدعوه.',
-    'invite_seatTaken': 'المقعد شُغل — اختر غيره.',
-    'invite_started': 'المباراة بدأت — لا يمكن دعوة أحدٍ الآن.',
-    'invite_notPrivate': 'الدعوة للطاولة الخاصّة فقط — أنشئ واحدةً ثمّ ادعُه.',
-    'gift_insufficient': 'ماسك لا يكفي لهذه الهديّة.',
-    'gift_notOnTable': 'لم يعد على الطاولة.',
-    'gift_self': 'لا تُهدي نفسك.',
-    'gift_unknownGift': 'هذه الهديّة لم تعد متاحة.',
-    // **هدايا VIP**: رصيدٌ يوميٌّ لا ثمنٌ بالماس ⇒ رسائلُها تشرح الرصيدَ لا المال.
-    'vipgift_empty': 'نفدت هدايا VIP اليوم — تعود ثلاثٌ غدًا.',
-    'vipgift_notVip': 'هذه الهدايا لمشتركي VIP.',
-    'vipgift_unknownGift': 'هذه الهديّة لم تعد متاحة.',
-    // **صمّامُ الدعوة**: صديقٌ دعوتَه انضمّ ⇒ نلتَ لعبةً اليوم. خبرٌ سارٌّ لا خطأ،
-    // ويستعمل نفسَ الشريط العابر.
-    'inviteReward': 'صديقُك انضمّ — نلتَ لعبةً إضافيّةً اليوم! 🎉',
-  };
-
-  static String textFor(String code) =>
-      _messages[code] ?? 'تعذّر تنفيذ ما طلبت — حاول مرّةً أخرى.';
+  /// رسالةٌ **لكلّ رمزٍ يبثّه الخادم فعلًا** (`ws.dart`). تقول للاعب **ما
+  /// العمل** لا «حدث خطأ»: مَن دعا صديقًا غائبًا يحتاج أن يعرف أنّه غائبٌ لا
+  /// أنّ شيئًا انكسر. الرمزُ من الخادم والنصُّ من لغة اللاعب.
+  static String textFor(AppLocalizations l, String code) => switch (code) {
+        // ليس «غير متّصل» وحدَه: غيرُ المتّصل تصله الدعوةُ إشعارًا. هذا الخطأ
+        // لمن **لا إشعارَ له** (رفض الإذن أو لم يفتح التطبيق بعد التحديث).
+        'invite_offline' => l.errInviteOffline,
+        'invite_notFriend' => l.errInviteNotFriend,
+        'invite_seatTaken' => l.errInviteSeatTaken,
+        'invite_started' => l.errInviteStarted,
+        'invite_notPrivate' => l.errInviteNotPrivate,
+        'gift_insufficient' => l.errGiftInsufficient,
+        'gift_notOnTable' => l.errGiftNotOnTable,
+        'gift_self' => l.errGiftSelf,
+        'gift_unknownGift' => l.errGiftUnknown,
+        // **هدايا VIP**: رصيدٌ يوميٌّ لا ثمنٌ بالماس ⇒ رسائلُها تشرح الرصيد.
+        'vipgift_empty' => l.errVipGiftEmpty,
+        'vipgift_notVip' => l.errVipGiftNotVip,
+        'vipgift_unknownGift' => l.errGiftUnknown,
+        // **صمّامُ الدعوة**: صديقٌ دعوتَه انضمّ ⇒ نلتَ لعبةً اليوم. خبرٌ سارٌّ
+        // لا خطأ، ويستعمل نفسَ الشريط العابر.
+        'inviteReward' => l.inviteRewardMsg,
+        _ => l.errGeneric,
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -431,7 +435,7 @@ class _NoticeBanner extends StatelessWidget {
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
-                        textFor(code),
+                        textFor(context.l10n, code),
                         textAlign: TextAlign.center,
                         style: TextStyle(color: t.text, fontSize: 13),
                       ),
@@ -475,8 +479,9 @@ class _WatchersChip extends StatelessWidget {
               const SizedBox(width: 5),
               Text(
                 // الأرقام لاتينيّةٌ دائمًا ([[latin-digits-ui]]).
-                spectating ? 'تشاهد · $count' : '$count',
-                textDirection: TextDirection.rtl,
+                spectating
+                    ? context.l10n.spectatingCount(count)
+                    : '$count',
                 style: TextStyle(
                     color: t.text, fontSize: 12.5, fontWeight: FontWeight.w700),
               ),
@@ -540,7 +545,7 @@ class _SpectateLoading extends StatelessWidget {
               child: CircularProgressIndicator(strokeWidth: 3, color: t.accent),
             ),
             const SizedBox(height: 20),
-            Text('جاري الدخول إلى المدرّجات…',
+            Text(context.l10n.enteringStands,
                 style: TextStyle(
                     color: t.text, fontWeight: FontWeight.w800, fontSize: 16)),
           ],
@@ -576,7 +581,7 @@ class _ReconnectingBanner extends StatelessWidget {
                 child: CircularProgressIndicator(strokeWidth: 2, color: t.warning),
               ),
               const SizedBox(width: 8),
-              Text('إعادة الاتصال…',
+              Text(context.l10n.reconnecting,
                   style: TextStyle(color: t.text, fontSize: 13, fontWeight: FontWeight.w700)),
             ],
           ),
@@ -625,12 +630,12 @@ class _MenuView extends StatelessWidget {
           children: [
             Row(
               children: [
-                Text('اللعب أونلاين',
+                Text(context.l10n.playOnline,
                     style: TextStyle(color: t.text, fontSize: 22, fontWeight: FontWeight.w800)),
                 const Spacer(),
                 IconButton(
                   onPressed: onLogout,
-                  tooltip: 'خروج',
+                  tooltip: context.l10n.logout,
                   icon: Icon(Icons.logout, color: t.text2),
                 ),
               ],
@@ -638,15 +643,15 @@ class _MenuView extends StatelessWidget {
             const SizedBox(height: 24),
             _BigAction(
               icon: Icons.bolt,
-              title: 'لعب سريع',
-              subtitle: 'اجلس على أول طاولة متاحة مع لاعبين',
+              title: context.l10n.quickMatch,
+              subtitle: context.l10n.quickMatchSub,
               onTap: controller.quickMatch,
             ),
             const SizedBox(height: 12),
             _BigAction(
               icon: Icons.add_circle_outline,
-              title: 'إنشاء طاولة خاصّة',
-              subtitle: 'ادعُ أصدقاءك برمز الطاولة',
+              title: context.l10n.createPrivateTable,
+              subtitle: context.l10n.createPrivateTableSub,
               onTap: controller.createPrivate,
             ),
             const SizedBox(height: 24),
@@ -657,7 +662,7 @@ class _MenuView extends StatelessWidget {
               style: TextStyle(color: t.text, fontSize: 18, letterSpacing: 3),
               cursorColor: t.accent,
               decoration: InputDecoration(
-                hintText: 'رمز الطاولة',
+                hintText: context.l10n.tableCode,
                 hintStyle: TextStyle(color: t.text3),
                 filled: true,
                 fillColor: t.surface,
@@ -684,7 +689,7 @@ class _MenuView extends StatelessWidget {
                   side: BorderSide(color: t.line),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
-                child: const Text('انضمام برمز'),
+                child: Text(context.l10n.joinByCode),
               ),
             ),
           ],
@@ -755,14 +760,17 @@ class _LobbyViewState extends State<_LobbyView> {
     final friend = await pickFriendForSeat(
       context,
       friends: _friends,
-      seatRole: viewSeat == 2 ? 'شريكًا لك' : 'خصمًا لك',
+      seatRole: viewSeat == 2
+          ? context.l10n.seatRolePartner
+          : context.l10n.seatRoleOpponent,
     );
     if (friend == null || !mounted) return;
     controller.inviteToSeat(friend.id, viewSeat);
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(
-        content: Text('دُعي ${friend.displayName}', textAlign: TextAlign.center),
+        content: Text(context.l10n.invitedPlayer(friend.displayName),
+            textAlign: TextAlign.center),
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
       ));
@@ -781,12 +789,15 @@ class _LobbyViewState extends State<_LobbyView> {
           children: [
             Row(
               children: [
-                Text(isPrivate ? 'طاولة خاصّة' : 'مطابقة سريعة',
+                Text(
+                    isPrivate
+                        ? context.l10n.privateTable
+                        : context.l10n.quickMatchTitle,
                     style: TextStyle(color: t.text, fontSize: 22, fontWeight: FontWeight.w800)),
                 const Spacer(),
                 IconButton(
                   onPressed: widget.onLogout,
-                  tooltip: 'خروج',
+                  tooltip: context.l10n.logout,
                   icon: Icon(Icons.logout, color: t.text2),
                 ),
               ],
@@ -800,7 +811,8 @@ class _LobbyViewState extends State<_LobbyView> {
                   borderRadius: BorderRadius.circular(999),
                   border: Border.all(color: t.accent),
                 ),
-                child: Text('الرمز: ${lobby.code}',
+                child: Text(
+                    context.l10n.tableCodeIs(lobby.code ?? ''),
                     textDirection: TextDirection.ltr,
                     style: TextStyle(color: t.accentBright, fontWeight: FontWeight.w800, letterSpacing: 2)),
               ),
@@ -830,8 +842,8 @@ class _LobbyViewState extends State<_LobbyView> {
                       foregroundColor: t.onAccent,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    child: const Text('ابدأ المباراة',
-                        style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                    child: Text(context.l10n.startMatch,
+                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
                   ),
                 ),
             ] else
@@ -864,10 +876,10 @@ class _Matchmaking extends StatelessWidget {
             child: CircularProgressIndicator(strokeWidth: 3, color: t.accent),
           ),
           const SizedBox(height: 24),
-          Text('جاري البحث عن لاعبين…',
+          Text(context.l10n.searchingPlayers,
               style: TextStyle(color: t.text, fontWeight: FontWeight.w800, fontSize: 18)),
           const SizedBox(height: 10),
-          Text('نبحث لك عن منافسين على الطاولة',
+          Text(context.l10n.searchingPlayersSub,
               textAlign: TextAlign.center,
               style: TextStyle(color: t.text2, fontSize: 13.5)),
           const SizedBox(height: 20),
@@ -898,19 +910,21 @@ class _ErrorView extends StatelessWidget {
   final Future<void> Function() onBack;
   const _ErrorView({required this.code, required this.onBack});
 
-  static const _messages = {
-    'server_full': 'الخوادم ممتلئة الآن — حاول بعد قليل.',
-    // المشاهدة ([[spectator-system]]).
-    'spectate_unavailable': 'انتهت هذه المباراة أو لم تعد متاحة للمشاهدة.',
-    'spectate_seated': 'أنت على طاولةٍ الآن — غادرها ثم شاهد.',
-    // **يقول له ما العمل**: «نفدت لعباتُك» وحدَها بابٌ مغلقٌ بلا مفتاح. والأوفلاين
-    // حرٌّ بلا حدّ ⇒ هو المخرجُ الصادقُ اليوم (والتذكرةُ وVIP يأتيان).
-    'play_limit': 'انتهت لعباتُك اليوم — تعود غدًا. والعبُ مع الذكاء بلا حدود.',
-    'join_failed': 'تعذّر الانضمام — تحقّق من الرمز.',
-    'no_seat': 'لا مقعد متاح على هذه الطاولة.',
-    'unauthorized': 'انتهت الجلسة — سجّل الدخول من جديد.',
-    'connection': 'انقطع الاتصال بالخادم.',
-  };
+  /// رسائلُ الأخطاء القاطعة (شاشةٌ كاملةٌ لا شريطٌ عابر).
+  static String _messageFor(AppLocalizations l, String code) => switch (code) {
+        'server_full' => l.errServerFull,
+        // المشاهدة ([[spectator-system]]).
+        'spectate_unavailable' => l.errSpectateUnavailable,
+        'spectate_seated' => l.errSpectateSeated,
+        // **يقول له ما العمل**: «نفدت لعباتُك» وحدَها بابٌ مغلقٌ بلا مفتاح،
+        // والأوفلاين حرٌّ بلا حدّ ⇒ هو المخرجُ الصادق.
+        'play_limit' => l.errPlayLimit,
+        'join_failed' => l.errJoinFailed,
+        'no_seat' => l.errNoSeat,
+        'unauthorized' => l.errUnauthorized,
+        'connection' => l.errConnection,
+        _ => l.errUnexpected,
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -924,7 +938,7 @@ class _ErrorView extends StatelessWidget {
             children: [
               Icon(Icons.error_outline, color: t.error, size: 48),
               const SizedBox(height: 12),
-              Text(_messages[code] ?? 'حدث خطأ غير متوقّع.',
+              Text(_messageFor(context.l10n, code),
                   textAlign: TextAlign.center,
                   style: TextStyle(color: t.text, fontSize: 16)),
               const SizedBox(height: 20),
@@ -934,7 +948,7 @@ class _ErrorView extends StatelessWidget {
                   backgroundColor: t.accent,
                   foregroundColor: t.onAccent,
                 ),
-                child: const Text('رجوع'),
+                child: Text(context.l10n.goBack),
               ),
             ],
           ),
@@ -1044,14 +1058,14 @@ class _InviteBanner extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  '${invite.fromName} يدعوك إلى طاولته',
+                  context.l10n.invitesYouToTable(invite.fromName),
                   style: TextStyle(
                       color: t.text, fontSize: 13.5, fontWeight: FontWeight.w700),
                 ),
               ),
               TextButton(
                 onPressed: onDismiss,
-                child: Text('لاحقًا', style: TextStyle(color: t.text3)),
+                child: Text(context.l10n.later, style: TextStyle(color: t.text3)),
               ),
               FilledButton(
                 style: FilledButton.styleFrom(
@@ -1059,8 +1073,8 @@ class _InviteBanner extends StatelessWidget {
                     foregroundColor: t.onAccent,
                     padding: const EdgeInsets.symmetric(horizontal: 14)),
                 onPressed: onAccept,
-                child: const Text('انضمّ',
-                    style: TextStyle(fontWeight: FontWeight.w800)),
+                child: Text(context.l10n.join,
+                    style: const TextStyle(fontWeight: FontWeight.w800)),
               ),
             ],
           ),
@@ -1102,7 +1116,7 @@ class _SearchingForPlayers extends StatelessWidget {
           const SizedBox(width: 10),
           Flexible(
             child: Text(
-              'نبحث عن لاعبين للمقاعد الفارغة… وإن لم نجد بدأنا بلاعبي الذكاء.',
+              context.l10n.fillingSeatsNote,
               textAlign: TextAlign.center,
               style: TextStyle(color: t.text2, fontSize: 13, height: 1.5),
             ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../net/api_client.dart';
+import '../l10n/app_text.dart';
 import '../theme/belote_theme.dart';
 import 'rank_badge.dart';
 import 'player_avatar.dart';
@@ -193,9 +194,9 @@ class _PlayerSheetState extends State<_PlayerSheet> {
             if (p != null)
               Row(
                 children: [
-                  _stat(t, 'التصنيف', '${p.stats.rating}'),
-                  _stat(t, 'المباريات', '${p.stats.matches}'),
-                  _stat(t, 'الفوز', '${p.stats.winRatePct}%'),
+                  _stat(t, context.l10n.rating, '${p.stats.rating}'),
+                  _stat(t, context.l10n.statMatches, '${p.stats.matches}'),
+                  _stat(t, context.l10n.statWins, '${p.stats.winRatePct}%'),
                 ],
               )
             else if (_error == null)
@@ -238,7 +239,7 @@ class _PlayerSheetState extends State<_PlayerSheet> {
                           widget.onGift!();
                         },
                   icon: Icon(Icons.card_giftcard, color: t.accentBright),
-                  label: Text('أهدِه',
+                  label: Text(context.l10n.giveGift,
                       style: TextStyle(
                           color: t.text, fontWeight: FontWeight.w700)),
                   style: OutlinedButton.styleFrom(
@@ -264,7 +265,10 @@ class _PlayerSheetState extends State<_PlayerSheet> {
       },
       icon: Icon(muted ? Icons.volume_off : Icons.volume_up,
           color: muted ? t.error : t.text2),
-      label: Text(muted ? 'إلغاء كتم ${widget.name}' : 'اكتم ${widget.name}',
+      label: Text(
+          muted
+              ? context.l10n.unmutePlayer(widget.name)
+              : context.l10n.mutePlayer(widget.name),
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
               color: muted ? t.error : t.text, fontWeight: FontWeight.w700)),
@@ -277,18 +281,19 @@ class _PlayerSheetState extends State<_PlayerSheet> {
 
   /// الزرُّ يتبع حالةَ العلاقة — أربعُ حالاتٍ لا زرٌّ واحدٌ يكذب.
   Widget _friendButton(BeloteTheme t, String rel) {
+    final l = context.l10n;
     final (label, icon, onTap) = switch (rel) {
-      'friends' => ('صديقك', Icons.how_to_reg, null),
-      'outgoing' => ('بانتظار ردّه', Icons.hourglass_empty, null),
+      'friends' => (l.relFriend, Icons.how_to_reg, null),
+      'outgoing' => (l.relOutgoing, Icons.hourglass_empty, null),
       'incoming' => (
-          'اقبل صداقته',
+          l.relIncoming,
           Icons.person_add_alt_1,
           () => _act(
               () => widget.api.acceptFriend(widget.token, widget.playerId),
               'friends'),
         ),
       _ => (
-          'أضِف صديقًا',
+          l.relAdd,
           Icons.person_add_alt_1,
           () => _act(
               () => widget.api

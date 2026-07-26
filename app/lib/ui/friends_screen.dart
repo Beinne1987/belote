@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_text.dart';
 import '../net/api_client.dart';
 import '../net/session_controller.dart';
 import '../theme/belote_theme.dart';
@@ -98,7 +99,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              const SimpleTopBar(title: 'الأصدقاء'),
+              SimpleTopBar(title: context.l10n.navFriends),
               if (_token != null)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
@@ -111,15 +112,15 @@ class _FriendsScreenState extends State<FriendsScreen> {
                               foregroundColor: t.onAccent),
                           onPressed: _openAdd,
                           icon: const Icon(Icons.person_add),
-                          label: const Text('إضافة بالرمز',
-                              style: TextStyle(fontWeight: FontWeight.w800)),
+                          label: Text(context.l10n.addByTag,
+                              style: const TextStyle(fontWeight: FontWeight.w800)),
                         ),
                       ),
                       const SizedBox(width: 8),
                       // المحظورون: بابُ الفكّ — الحظرُ نفسُه من المحادثة/الطاولة.
                       IconButton(
                         onPressed: _openBlocked,
-                        tooltip: 'المحظورون',
+                        tooltip: context.l10n.blockedList,
                         icon: Icon(Icons.block, color: t.text3),
                       ),
                     ],
@@ -135,7 +136,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
   Widget _body(BeloteTheme t) {
     if (_token == null) {
-      return _empty(t, Icons.person_outline, 'سجّل الدخول لترى أصدقاءك.');
+      return _empty(t, Icons.person_outline, context.l10n.signInToSeeFriends);
     }
     return FutureBuilder<FriendLists>(
       future: _future,
@@ -144,7 +145,8 @@ class _FriendsScreenState extends State<FriendsScreen> {
           return Center(child: CircularProgressIndicator(color: t.accent));
         }
         if (snap.hasError) {
-          return _empty(t, Icons.wifi_off, 'تعذّر جلب الأصدقاء.', onRetry: _reload);
+          return _empty(t, Icons.wifi_off, context.l10n.friendsFetchFailedShort,
+              onRetry: _reload);
         }
         final d = snap.data ?? const FriendLists();
         if (d.isEmpty) {
@@ -156,15 +158,15 @@ class _FriendsScreenState extends State<FriendsScreen> {
           children: [
             // الوارد أوّلًا: هو وحده الذي ينتظر فعلًا منك.
             if (d.incoming.isNotEmpty) ...[
-              _header(t, 'يطلبون صداقتك', d.incoming.length),
+              _header(t, context.l10n.incomingRequests, d.incoming.length),
               for (final p in d.incoming) _row(t, p, incoming: true),
             ],
             if (d.friends.isNotEmpty) ...[
-              _header(t, 'أصدقاؤك', d.friends.length),
+              _header(t, context.l10n.yourFriends, d.friends.length),
               for (final p in d.friends) _row(t, p, friend: true),
             ],
             if (d.outgoing.isNotEmpty) ...[
-              _header(t, 'بانتظار ردّهم', d.outgoing.length),
+              _header(t, context.l10n.awaitingReply, d.outgoing.length),
               for (final p in d.outgoing) _row(t, p),
             ],
           ],
@@ -192,7 +194,9 @@ class _FriendsScreenState extends State<FriendsScreen> {
       );
 
   Widget _row(BeloteTheme t, FriendPlayer p, {bool incoming = false, bool friend = false}) {
-    final name = p.displayName.trim().isEmpty ? 'لاعب' : p.displayName;
+    final name = p.displayName.trim().isEmpty
+        ? context.l10n.playerFallback
+        : p.displayName;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -271,7 +275,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                   ],
                 ),
                 if (friend)
-                  Text(p.online ? 'متصل' : 'غير متصل',
+                  Text(p.online ? context.l10n.online : context.l10n.offline,
                       style: TextStyle(
                           color: p.online ? t.success : t.text3, fontSize: 12)),
                 if (p.tag.isNotEmpty) ...[
@@ -288,7 +292,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
               children: [
                 IconButton(
                   icon: Icon(Icons.chat_bubble_outline, color: t.accentBright),
-                  tooltip: 'محادثة',
+                  tooltip: context.l10n.chat,
                   onPressed: () => _openDm(p),
                 ),
                 if (p.unread > 0)
@@ -320,15 +324,17 @@ class _FriendsScreenState extends State<FriendsScreen> {
           if (incoming)
             IconButton(
               icon: Icon(Icons.check_circle, color: t.success),
-              tooltip: 'اقبل',
+              tooltip: context.l10n.acceptShort,
               onPressed: _busy
                   ? null
-                  : () => _act(() => _api!.acceptFriend(_token!, p.id), 'صرتما صديقين'),
+                  : () => _act(() => _api!.acceptFriend(_token!, p.id), context.l10n.nowFriends),
             ),
           IconButton(
             icon: Icon(incoming ? Icons.cancel : Icons.person_remove_outlined,
                 color: t.text3),
-            tooltip: incoming ? 'ارفض' : (friend ? 'احذف من الأصدقاء' : 'اسحب الطلب'),
+            tooltip: incoming
+                ? context.l10n.declineShort
+                : (friend ? context.l10n.removeFriendAction : context.l10n.cancelRequest),
             onPressed: _busy ? null : () => _confirmRemove(p, incoming: incoming, friend: friend),
           ),
         ],
@@ -340,28 +346,33 @@ class _FriendsScreenState extends State<FriendsScreen> {
   /// أمّا حذفُ صديقٍ فيُفقد علاقةً بُنيت — والنقرة الخاطئة تقع على أيقونةٍ مجاورة.
   Future<void> _confirmRemove(FriendPlayer p, {required bool incoming, required bool friend}) async {
     final t = BeloteTheme.of(context);
+    // النصوصُ **قبل** الانتظار: بعده قد تكون الشجرةُ ذهبت.
+    final l = context.l10n;
     if (friend) {
       final ok = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
           backgroundColor: t.surface,
-          title: Text('حذف صديق', style: TextStyle(color: t.text)),
-          content: Text('تحذف ${p.displayName} من أصدقائك؟',
+          title: Text(l.removeFriendTitle, style: TextStyle(color: t.text)),
+          content: Text(l.removeFriendBody(p.displayName),
               style: TextStyle(color: t.text2)),
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: Text('تراجع', style: TextStyle(color: t.text2))),
+                child: Text(l.backAction, style: TextStyle(color: t.text2))),
             TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: Text('احذف', style: TextStyle(color: t.error))),
+                child: Text(l.deleteShort, style: TextStyle(color: t.error))),
           ],
         ),
       );
       if (ok != true) return;
     }
-    await _act(() => _api!.removeFriend(_token!, p.id),
-        incoming ? 'رُفض الطلب' : (friend ? 'حُذف الصديق' : 'سُحب الطلب'));
+    await _act(
+        () => _api!.removeFriend(_token!, p.id),
+        incoming
+            ? l.requestDeclined
+            : (friend ? l.friendRemoved : l.requestWithdrawn));
   }
 
   Future<void> _openAdd() async {
@@ -414,7 +425,8 @@ class _FriendsScreenState extends State<FriendsScreen> {
                 const SizedBox(height: 12),
                 TextButton(
                     onPressed: onRetry,
-                    child: Text('أعِد المحاولة', style: TextStyle(color: t.accentBright))),
+                    child: Text(context.l10n.retryAction,
+                        style: TextStyle(color: t.accentBright))),
               ],
             ],
           ),
@@ -448,7 +460,7 @@ class _BlockedSheetState extends State<_BlockedSheet> {
       final list = await widget.api.blockedPlayers(widget.token);
       if (mounted) setState(() => _blocked = list);
     } catch (_) {
-      if (mounted) setState(() => _error = 'تعذّر جلب القائمة.');
+      if (mounted) setState(() => _error = context.l10n.listFetchFailed);
     }
   }
 
@@ -484,7 +496,7 @@ class _BlockedSheetState extends State<_BlockedSheet> {
               children: [
                 Icon(Icons.block, color: t.text2, size: 20),
                 const SizedBox(width: 8),
-                Text('المحظورون',
+                Text(context.l10n.blockedList,
                     style: TextStyle(
                         color: t.text, fontSize: 16, fontWeight: FontWeight.w800)),
               ],
@@ -495,7 +507,8 @@ class _BlockedSheetState extends State<_BlockedSheet> {
             else if (_blocked == null)
               Center(child: CircularProgressIndicator(color: t.accent))
             else if (_blocked!.isEmpty)
-              Text('لا أحدَ محظور.', style: TextStyle(color: t.text3, fontSize: 13))
+              Text(context.l10n.nobodyBlocked,
+                  style: TextStyle(color: t.text3, fontSize: 13))
             else
               Flexible(
                 child: ListView(
@@ -509,7 +522,7 @@ class _BlockedSheetState extends State<_BlockedSheet> {
                             PlayerAvatar(
                               url: p.avatarUrl,
                               fallback: (p.displayName.trim().isEmpty
-                                      ? 'لاعب'
+                                      ? context.l10n.playerFallback
                                       : p.displayName)
                                   .characters
                                   .first,
@@ -520,7 +533,7 @@ class _BlockedSheetState extends State<_BlockedSheet> {
                             Expanded(
                               child: Text(
                                   p.displayName.trim().isEmpty
-                                      ? 'لاعب'
+                                      ? context.l10n.playerFallback
                                       : p.displayName,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -530,7 +543,7 @@ class _BlockedSheetState extends State<_BlockedSheet> {
                             ),
                             TextButton(
                               onPressed: () => _unblock(p),
-                              child: Text('فكّ الحظر',
+                              child: Text(context.l10n.unblock,
                                   style: TextStyle(color: t.accentBright)),
                             ),
                           ],
@@ -582,7 +595,7 @@ class _AddByTagSheetState extends State<_AddByTagSheet> {
         ..showSnackBar(SnackBar(
           // طلبان متقابلان ⇒ صداقةٌ فورًا: قُل ما وقع فعلًا لا ما طلبه.
           content: Text(
-              status == 'accepted' ? 'صرتما صديقين' : 'أُرسل الطلب',
+              status == 'accepted' ? context.l10n.nowFriends : context.l10n.requestSent,
               textAlign: TextAlign.center),
           behavior: SnackBarBehavior.floating,
         ));
@@ -614,13 +627,13 @@ class _AddByTagSheetState extends State<_AddByTagSheet> {
               children: [
                 Icon(Icons.person_add, color: t.accentBright),
                 const SizedBox(width: 8),
-                Text('إضافة بالرمز',
+                Text(context.l10n.addByTag,
                     style: TextStyle(
                         color: t.text, fontSize: 18, fontWeight: FontWeight.w800)),
               ],
             ),
             const SizedBox(height: 6),
-            Text('اطلب من صاحبك رمزه (٦ خانات) من ملفّه الشخصيّ.',
+            Text(context.l10n.addByTagHint,
                 style: TextStyle(color: t.text2, fontSize: 13)),
             const SizedBox(height: 16),
             TextField(
@@ -665,8 +678,8 @@ class _AddByTagSheetState extends State<_AddByTagSheet> {
                 child: _busy
                     ? const SizedBox(
                         width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Text('أرسل الطلب',
-                        style: TextStyle(fontWeight: FontWeight.w800)),
+                    : Text(context.l10n.sendRequest,
+                        style: const TextStyle(fontWeight: FontWeight.w800)),
               ),
             ),
           ],

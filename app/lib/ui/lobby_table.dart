@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../net/api_client.dart';
 import '../net/table_client.dart';
+import '../l10n/app_text.dart';
 import '../theme/belote_theme.dart';
 import 'player_avatar.dart';
 import 'vip_room.dart';
@@ -55,7 +56,7 @@ class LobbyTable extends StatelessWidget {
                       border: Border.all(color: t.line),
                     ),
                     child: Center(
-                      child: Text('طاولتك',
+                      child: Text(context.l10n.yourTable,
                           style: TextStyle(
                               color: t.feltInk.withValues(alpha: 0.5),
                               fontSize: 13,
@@ -109,7 +110,10 @@ class _LobbySeatSlot extends StatelessWidget {
     final s = seat;
     final taken = s != null && !s.ai;
     // دورُه يُسمّى صراحةً: «شريكك» و«خصمك» هما ما يقرّره المقعد.
-    final role = isMe ? 'أنت' : (isPartner ? 'شريكك' : 'خصمك');
+    final l = context.l10n;
+    final role = isMe
+        ? l.seatRoleYou
+        : (isPartner ? l.seatRoleYourPartner : l.seatRoleYourOpponent);
 
     return SizedBox(
       width: size,
@@ -123,10 +127,10 @@ class _LobbySeatSlot extends StatelessWidget {
                   fontWeight: FontWeight.w800)),
           const SizedBox(height: 4),
           if (taken)
-            _filled(t, s.name?.trim().isNotEmpty == true ? s.name! : 'لاعب',
+            _filled(t, s.name?.trim().isNotEmpty == true ? s.name! : l.playerFallback,
                 s.avatarUrl, s.isVip)
           else
-            _empty(t),
+            _empty(t, l),
         ],
       ),
     );
@@ -207,7 +211,7 @@ class _LobbySeatSlot extends StatelessWidget {
       );
 
   /// مقعدٌ فارغ: **زرُّ دعوةٍ لا لافتةُ انتظار**. الفراغ هنا فعلٌ متاحٌ لا خبر.
-  Widget _empty(BeloteTheme t) => Material(
+  Widget _empty(BeloteTheme t, AppLocalizations l) => Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onInvite,
@@ -224,7 +228,7 @@ class _LobbySeatSlot extends StatelessWidget {
               children: [
                 Icon(Icons.person_add_alt, color: t.text3, size: 22),
                 const SizedBox(height: 4),
-                Text('ادعُ',
+                Text(l.inviteShort,
                     style: TextStyle(
                         color: t.text2, fontSize: 12.5, fontWeight: FontWeight.w700)),
               ],
@@ -270,16 +274,16 @@ Future<FriendPlayer?> pickFriendForSeat(
               children: [
                 Icon(Icons.person_add, color: t.accentBright),
                 const SizedBox(width: 8),
-                Text('من يجلس $seatRole؟',
+                Text(context.l10n.whoSitsHere(seatRole),
                     style: TextStyle(
                         color: t.text, fontSize: 17, fontWeight: FontWeight.w800)),
               ],
             ),
             const SizedBox(height: 12),
             if (friends.isEmpty)
-              _note(t, 'لا أصدقاء بعد. أضِف صاحبك برمزه من شاشة الأصدقاء.')
+              _note(t, context.l10n.noFriendsAddByTag)
             else if (online.isEmpty)
-              _note(t, 'لا صديق متّصلٌ الآن — ادعُه على أيّ حال، يصله إشعارٌ على هاتفه.'),
+              _note(t, context.l10n.noFriendOnlineInviteAnyway),
             Flexible(
               child: ListView(
                 shrinkWrap: true,
@@ -287,7 +291,7 @@ Future<FriendPlayer?> pickFriendForSeat(
                   for (final f in online) _row(ctx, t, f),
                   if (offline.isNotEmpty && online.isNotEmpty) ...[
                     const SizedBox(height: 10),
-                    Text('غير متّصلين',
+                    Text(context.l10n.offlineGroup,
                         style: TextStyle(color: t.text3, fontSize: 12)),
                     const SizedBox(height: 6),
                   ],
@@ -308,7 +312,9 @@ Widget _note(BeloteTheme t, String msg) => Padding(
     );
 
 Widget _row(BuildContext ctx, BeloteTheme t, FriendPlayer f) {
-  final name = f.displayName.trim().isEmpty ? 'لاعب' : f.displayName;
+  final name = f.displayName.trim().isEmpty
+      ? ctx.l10n.playerFallback
+      : f.displayName;
   return ListTile(
     contentPadding: EdgeInsets.zero,
     onTap: () => Navigator.pop(ctx, f),
@@ -322,7 +328,9 @@ Widget _row(BuildContext ctx, BeloteTheme t, FriendPlayer f) {
         style: TextStyle(color: t.text, fontWeight: FontWeight.w700, fontSize: 14)),
     // **ما يقع لا ما هو**: «غير متصل» وصفٌ يترك الداعي حائرًا أيدعوه أم لا؛
     // «يصله إشعار» جوابٌ عن سؤاله.
-    subtitle: Text(f.online ? 'متصل' : 'غير متصل — يصله إشعار',
+    subtitle: Text(f.online
+        ? ctx.l10n.online
+        : ctx.l10n.offlineWillBeNotified,
         style: TextStyle(
             color: f.online ? t.success : t.text3, fontSize: 12)),
     trailing: Icon(Icons.send, color: f.online ? t.accent : t.text3, size: 18),

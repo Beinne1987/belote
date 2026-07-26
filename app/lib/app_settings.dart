@@ -10,11 +10,20 @@ class AppSettings extends ChangeNotifier {
   static const _kName = 'player_name';
   static const _kSound = 'sound_on';
   static const _kGuest = 'guest_mode';
+  static const _kLocale = 'locale';
+
+  /// اللغاتُ المدعومة — **العربيّةُ أوّلًا وهي الافتراض**.
+  static const supportedLocales = [Locale('ar'), Locale('fr')];
 
   String _name = '';
   bool _soundOn = true;
   bool _guest = false;
   bool _loaded = false;
+  Locale _locale = supportedLocales.first;
+
+  /// لغةُ الواجهة المختارة. لا تسقط إلى لغة النظام: العربيّةُ هي الافتراضُ
+  /// المعلَن، وتبديلُها قرارُ اللاعب لا قرارُ هاتفه.
+  Locale get locale => _locale;
 
   String get name => _name;
   bool get soundOn => _soundOn;
@@ -31,6 +40,13 @@ class AppSettings extends ChangeNotifier {
       _name = p.getString(_kName) ?? '';
       _soundOn = p.getBool(_kSound) ?? true;
       _guest = p.getBool(_kGuest) ?? false;
+      final code = p.getString(_kLocale);
+      if (code != null) {
+        _locale = supportedLocales.firstWhere(
+          (l) => l.languageCode == code,
+          orElse: () => _locale,
+        );
+      }
       Sfx.instance.enabled = _soundOn;
     } catch (_) {/* لا تخزين ⇒ افتراضيات */}
     _loaded = true;
@@ -41,6 +57,14 @@ class AppSettings extends ChangeNotifier {
   void setGuest(bool on) {
     if (on == _guest) return;
     _guest = on;
+    notifyListeners();
+    _save();
+  }
+
+  /// يبدّل لغةَ الواجهة ويحفظها. تغييرٌ فوريّ: الشجرةُ كلُّها تُعاد بناءً.
+  void setLocale(Locale value) {
+    if (value.languageCode == _locale.languageCode) return;
+    _locale = value;
     notifyListeners();
     _save();
   }
@@ -67,6 +91,7 @@ class AppSettings extends ChangeNotifier {
       await p.setString(_kName, _name);
       await p.setBool(_kSound, _soundOn);
       await p.setBool(_kGuest, _guest);
+      await p.setString(_kLocale, _locale.languageCode);
     } catch (_) {/* يُتجاهل */}
   }
 }

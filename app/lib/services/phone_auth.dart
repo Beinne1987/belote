@@ -4,6 +4,9 @@ import 'dart:io' show Platform;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
+import '../boot.dart';
+import '../l10n/app_text.dart';
+
 /// واجهة مصادقة الهاتف بخطوتين — تعزل الشاشة عن Firebase مباشرةً (قابلة للحقن/الاختبار).
 abstract class PhoneAuthenticator {
   bool get supported;
@@ -23,9 +26,22 @@ abstract class PhoneAuthenticator {
 /// النتيجة النهائيّة **توكن هويّة Firebase** يُرسَل إلى خادمنا (`/auth/firebase`)
 /// ليُصدر جلستنا. لا يخزّن شيئًا ولا يلمس واجهةً — قابل للحقن والاختبار.
 class PhoneAuthService implements PhoneAuthenticator {
-  final FirebaseAuth _auth;
+  final FirebaseAuth? _injected;
+  final Future<void> Function() _ready;
 
-  PhoneAuthService({FirebaseAuth? auth}) : _auth = auth ?? FirebaseAuth.instance;
+  PhoneAuthService({FirebaseAuth? auth, Future<void> Function()? ready})
+      : _injected = auth,
+        _ready = ready ?? AppBoot.instance.firebaseReady;
+
+  /// **لا `FirebaseAuth.instance` في الباني** — تهيئةُ Firebase تقع بعد
+  /// `runApp` ([AppBoot.firebaseReady])، ونداءُ `.instance` قبلها يرمي
+  /// `[core/no-app]`. يُحلُّ المرجعُ هنا: بعد البوّابة، عند أوّل استعمال.
+  Future<FirebaseAuth> _fa() async {
+    final a = _injected;
+    if (a != null) return a;
+    await _ready();
+    return FirebaseAuth.instance;
+  }
 
   static bool get isSupported => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
@@ -47,11 +63,12 @@ class PhoneAuthService implements PhoneAuthenticator {
     bool resend = false,
   }) async {
     if (!isSupported) {
-      onError('الدخول بالهاتف غير مدعوم على هذه المنصّة');
+      onError(AppText.s.phoneAuthUnsupported);
       return;
     }
     try {
-      await _auth.verifyPhoneNumber(
+      final auth = await _fa();
+      await auth.verifyPhoneNumber(
         phoneNumber: phoneE164,
         forceResendingToken: resend ? _resendToken : null,
         timeout: const Duration(seconds: 60),
@@ -59,7 +76,7 @@ class PhoneAuthService implements PhoneAuthenticator {
           // أندرويد فقط: قراءة الرمز تلقائيًّا. نُكمل الدخول إن طُلب.
           if (onAutoVerified == null) return;
           try {
-            final cred = await _auth.signInWithCredential(credential);
+            final cred = await auth.signInWithCredential(credential);
             final token = await cred.user?.getIdToken();
             if (token != null) onAutoVerified(token);
           } catch (_) {/* يُكمِل المستخدم يدويًّا */}
@@ -83,14 +100,14 @@ class PhoneAuthService implements PhoneAuthenticator {
   Future<String> verifyCode(String smsCode) async {
     final vid = _verificationId;
     if (vid == null) {
-      throw const PhoneAuthException('لم يُرسَل رمزٌ بعد');
+      throw PhoneAuthException(AppText.s.errNoCodeSent);
     }
     try {
       final credential =
           PhoneAuthProvider.credential(verificationId: vid, smsCode: smsCode);
-      final cred = await _auth.signInWithCredential(credential);
+      final cred = await (await _fa()).signInWithCredential(credential);
       final token = await cred.user?.getIdToken();
-      if (token == null) throw const PhoneAuthException('تعذّر إصدار توكن الدخول');
+      if (token == null) throw PhoneAuthException(AppText.s.errTokenFailed);
       return token;
     } on FirebaseAuthException catch (e) {
       throw PhoneAuthException(_msg(e));
@@ -98,26 +115,26 @@ class PhoneAuthService implements PhoneAuthenticator {
   }
 
   /// يُسجّل الخروج من جلسة Firebase (جلستنا مستقلّة؛ هذا تنظيفٌ فقط).
-  Future<void> signOut() => _auth.signOut();
+  Future<void> signOut() async => (await _fa()).signOut();
 
   /// رسائل عربيّة لأكواد أخطاء Firebase الشائعة.
   String _msg(FirebaseAuthException e) {
     switch (e.code) {
       case 'invalid-phone-number':
-        return 'رقم الهاتف غير صحيح';
+        return AppText.s.errPhoneInvalid;
       case 'invalid-verification-code':
-        return 'الرمز غير صحيح';
+        return AppText.s.errCodeInvalid;
       case 'session-expired':
       case 'code-expired':
-        return 'انتهت صلاحية الرمز — اطلب رمزًا جديدًا';
+        return AppText.s.errCodeExpired;
       case 'too-many-requests':
-        return 'محاولاتٌ كثيرة — حاول لاحقًا';
+        return AppText.s.errTooManyAttempts;
       case 'quota-exceeded':
-        return 'تجاوزتَ الحصّة المسموحة — حاول لاحقًا';
+        return AppText.s.errQuotaExceeded;
       case 'network-request-failed':
-        return 'تعذّر الاتصال بالشبكة';
+        return AppText.s.errNetwork;
       default:
-        return e.message ?? 'فشل التحقّق';
+        return e.message ?? AppText.s.errVerifyFailed;
     }
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../l10n/app_text.dart';
 import '../theme/belote_theme.dart';
 import 'simple_top_bar.dart';
 
@@ -26,7 +27,7 @@ class AboutScreen extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              const SimpleTopBar(title: 'حول اللعبة'),
+              SimpleTopBar(title: context.l10n.navAbout),
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(16, 6, 16, 28),
@@ -34,16 +35,16 @@ class AboutScreen extends StatelessWidget {
                     Center(
                       child: Column(
                         children: [
-                          _emblem(t),
+                          _emblem(context, t),
                           const SizedBox(height: 12),
-                          Text('بيلوت',
+                          Text(context.l10n.aboutGameTitle,
                               style: TextStyle(
                                   color: t.text,
                                   fontSize: 30,
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: 1)),
                           const SizedBox(height: 4),
-                          Text('النسخة الموريتانية',
+                          Text(context.l10n.aboutMauritanianEdition,
                               style: TextStyle(color: t.accent, fontSize: 14)),
                         ],
                       ),
@@ -52,11 +53,9 @@ class AboutScreen extends StatelessWidget {
                     _card(
                       t,
                       icon: Icons.menu_book,
-                      title: 'عن اللعبة',
+                      title: context.l10n.aboutSection,
                       child: Text(
-                        'بيلوت كما تُلعب في موريتانيا: أربعة لاعبين، فريقان، '
-                        'وضمانةٌ بدورةٍ واحدة، والأكوينس للخصم في دوره. '
-                        'قواعدُها كاملةً في «كيف تلعب».',
+                        context.l10n.aboutBody,
                         style: TextStyle(
                             color: t.text2, fontSize: 14.5, height: 1.7),
                       ),
@@ -65,9 +64,9 @@ class AboutScreen extends StatelessWidget {
                     _card(
                       t,
                       icon: Icons.person,
-                      title: 'برمجة وتطوير',
+                      title: context.l10n.aboutDevSection,
                       child: Text(
-                        'محمد الأمين / تقرة / بينة',
+                        context.l10n.developerName,
                         style: TextStyle(
                             color: t.text,
                             fontSize: 16,
@@ -78,7 +77,7 @@ class AboutScreen extends StatelessWidget {
                     _versionCard(t),
                     const SizedBox(height: 20),
                     Center(
-                      child: Text('صُنعت بشغفٍ للعبة أهلها 🃏',
+                      child: Text(context.l10n.aboutMadeWithLove,
                           style: TextStyle(color: t.text3, fontSize: 13)),
                     ),
                   ],
@@ -98,7 +97,7 @@ class AboutScreen extends StatelessWidget {
   /// والتدرّجُ من خلفه (بلاغُ المالك بعد تبديل الأيقونة). القصُّ الدائريُّ
   /// آمنٌ على هذا الماستر — هو نفسُه قناعُ أندرويد الدائريّ ومروحةُ الآسات
   /// كاملةٌ داخله. والتدرّجُ يبقى **حَلَقةً** حولها لا خلفَها.
-  Widget _emblem(BeloteTheme t) => Container(
+  Widget _emblem(BuildContext context, BeloteTheme t) => Container(
         width: 92,
         height: 92,
         padding: const EdgeInsets.all(3), // ثخنُ الحَلَقة
@@ -116,7 +115,7 @@ class AboutScreen extends StatelessWidget {
             width: 86,
             height: 86,
             errorBuilder: (_, __, ___) => Center(
-              child: Text('ب',
+              child: Text(context.l10n.appInitial,
                   style: TextStyle(
                       color: t.onAccent,
                       fontSize: 44,
@@ -131,7 +130,7 @@ class AboutScreen extends StatelessWidget {
         builder: (context, snap) => _card(
           t,
           icon: Icons.verified,
-          title: 'إصدار التطبيق',
+          title: context.l10n.aboutVersionSection,
           child: Text(
             snap.hasData
                 ? '${snap.data!.version} (${snap.data!.buildNumber})'

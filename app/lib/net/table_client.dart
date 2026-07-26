@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:belote_engine/belote_engine.dart';
+
+import '../l10n/app_text.dart';
 import 'package:meta/meta.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -286,7 +288,7 @@ class InviteEvent extends TableEvent {
     final from = (j['from'] as Map?)?.cast<String, dynamic>() ?? const {};
     return InviteEvent(
       fromId: from['id'] as String? ?? '',
-      fromName: from['displayName'] as String? ?? 'صديقك',
+      fromName: from['displayName'] as String? ?? AppText.s.friendFallback,
       fromTag: from['tag'] as String? ?? '',
       fromAvatarUrl: from['avatarUrl'] as String? ?? '',
       code: j['code'] as String? ?? '',

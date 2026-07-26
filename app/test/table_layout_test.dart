@@ -1,9 +1,13 @@
 import 'package:app/game/view_model.dart';
-import 'package:app/strings_ar.dart';
+import 'package:app/l10n/app_localizations_ar.dart';
+import 'package:app/l10n/labels.dart';
 import 'package:app/theme/theme_manager.dart';
+import 'package:app/ui/bid_bar.dart';
+import 'package:app/ui/bid_visuals.dart';
 import 'package:app/ui/gifts/gift_flight.dart';
 import 'package:app/ui/player_hand_fan.dart';
 import 'package:app/ui/player_seat_round.dart';
+import 'package:app/ui/table/table_geometry.dart';
 import 'package:app/ui/table/table_surface.dart';
 import 'package:app/ui/table_screen.dart';
 import 'package:app/ui/turn_clock.dart';
@@ -37,6 +41,24 @@ const _view = TableView(
   trick: [],
   legalCards: {},
   phase: GamePhase.playing,
+);
+
+/// نفسُها ولي حقُّ الاعتراض بفوجة — لحظةُ ظهورِ الزرَّين معًا.
+const _foujaView = TableView(
+  myHand: _hand,
+  handCounts: [8, 8, 8, 8],
+  usScore: 12,
+  themScore: 30,
+  bid: Bid.ofSuit('coeur'),
+  bidderSeat: 0,
+  akwins: false,
+  dealerSeat: 3,
+  seatBids: [null, null, null, null],
+  turn: 0,
+  trick: [],
+  legalCards: {},
+  phase: GamePhase.playing,
+  canAccuseFouja: true,
 );
 
 Widget _wrap(Widget child) =>
@@ -122,10 +144,10 @@ void main() {
       await _pumpPhone(t);
 
       final screen = t.getSize(find.byType(TableScreen));
-      final us = t.getRect(find.text(S.us));
-      final them = t.getRect(find.text(S.them));
+      final us = t.getRect(find.text(AppLocalizationsAr().teamUs));
+      final them = t.getRect(find.text(AppLocalizationsAr().teamThem));
       final partner = t.getRect(find.byWidgetPredicate(
-          (w) => w is PlayerSeatRound && w.name == S.seatNames[2]));
+          (w) => w is PlayerSeatRound && w.name == Labels.seat(AppLocalizationsAr(), 2)));
 
       expect(them.bottom, lessThanOrEqualTo(partner.top),
           reason: 'اللوحُ يزاحم بطاقةَ الشريك');
@@ -137,7 +159,7 @@ void main() {
         (t) async {
       await _pumpPhone(t);
 
-      expect(find.text(S.bidLabel(_view.bid, akwins: false)), findsOneWidget);
+      expect(find.text(Labels.bid(AppLocalizationsAr(), _view.bid)), findsOneWidget);
     });
 
     testWidgets('اليدُ تُبقي حِمى الحافّة (وإلّا ابتلع النظامُ لمسةَ الطرفيّة)',
@@ -152,6 +174,92 @@ void main() {
     });
   });
 
+  /// طلبُ المالك 2026-07-23: زرُّ الإيموجي كان ملقًى على حافّة الطاولة.
+  group('زرُّ التفاعلات داخل الطاولة', () {
+    /// حافّةُ اللبّاد على الشاشة — نفسُ الحساب الذي يرسم به السطحُ نفسُه.
+    double feltLeft(Size screen) =>
+        TableGeometry.of(screen, TableSurface.hall).felt.left;
+
+    for (final size in const [
+      Size(320, 568),
+      Size(393, 852),
+      Size(430, 932),
+    ]) {
+      testWidgets('يجلس على اللبّاد لا على الإطار الخشبيّ ($size)', (t) async {
+        t.view.physicalSize = size;
+        t.view.devicePixelRatio = 1.0;
+        addTearDown(t.view.reset);
+        await t.pumpWidget(_wrap(TableScreen(view: _view, onReact: (_) {})));
+        await t.pumpAndSettle();
+
+        final btn = t.getRect(find.byIcon(Icons.add_reaction_outlined));
+        final screen = t.getSize(find.byType(TableScreen));
+        // **داخلَ اللبّاد**: لو ركب الخشبَ لكان يساره دون هذا الحدّ.
+        expect(btn.left, greaterThanOrEqualTo(feltLeft(screen)),
+            reason: 'الزرُّ على الإطار الخشبيّ لا على الطاولة');
+        // ولا يهرب إلى الوسط: يبقى في ثلث الشاشة الأيسر.
+        expect(btn.right, lessThan(screen.width / 3));
+        // وفوق المروحة بفرجةٍ تُرى.
+        expect(btn.bottom,
+            lessThan(t.getRect(find.byType(PlayerHandFan)).top + 1e-6));
+      });
+    }
+
+    testWidgets('زرُّ الفوجة يقابله على اللبّاد بلا انحراف', (t) async {
+      t.view.physicalSize = const Size(393, 852);
+      t.view.devicePixelRatio = 1.0;
+      addTearDown(t.view.reset);
+      await t.pumpWidget(_wrap(TableScreen(
+        view: _foujaView,
+        onReact: (_) {},
+        onStartFoujaClaim: () {},
+      )));
+      await t.pumpAndSettle();
+
+      // **حدودُ الزرّ لا حدودُ محتواه**: حشوةُ الأيقونة (9) غيرُ حشوةِ النصّ (16)،
+      // فمقارنةُ الرمزِ بالكلمة تقيس الحشوتين لا الموضعَين.
+      Rect box(Finder inner) => t.getRect(
+          find.ancestor(of: inner, matching: find.byType(InkWell)).first);
+      final react = box(find.byIcon(Icons.add_reaction_outlined));
+      final fouja = box(find.text(AppLocalizationsAr().fouja));
+      final screen = t.getSize(find.byType(TableScreen));
+      // مرآةٌ حقيقيّة: بُعدُ ذاك عن اليمين = بُعدُ هذا عن اليسار، وقاعاهما واحد.
+      expect(screen.width - fouja.right, closeTo(react.left, 1e-6));
+      expect(fouja.bottom, closeTo(react.bottom, 12),
+          reason: 'أحدُهما أعلى من الآخر');
+    });
+
+    testWidgets('يغيب حين يعلو شريطُ الضمانة مكانَه', (t) async {
+      t.view.physicalSize = const Size(393, 852);
+      t.view.devicePixelRatio = 1.0;
+      addTearDown(t.view.reset);
+      await t.pumpWidget(_wrap(TableScreen(
+        view: _view,
+        onReact: (_) {},
+        bidBar: const BidBarView(
+          options: [
+            BidOption(
+                label: 'تمرير',
+                action: BidAction.pass(),
+                enabled: true,
+                isPass: true),
+            BidOption(
+                label: 'صن', action: BidAction.ofBid(Bid.sans()), enabled: true),
+          ],
+          currentBid: null,
+        ),
+        onBid: (_) {},
+      )));
+      await t.pumpAndSettle();
+
+      // **لمسةُ الضمانة لا تُشترى بإيموجي**: الشريطُ يملأ ما فوق المروحة،
+      // فلا موضعَ للزرّ هناك — يغيب لحظةَ ضمانتي كما يغيب لحظةَ الفوجة.
+      expect(find.byType(BidBar), findsOneWidget);
+      expect(find.byIcon(Icons.add_reaction_outlined), findsNothing,
+          reason: 'الزرُّ يركب شريطَ الضمانة');
+    });
+  });
+
   group('ذهبُ اللوحات من الطاولة نفسِها', () {
     test('لكلّ طاولةٍ ذهبُها', () {
       expect(TableSurface.inlayFor(vip: false), TableSurface.hall.inlayColor);
@@ -161,6 +269,48 @@ void main() {
         HSLColor.fromColor(TableSurface.vip.inlayColor).lightness,
         greaterThan(HSLColor.fromColor(TableSurface.hall.inlayColor).lightness),
       );
+    });
+  });
+
+  group('فقاعةُ الضمانة أمام صاحبها', () {
+    /// طلبُ المالك 2026-07-23: **بشكل الشريط نفسِه** — ضمانةُ اللون رمزٌ على
+    /// قرصٍ فاتح لا كلمة «كير»، وما لا لونَ له يبقى نصًّا.
+    testWidgets('ضمانةُ اللون رمزٌ لا كلمة، وغيرُها نصّ', (t) async {
+      t.view.physicalSize = const Size(393, 852);
+      t.view.devicePixelRatio = 1.0;
+      addTearDown(t.view.reset);
+      await t.pumpWidget(_wrap(const TableScreen(
+        view: TableView(
+          myHand: _hand,
+          handCounts: [8, 8, 8, 8],
+          usScore: 0,
+          themScore: 0,
+          bid: null,
+          bidderSeat: null,
+          akwins: false,
+          dealerSeat: 3,
+          seatBids: [
+            SeatBid('كير', suit: 'coeur'),
+            SeatBid('تمرير', isPass: true),
+            SeatBid('صن'),
+            SeatBid('أكوينس 32', isAkwins: true),
+          ],
+          turn: 0,
+          trick: [],
+          legalCards: {},
+          phase: GamePhase.bidding,
+        ),
+      )));
+      await t.pumpAndSettle();
+
+      // الكيرُ رمزٌ بحبره الحقيقيّ على قرصٍ فاتح — ولا أثرَ لاسم اللون.
+      final chip = t.widget<SuitBidChip>(find.byType(SuitBidChip));
+      expect(chip.suit, 'coeur');
+      expect(find.text('كير'), findsNothing);
+      // وما لا رمزَ له يبقى نصًّا في قرصه.
+      for (final l in ['تمرير', 'صن', 'أكوينس 32']) {
+        expect(find.text(l), findsOneWidget, reason: l);
+      }
     });
   });
 }

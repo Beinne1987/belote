@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_text.dart';
 import '../theme/belote_theme.dart';
 import 'gift_picker.dart';
 
@@ -30,9 +31,9 @@ class _WelcomeDialog extends StatelessWidget {
 
   /// اسمُ الهديّة ورمزُها من كتالوج الواجهة. **معرّفٌ لا نعرفه ⇒ يُتجاهَل**: خادمٌ
   /// أحدثُ من التطبيق يمنح هديّةً جديدة، وعرضُ معرّفها الخام أقبحُ من إسقاطها.
-  ({String name, String emoji})? _meta(String id) {
+  ({String name, String emoji})? _meta(AppLocalizations l, String id) {
     for (final g in giftCatalogUi) {
-      if (g.id == id) return (name: g.name, emoji: g.emoji);
+      if (g.id == id) return (name: g.name(l), emoji: g.emoji);
     }
     return null;
   }
@@ -40,10 +41,11 @@ class _WelcomeDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = BeloteTheme.of(context);
+    final l = context.l10n;
     final items = [
       for (final e in gifts.entries)
-        if (e.value > 0 && _meta(e.key) != null)
-          (meta: _meta(e.key)!, count: e.value)
+        if (e.value > 0 && _meta(l, e.key) != null)
+          (meta: _meta(l, e.key)!, count: e.value)
     ];
     if (items.isEmpty) {
       // كلُّ المعرّفات مجهولة ⇒ أغلِق بدل نافذةٍ فارغة.
@@ -62,11 +64,11 @@ class _WelcomeDialog extends StatelessWidget {
           children: [
             Text('🎁', style: TextStyle(fontSize: 40, color: t.text)),
             const SizedBox(height: 8),
-            Text('أهلًا بك',
+            Text(l.welcomeTitle,
                 style: TextStyle(
                     color: t.text, fontSize: 19, fontWeight: FontWeight.w800)),
             const SizedBox(height: 4),
-            Text('هذه هديّتُنا لك — أهدِها لمن تلعب معه.',
+            Text(l.welcomeGiftsBody,
                 textAlign: TextAlign.center,
                 style: TextStyle(color: t.text3, fontSize: 13)),
             const SizedBox(height: 18),
@@ -110,7 +112,7 @@ class _WelcomeDialog extends StatelessWidget {
                 style: FilledButton.styleFrom(
                     backgroundColor: t.accent, foregroundColor: t.onAccent),
                 onPressed: () => Navigator.of(context).maybePop(),
-                child: const Text('شكرًا'),
+                child: Text(l.thanks),
               ),
             ),
           ],

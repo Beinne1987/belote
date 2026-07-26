@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 
 import 'api_config.dart';
+import '../l10n/app_text.dart';
 import 'player_rank.dart';
 
 /// نوعُ الإشعار — يُملي **أين تذهب اللمسة** وأيُّ أيقونةٍ تُرسم.
@@ -741,58 +742,58 @@ class FriendLists {
   bool get isEmpty => friends.isEmpty && incoming.isEmpty && outgoing.isEmpty;
 }
 
-/// نصٌّ عربيٌّ لرمز خطأ الأصدقاء. **مسارات الأصدقاء تُعيد رموزًا لا نصوصًا**
+/// نصُّ رمزِ خطأ الأصدقاء. **مسارات الأصدقاء تُعيد رموزًا لا نصوصًا**
 /// (`friend_notFound`) — والترجمة شأن العميل كالعبارات والهدايا. بلا هذه الدالّة
 /// يرى اللاعب رمزًا إنجليزيًّا خامًا في [ApiException.message].
 String friendErrorText(String code) => switch (code) {
-      'friend_invalidTag' => 'الرمز غير صحيح — ٦ خانات كما تظهر في ملفّ صاحبك.',
-      'friend_notFound' => 'لا لاعب بهذا الرمز. تأكّد منه.',
-      'friend_self' => 'هذا رمزك أنت.',
-      'friend_already' => 'بينكما طلبٌ أو صداقةٌ بالفعل.',
-      'friend_noRequest' => 'لا طلبَ ينتظر ردَّك من هذا اللاعب.',
-      'friend_notFriend' => 'لا علاقة بينكما أصلًا.',
+      'friend_invalidTag' => AppText.s.errFriendInvalidTag,
+      'friend_notFound' => AppText.s.errFriendNotFound,
+      'friend_self' => AppText.s.errFriendSelf,
+      'friend_already' => AppText.s.errFriendAlready,
+      'friend_noRequest' => AppText.s.errFriendNoRequest,
+      'friend_notFriend' => AppText.s.errFriendNotFriend,
       _ => code, // خطأٌ عربيٌّ من الخادم (بقيّة المسارات) أو رمزٌ لا نعرفه
     };
 
 /// نصٌّ عربيٌّ لرموز أخطاء الرسائل الخاصّة والحظر — نظير [friendErrorText].
 String messageErrorText(String code) => switch (code) {
-      'message_notFriend' => 'الرسائل بين الأصدقاء — أضفه صديقًا أوّلًا.',
-      'message_blocked' => 'لا يمكن مراسلة هذا اللاعب.',
-      'message_empty' => 'اكتب رسالةً أوّلًا.',
-      'block_notFound' => 'اللاعب غير موجود.',
-      'block_self' => 'لا تحظر نفسك.',
+      'message_notFriend' => AppText.s.errMessageNotFriend,
+      'message_blocked' => AppText.s.errMessageBlocked,
+      'message_empty' => AppText.s.errMessageEmpty,
+      'block_notFound' => AppText.s.errBlockNotFound,
+      'block_self' => AppText.s.errBlockSelf,
       _ => code,
     };
 
-/// نصٌّ عربيٌّ لرمز خطأ الصورة — نظير [friendErrorText] (الخادم يُعيد رموزًا).
+/// نصُّ رمزِ خطأ الصورة — نظير [friendErrorText] (الخادم يُعيد رموزًا).
 ///
 /// **لا رسالةَ إشرافٍ هنا**: لا يُرفَض محتوى (قرار المالك 2026-07-15)، فالرفض إمّا
 /// حجمٌ أو ملفٌّ ليس صورةً أصلًا.
 String avatarErrorText(String code) => switch (code) {
-      'avatar_tooLarge' => 'الصورة كبيرة. اختر واحدةً أصغر.',
-      'avatar_badType' => 'هذا ليس ملفَّ صورة. اختر صورةً (JPG أو PNG).',
-      'avatar_empty' => 'الملفّ فارغ.',
+      'avatar_tooLarge' => AppText.s.errAvatarTooLarge,
+      'avatar_badType' => AppText.s.errAvatarBadType,
+      'avatar_empty' => AppText.s.errAvatarEmpty,
       _ => code,
     };
 
 /// رمزُ خطأ بطولةٍ (`trn_*`) → رسالته العربيّة. غيرُ المعروف يُعاد كما هو
 /// (خادمٌ أحدث قد يبثّ رمزًا لم يكن يومَ بُنيت هذه الحزمة).
 String tournamentErrorText(String code) => switch (code) {
-      'trn_closed' => 'بطولةٌ جاريةٌ الآن — التسجيل بعد نهايتها.',
-      'trn_alreadyRegistered' => 'أنت مسجَّلٌ أصلًا.',
-      'trn_notRegistered' => 'لستَ مسجَّلًا في هذه البطولة.',
-      'trn_full' => 'اكتمل العدد — بطولةٌ قادمةٌ تفتح قريبًا.',
-      'trn_insufficient' => 'ماسُك لا يكفي لرسم الدخول.',
-      'trn_notFriends' => 'الشراكة بين الأصدقاء — أضفه صديقًا أوّلًا.',
-      'trn_pairTaken' => 'لأحدكما شريكٌ أو دعوةٌ قائمة.',
-      'trn_noInvite' => 'لا دعوةَ شراكةٍ قائمة.',
-      'trn_badRequest' => 'طلبٌ غير صالح.',
+      'trn_closed' => AppText.s.errTrnClosed,
+      'trn_alreadyRegistered' => AppText.s.errTrnAlreadyRegistered,
+      'trn_notRegistered' => AppText.s.errTrnNotRegistered,
+      'trn_full' => AppText.s.errTrnFull,
+      'trn_insufficient' => AppText.s.errTrnInsufficient,
+      'trn_notFriends' => AppText.s.errTrnNotFriends,
+      'trn_pairTaken' => AppText.s.errTrnPairTaken,
+      'trn_noInvite' => AppText.s.errTrnNoInvite,
+      'trn_badRequest' => AppText.s.errTrnBadRequest,
       // مسابقات اللاعبين — الرسائل تقول **ما العمل** لا «خطأ».
-      'trn_hasActiveEvent' => 'لك مسابقةٌ قائمة — أكملها أو ألغِها أوّلًا.',
-      'trn_badTitle' => 'الاسم من 3 إلى 30 حرفًا.',
-      'trn_badFee' => 'رسم الدخول من 10 إلى 500 ماسة.',
-      'trn_badTeams' => 'الحجم: 8 أو 16 فريقًا.',
-      'trn_badTime' => 'الموعد بين 10 دقائق و7 أيّام من الآن.',
+      'trn_hasActiveEvent' => AppText.s.errTrnHasActiveEvent,
+      'trn_badTitle' => AppText.s.errTrnBadTitle,
+      'trn_badFee' => AppText.s.errTrnBadFee,
+      'trn_badTeams' => AppText.s.errTrnBadTeams,
+      'trn_badTime' => AppText.s.errTrnBadTime,
       _ => code,
     };
 
@@ -1715,7 +1716,7 @@ class ApiClient {
     try {
       res = await run().timeout(timeout);
     } catch (e) {
-      throw const ApiException(0, 'تعذّر الاتصال بالخادم');
+      throw ApiException(0, AppText.s.serverUnreachable);
     }
     Map<String, dynamic> j;
     try {
@@ -1724,7 +1725,7 @@ class ApiClient {
       j = {};
     }
     if (res.statusCode >= 200 && res.statusCode < 300) return j;
-    throw ApiException(res.statusCode, (j['error'] as String?) ?? 'خطأ غير متوقّع');
+    throw ApiException(res.statusCode, (j['error'] as String?) ?? AppText.s.errUnexpectedShort);
   }
 
   void close() => _http.close();

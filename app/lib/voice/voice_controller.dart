@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:livekit_client/livekit_client.dart' as lk;
 
+import '../l10n/app_text.dart';
+
 import '../net/api_client.dart';
 
 /// من تسمع على الطاولة.
@@ -203,10 +205,10 @@ class VoiceController extends ChangeNotifier {
     _mode = VoiceMode.off;
     _status = VoiceStatus.failed;
     _error = switch (e) {
-      ApiException(status: 503) => 'الصوت غير مُفعَّلٍ على الخادم بعد.',
-      ApiException(status: 409) => 'لست على طاولة.',
-      ApiException(status: 401) => 'انتهت جلستك — أعِد الدخول.',
-      _ => 'تعذّر الاتّصال بالصوت. تأكّد من إذن الميكروفون والشبكة.',
+      ApiException(status: 503) => AppText.s.voiceNotEnabled,
+      ApiException(status: 409) => AppText.s.voiceNotAtTable,
+      ApiException(status: 401) => AppText.s.voiceSessionOver,
+      _ => AppText.s.voiceConnectFailed,
     };
     notifyListeners();
   }

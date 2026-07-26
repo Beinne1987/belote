@@ -1,4 +1,6 @@
 import 'package:app/ui/missions_screen.dart';
+import 'package:app/l10n/app_localizations_ar.dart';
+import 'package:app/l10n/app_localizations_fr.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// **حارسُ الانجراف بين كتالوجَي المهامّ.**
@@ -34,10 +36,13 @@ void main() {
     expect([for (final m in missionCatalogUi) m.id], _serverMissionIds);
   });
 
-  test('لكلّ مهمّةٍ اسمٌ عربيٌّ غيرُ فارغ', () {
-    for (final m in missionCatalogUi) {
-      expect(m.title.trim(), isNotEmpty, reason: m.id);
-      expect(m.title, isNot(contains(m.id)), reason: 'لا معرّفَ خامًا في الاسم');
+  test('لكلّ مهمّةٍ اسمٌ في اللغتين غيرُ فارغ', () {
+    for (final l in [AppLocalizationsAr(), AppLocalizationsFr()]) {
+      for (final m in missionCatalogUi) {
+        expect(m.title(l).trim(), isNotEmpty, reason: '${m.id} · ${l.localeName}');
+        expect(m.title(l), isNot(contains(m.id)),
+            reason: 'لا معرّفَ خامًا في الاسم');
+      }
     }
   });
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../net/api_client.dart';
 import '../net/session_controller.dart';
+import '../l10n/app_text.dart';
 import '../theme/belote_theme.dart';
 import 'simple_top_bar.dart';
 
@@ -128,11 +129,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         child: Column(
           children: [
             SimpleTopBar(
-              title: 'الإشعارات',
+              title: context.l10n.notifications,
               trailing: hasUnread
                   ? TextButton(
                       onPressed: _markAll,
-                      child: Text('تعليم الكلّ',
+                      child: Text(context.l10n.markAllRead,
                           style: TextStyle(color: t.accent, fontSize: 13)),
                     )
                   : null,
@@ -152,7 +153,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       return _Centered(
         icon: Icons.cloud_off,
         text: _error!,
-        action: TextButton(onPressed: _load, child: const Text('إعادة المحاولة')),
+        action: TextButton(
+            onPressed: _load, child: Text(context.l10n.retry)),
         t: t,
       );
     }
@@ -255,7 +257,7 @@ class _NotificationTile extends StatelessWidget {
                     Text(n.body,
                         style: TextStyle(color: t.text2, fontSize: 13, height: 1.5)),
                     const SizedBox(height: 6),
-                    Text(_ago(n.createdAt),
+                    Text(_ago(context.l10n, n.createdAt),
                         style: TextStyle(color: t.text3, fontSize: 11)),
                   ],
                 ),
@@ -273,12 +275,12 @@ class _NotificationTile extends StatelessWidget {
 ///
 /// الأرقام **لاتينيّة** حتى في الواجهة العربيّة (عُرف المشروع) — و`Text` يرثها
 /// كذلك من `MaterialApp`، فلا حاجة لعزلٍ هنا.
-String _ago(DateTime at) {
+String _ago(AppLocalizations l, DateTime at) {
   final d = DateTime.now().difference(at);
-  if (d.inSeconds < 60) return 'الآن';
-  if (d.inMinutes < 60) return 'منذ ${d.inMinutes} دقيقة';
-  if (d.inHours < 24) return 'منذ ${d.inHours} ساعة';
-  if (d.inDays < 7) return 'منذ ${d.inDays} يوم';
+  if (d.inSeconds < 60) return l.agoNow;
+  if (d.inMinutes < 60) return l.agoMinutes(d.inMinutes);
+  if (d.inHours < 24) return l.agoHours(d.inHours);
+  if (d.inDays < 7) return l.agoDays(d.inDays);
   return '${at.year}/${at.month}/${at.day}';
 }
 

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../net/api_client.dart';
+import '../l10n/app_text.dart';
 import '../theme/belote_theme.dart';
 import 'player_avatar.dart';
 
@@ -86,7 +87,7 @@ class _DmScreenState extends State<DmScreen> {
       if (!mounted || !first) return;
       setState(() {
         _loading = false;
-        _error = 'تعذّر الاتّصال بالخادم.';
+        _error = context.l10n.dmConnectionFailed;
       });
     }
   }
@@ -115,7 +116,7 @@ class _DmScreenState extends State<DmScreen> {
       _toast(messageErrorText(e.message));
     } catch (_) {
       if (!mounted) return;
-      _toast('تعذّر الإرسال — تحقّق من الاتّصال.');
+      _toast(context.l10n.sendFailed);
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -138,17 +139,17 @@ class _DmScreenState extends State<DmScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: t.surface,
-        title: Text('حظر $name؟', style: TextStyle(color: t.text)),
+        title: Text(context.l10n.blockTitle(name), style: TextStyle(color: t.text)),
         content: Text(
-            'يُحذف من أصدقائك، ولا يراسلك ولا يدعوك، ولا يصلك كلامه على الطاولة.',
+            context.l10n.blockBody,
             style: TextStyle(color: t.text2, height: 1.6)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: Text('تراجع', style: TextStyle(color: t.text2))),
+              child: Text(context.l10n.backAction, style: TextStyle(color: t.text2))),
           TextButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: Text('احظر', style: TextStyle(color: t.error))),
+              child: Text(context.l10n.blockConfirm, style: TextStyle(color: t.error))),
         ],
       ),
     );
@@ -172,14 +173,14 @@ class _DmScreenState extends State<DmScreen> {
       playerName: widget.other.displayName,
       area: 'message',
     );
-    if (sent && mounted) _toast('وصل بلاغك — سيُراجَع.');
+    if (sent && mounted) _toast(context.l10n.reportSent);
   }
 
   @override
   Widget build(BuildContext context) {
     final t = BeloteTheme.of(context);
     final name = widget.other.displayName.trim().isEmpty
-        ? 'لاعب'
+        ? context.l10n.playerFallback
         : widget.other.displayName;
     return Scaffold(
       backgroundColor: t.gradBottom,
@@ -207,7 +208,7 @@ class _DmScreenState extends State<DmScreen> {
                           color: t.text,
                           fontSize: 16,
                           fontWeight: FontWeight.w800)),
-                  Text(widget.other.online ? 'متصل' : 'غير متصل',
+                  Text(widget.other.online ? context.l10n.online : context.l10n.offline,
                       style: TextStyle(
                           color: widget.other.online ? t.success : t.text3,
                           fontSize: 11)),
@@ -224,11 +225,11 @@ class _DmScreenState extends State<DmScreen> {
             itemBuilder: (_) => [
               PopupMenuItem(
                   value: 'report',
-                  child: Text('بلاغ عن اللاعب',
+                  child: Text(context.l10n.reportPlayerMenu,
                       style: TextStyle(color: t.text))),
               PopupMenuItem(
                   value: 'block',
-                  child: Text('حظر', style: TextStyle(color: t.error))),
+                  child: Text(context.l10n.blockMenu, style: TextStyle(color: t.error))),
             ],
           ),
         ],
@@ -257,7 +258,7 @@ class _DmScreenState extends State<DmScreen> {
                           null,
                       style: TextStyle(color: t.text, fontSize: 14),
                       decoration: InputDecoration(
-                        hintText: 'اكتب رسالةً…',
+                        hintText: context.l10n.writeMessageHint,
                         hintStyle: TextStyle(color: t.text3),
                         filled: true,
                         fillColor: t.surface,
@@ -303,7 +304,7 @@ class _DmScreenState extends State<DmScreen> {
             Text(_error!, style: TextStyle(color: t.text2, fontSize: 14)),
             TextButton(
                 onPressed: () => _refresh(first: true),
-                child: Text('أعِد المحاولة',
+                child: Text(context.l10n.retryAction,
                     style: TextStyle(color: t.accentBright))),
           ],
         ),
@@ -311,7 +312,7 @@ class _DmScreenState extends State<DmScreen> {
     }
     if (_messages.isEmpty) {
       return Center(
-        child: Text('لا رسائلَ بعد — ابدأ الحديث.',
+        child: Text(context.l10n.noMessagesYet,
             style: TextStyle(color: t.text3, fontSize: 13)),
       );
     }
@@ -392,12 +393,13 @@ class _ReportDialogState extends State<_ReportDialog> {
     final t = BeloteTheme.of(context);
     return AlertDialog(
       backgroundColor: t.surface,
-      title: Text('بلاغ عن ${widget.playerName}', style: TextStyle(color: t.text)),
+      title: Text(context.l10n.reportAbout(widget.playerName),
+          style: TextStyle(color: t.text)),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('يصل البلاغ إدارةَ اللعبة وتُراجعه بنفسها.',
+          Text(context.l10n.reportNote,
               style: TextStyle(color: t.text2, fontSize: 13)),
           const SizedBox(height: 10),
           TextField(
@@ -406,7 +408,7 @@ class _ReportDialogState extends State<_ReportDialog> {
             maxLength: 300,
             style: TextStyle(color: t.text, fontSize: 14),
             decoration: InputDecoration(
-              hintText: 'ما الذي حدث؟ (اختياريّ)',
+              hintText: context.l10n.reportHint,
               hintStyle: TextStyle(color: t.text3, fontSize: 13),
               counterText: '',
               filled: true,
@@ -422,10 +424,10 @@ class _ReportDialogState extends State<_ReportDialog> {
       actions: [
         TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('تراجع', style: TextStyle(color: t.text2))),
+            child: Text(context.l10n.backAction, style: TextStyle(color: t.text2))),
         TextButton(
             onPressed: () => Navigator.pop(context, _reason.text.trim()),
-            child: Text('أبلِغ', style: TextStyle(color: t.error))),
+            child: Text(context.l10n.reportAction, style: TextStyle(color: t.error))),
       ],
     );
   }

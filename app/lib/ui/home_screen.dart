@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../app_settings.dart';
+import '../l10n/app_text.dart';
 import '../net/api_client.dart';
 import '../net/session_controller.dart';
 import '../theme/belote_theme.dart';
@@ -51,27 +52,28 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = BeloteTheme.of(context);
+    final l = context.l10n;
     final localName = AppSettingsScope.of(context).name;
     final session = SessionScope.of(context);
     final signedIn = session.isSignedIn;
     final serverName = session.player?.displayName ?? '';
     final display =
-        (signedIn && serverName.isNotEmpty) ? serverName : (localName.isEmpty ? 'اللاعب' : localName);
+        (signedIn && serverName.isNotEmpty) ? serverName : (localName.isEmpty ? l.playerDefaultName : localName);
     return Scaffold(
       // **وجهاتٌ ثابتةٌ تحت الإبهام**: التصنيفُ والمتجرُ والأصدقاءُ وحول اللعبة
       // خرجت من قائمة البطاقات إلى هنا — بطاقةٌ وزرٌّ لشيءٍ واحدٍ مدخلان.
       bottomNavigationBar: HomeBottomBar(
         currentIndex: 0, // نحن في الرئيسيّة؛ البقيّةُ شاشاتٌ تُفتَح فوقها
         items: [
-          const HomeBarItem(icon: Icons.home, label: 'الرئيسية'),
-          const HomeBarItem(icon: Icons.leaderboard, label: 'التصنيف'),
-          const HomeBarItem(icon: Icons.shopping_cart, label: 'المتجر'),
+          HomeBarItem(icon: Icons.home, label: l.navHome),
+          HomeBarItem(icon: Icons.leaderboard, label: l.navLeaderboard),
+          HomeBarItem(icon: Icons.shopping_cart, label: l.navStore),
           // شارةُ الرسائل غير المقروءة تلزم الأصدقاءَ أينما ذهب زرُّهم.
           HomeBarItem(
               icon: Icons.group,
-              label: 'الأصدقاء',
+              label: l.navFriends,
               badge: session.unreadMessages),
-          const HomeBarItem(icon: Icons.info_outline, label: 'حول اللعبة'),
+          HomeBarItem(icon: Icons.info_outline, label: l.navAbout),
         ],
         onTap: (i) {
           final go = switch (i) {
@@ -121,15 +123,15 @@ class HomeScreen extends StatelessWidget {
                     // فارغةٌ (بلا فائزٍ أو خادمٍ أقدم) ⇒ تختفي بلا أثر.
                     HonorBoardSection(board: session.honors),
                     _CategoryCard(
-                      title: 'لعب سريع',
-                      subtitle: 'ضدّ الذكاء — بلا اتصال',
+                      title: l.quickPlayOffline,
+                      subtitle: l.quickPlayOfflineSub,
                       icon: Icons.style, // مروحة أوراق (لا نرد)
                       big: true,
                       onTap: onPlay,
                     ),
                     _CategoryCard(
-                      title: 'اللعب أونلاين',
-                      subtitle: _onlineSubtitle(signedIn, session.allowance),
+                      title: l.playOnline,
+                      subtitle: _onlineSubtitle(l, signedIn, session.allowance),
                       icon: Icons.public,
                       big: true,
                       badge: _PlayCounter(allowance: session.allowance),
@@ -139,8 +141,8 @@ class HomeScreen extends StatelessWidget {
                     _CategoryCard(
                       title: 'VIP',
                       subtitle: session.isVip
-                          ? 'اشتراكُك قائم — مزاياك كلُّها معك'
-                          : 'مجلسٌ خاصّ · إطارٌ · هدايا · لعبٌ بلا حدود',
+                          ? l.vipActiveSub
+                          : l.vipOfferSub,
                       icon: Icons.workspace_premium,
                       badge: session.isVip
                           ? Icon(Icons.check_circle, size: 18, color: t.accent)
@@ -148,22 +150,22 @@ class HomeScreen extends StatelessWidget {
                       onTap: onVip ?? () => _soon(context),
                     ),
                     _CategoryCard(
-                      title: 'المهامّ',
-                      subtitle: 'يوميّة وأسبوعيّة — خبرةٌ وماس',
+                      title: l.missions,
+                      subtitle: l.missionsSub,
                       icon: Icons.checklist,
                       onTap: onMissions ?? () => _soon(context),
                     ),
                     _CategoryCard(
-                      title: 'البطولات',
-                      subtitle: 'بطولة اليوم · فعاليات بجوائز',
+                      title: l.tournaments,
+                      subtitle: l.tournamentsSub,
                       icon: Icons.emoji_events,
                       onTap: onTournaments ?? () => _soon(context),
                     ),
                     // مشاهدةٌ مجّانيّة ([[spectator-system]]): تُبقي من نفدت
                     // لعباتُه داخل اللعبة، وهداياها ماسٌ خالصٌ للبيت.
                     _CategoryCard(
-                      title: 'مباريات حيّة',
-                      subtitle: 'شاهد الجاري الآن · شجّع بالهدايا',
+                      title: l.liveMatches,
+                      subtitle: l.liveMatchesSub,
                       icon: Icons.connected_tv,
                       onTap: onWatchLive ?? () => _soon(context),
                     ),
@@ -180,9 +182,10 @@ class HomeScreen extends StatelessWidget {
   void _soon(BuildContext context) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(const SnackBar(
-        content: Text('قريبًا', textAlign: TextAlign.center),
-        duration: Duration(milliseconds: 1000),
+      ..showSnackBar(SnackBar(
+        content: Text(context.l10n.comingSoon,
+            textAlign: TextAlign.center),
+        duration: const Duration(milliseconds: 1000),
         behavior: SnackBarBehavior.floating,
       ));
   }
@@ -205,7 +208,7 @@ class _BellButton extends StatelessWidget {
         IconButton(
           icon: Icon(unread > 0 ? Icons.notifications_active : Icons.notifications_none,
               color: unread > 0 ? t.accent : t.text2),
-          tooltip: 'الإشعارات',
+          tooltip: context.l10n.notifications,
           onPressed: onTap,
         ),
         if (unread > 0)
@@ -388,7 +391,7 @@ class _PlayerBar extends StatelessWidget {
                                   style: TextStyle(color: t.text3, fontSize: 11)),
                           ])
                         else
-                          Text('غير متصل',
+                          Text(context.l10n.offline,
                               style: TextStyle(color: t.text3, fontSize: 11.5)),
                       ],
                     ),
@@ -409,7 +412,8 @@ class _PlayerBar extends StatelessWidget {
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              child: const Text('دخول', style: TextStyle(fontWeight: FontWeight.w800)),
+              child: Text(context.l10n.signIn,
+                  style: const TextStyle(fontWeight: FontWeight.w800)),
             ),
           // الجرس **للمسجَّلين وحدهم**: بلا حسابٍ لا صندوقَ في الخادم أصلًا،
           // وجرسٌ فارغٌ أبدًا زينةٌ تُربك.
@@ -417,7 +421,7 @@ class _PlayerBar extends StatelessWidget {
             _BellButton(unread: unread, onTap: onNotifications),
           IconButton(
             icon: Icon(Icons.settings, color: t.text2),
-            tooltip: 'الإعدادات',
+            tooltip: context.l10n.settingsTitle,
             onPressed: onSettings,
           ),
         ],
@@ -455,50 +459,35 @@ class _PlayerBar extends StatelessWidget {
 ///
 /// **`allowance == null` ⇒ الوصفُ الأصليّ**: الحدُّ مُطفأٌ خادميًّا أو لم يُجلَب بعد،
 /// و«بقيت لك 5» رقمٌ مخترَعٌ يُكذَّب عند أوّل ضغطة.
-String _onlineSubtitle(bool signedIn, PlayAllowanceView? a) {
-  if (!signedIn) return 'مع لاعبين حقيقيّين — يتطلّب دخولًا';
-  if (a == null) return 'مع لاعبين حقيقيّين';
+String _onlineSubtitle(
+    AppLocalizations l, bool signedIn, PlayAllowanceView? a) {
+  if (!signedIn) return l.onlineNeedsSignIn;
+  if (a == null) return l.onlineWithPlayers;
   // **مَن دفع يرى ما اشتراه**: «0/5» لصاحب تذكرةٍ إهانةٌ لزبون.
   // **ومَن أُهدي لا يُقال له إنّه اشترى**: الجديدُ في سماحه يُرحَّب به لا يُذكَّر
   // بتذكرةٍ لم يشترها — وهي أوّلُ ثلاثة أيّامٍ يقرّر فيها أيبقى أم يذهب.
   if (a.isGrace) {
-    return 'أهلًا بك! لعبٌ بلا حدود — الباقي: ${_passLeft(a.graceUntil!)}';
+    return l.graceUnlimited(_passLeft(l, a.graceUntil!));
   }
   if (a.unlimited) {
-    return 'لعبٌ بلا حدود — الباقي: ${_passLeft(a.unlimitedUntil!)}';
+    return l.unlimitedLeft(_passLeft(l, a.unlimitedUntil!));
   }
   // **المكتسَبُ يُشكَر عليه**: مَن دعا أصدقاءً يُقال له إنّ لعباتِه الزائدةَ منهم —
   // فيعرف أنّ الدعوةَ نفعت، فيدعو أكثر.
-  final earned = a.bonus > 0 ? ' (منها ${a.bonus} من دعوة أصدقائك)' : '';
-  return switch (a.remaining) {
-    // **يقول ما العمل لا «انتهت» وحدَها**: الأوفلاين حرٌّ بلا حدّ، وهو المخرجُ
-    // الصادقُ اليوم (والتذكرةُ تأتي).
-    0 => 'انتهت لعباتُك اليوم — تعود غدًا',
-    1 => 'بقيت لك لعبةٌ واحدةٌ اليوم$earned',
-    2 => 'بقيت لك لعبتان اليوم$earned',
-    _ => 'بقيت لك ${a.remaining} لعباتٍ اليوم$earned',
-  };
+  final earned = a.bonus > 0 ? l.bonusFromInvites(a.bonus) : '';
+  // **يقول ما العمل لا «انتهت» وحدَها**: الأوفلاين حرٌّ بلا حدّ، وهو المخرجُ
+  // الصادقُ اليوم (والتذكرةُ تأتي).
+  return l.gamesLeftToday(a.remaining) + (a.remaining == 0 ? '' : earned);
 }
 
 /// ما بقي من نافذة «بلا حدود» — **صيغةٌ اسميّةٌ** («الباقي: ساعتان») لا فعليّة:
 /// «يبقى ساعتان» يُخطئ التذكيرَ، و«باقٍ 6 يومًا» يُخطئ التمييز. والمثنّى والجمعُ
 /// مضبوطان — ركاكةٌ يراها **كلُّ من دفع، كلَّ يوم**.
-String _passLeft(DateTime until) {
+String _passLeft(AppLocalizations l, DateTime until) {
   final d = until.difference(DateTime.now());
-  if (d.isNegative) return 'انتهت';
-  if (d.inHours >= 24) {
-    return switch (d.inDays) {
-      1 => 'يومٌ واحد',
-      2 => 'يومان',
-      final n => '$n أيّام',
-    };
-  }
-  return switch (d.inHours) {
-    0 => 'أقلُّ من ساعة',
-    1 => 'ساعةٌ واحدة',
-    2 => 'ساعتان',
-    final h => '$h ساعات',
-  };
+  if (d.isNegative) return l.expired;
+  if (d.inHours >= 24) return l.daysLeft(d.inDays);
+  return l.hoursLeft(d.inHours);
 }
 
 /// **عدّادُ اللعبات** — «مع عدّاد يظهر له كم من لعبة بقيت له» (نصُّ المالك).

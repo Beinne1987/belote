@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../net/api_client.dart';
 import '../../services/phone_auth.dart';
+import '../../l10n/app_text.dart';
 import '../../theme/belote_theme.dart';
 import '../name_entry_screen.dart';
 import 'forgot_password_screen.dart';
@@ -74,12 +75,12 @@ class AuthLandingScreen extends StatelessWidget {
                         )),
                   ),
                   const SizedBox(height: 6),
-                  Text('العب مع أصدقائك حول العالم',
+                  Text(context.l10n.authTagline,
                       style: TextStyle(color: t.text2, fontSize: 15)),
                   const SizedBox(height: 36),
-                  _primary(t, 'تسجيل الدخول', () => _push(context, _login(context))),
+                  _primary(t, context.l10n.signInAction, () => _push(context, _login(context))),
                   const SizedBox(height: 12),
-                  _outlined(t, 'إنشاء حساب', () => _push(context, _register(context))),
+                  _outlined(t, context.l10n.createAccount, () => _push(context, _register(context))),
                   // **الحقيقةُ قبل المحاولة، لا بعدها.** إنشاءُ الحساب واستعادةُ
                   // كلمة السرّ يمرّان برمز SMS من Firebase Phone Auth — ولا
                   // تنفيذَ له على ويندوز/ماك. بلا هذا السطر يملأ اللاعبُ
@@ -88,8 +89,7 @@ class AuthLandingScreen extends StatelessWidget {
                   if (!PhoneAuthService.isSupported) ...[
                     const SizedBox(height: 10),
                     Text(
-                      'إنشاءُ الحساب واستعادةُ كلمة السرّ يحتاجان رمزًا بالرسائل ⇒ '
-                      'من تطبيق الهاتف. وتسجيلُ الدخول هنا يعمل كاملًا.',
+                      context.l10n.desktopAuthNote,
                       textAlign: TextAlign.center,
                       style: TextStyle(color: t.text2, fontSize: 12.5, height: 1.5),
                     ),
@@ -98,7 +98,7 @@ class AuthLandingScreen extends StatelessWidget {
                   TextButton(
                     onPressed: () =>
                         _push(context, const NameEntryScreen(guest: true)),
-                    child: Text('الدخول كضيف',
+                    child: Text(context.l10n.continueAsGuest,
                         style: TextStyle(color: t.text2, fontSize: 15, fontWeight: FontWeight.w600)),
                   ),
                 ],

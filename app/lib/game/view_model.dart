@@ -1,5 +1,7 @@
 import 'package:belote_engine/belote_engine.dart';
 
+import '../l10n/app_text.dart';
+
 /// طور الجولة كما تراه الواجهة.
 /// `dealing` طورٌ عرضيّ قصير قبل الضمانة: يوزَّع الورق من مقعد الموزّع.
 enum GamePhase { dealing, bidding, playing, done }
@@ -31,6 +33,21 @@ enum GameSound {
   giftArrive, // وصولُ هديّةٍ عاديّة/نادرة
   giftArriveEpic, // وصولُ هديّةٍ ملحميّة (جمل/سيّارة)
   giftArriveLegendary, // وصولُ حصريّة VIP
+}
+
+/// ما نطق به مقعدٌ في الضمانة — **نصًّا ولونًا معًا**.
+///
+/// الفقاعةُ أمام صاحبها تُرسَم بشكل الشريط نفسِه (طلبُ المالك 2026-07-23):
+/// ضمانةُ لونٍ **رمزٌ** لا كلمة، وما لا لونَ له يبقى نصًّا. ولذلك لا يكفي
+/// النصُّ وحدَه — [suit] يقول للواجهة أيَّ رمزٍ ترسم، ويبقى [label] للقراءة
+/// وللوصوليّة وللسجلّ.
+class SeatBid {
+  final String label;
+  final String? suit; // 'pique' · 'coeur' · 'carreau' · 'trefle' أو null
+  final bool isPass;
+  final bool isAkwins;
+
+  const SeatBid(this.label, {this.suit, this.isPass = false, this.isAkwins = false});
 }
 
 /// نتيجة الجولة المنتهية — يحسبها الكنترولر عبر `scoreRound`، وتعرضها اللوحة.
@@ -86,7 +103,8 @@ class MatchSummaryView {
   });
 
   String nameOf(int seat) =>
-      (seat >= 0 && seat < names.length) ? names[seat] : 'لاعب';
+      (seat >= 0 && seat < names.length) ? names[seat]
+          : AppText.s.playerFallback;
 
   bool isMe(int seat) => seat == mySeat;
 
@@ -149,7 +167,7 @@ class TableView {
 
   /// آخر ما نطق به كل مقعد أثناء الضمانة (فقاعة أمامه)، أو null.
   /// يُفرَّغ عند انتقال الضمانة إلى مكانها الرسمي أعلى الشاشة.
-  final List<String?> seatBids;
+  final List<SeatBid?> seatBids;
 
   /// صاحب الدور الآن (لتمييز مقعده).
   final int turn;

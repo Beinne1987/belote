@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../l10n/app_text.dart';
 import '../net/api_client.dart';
 import '../net/session_controller.dart';
 import '../theme/belote_theme.dart';
@@ -83,7 +84,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
     } on ApiException catch (e) {
       if (!mounted || silent) return; // الاستطلاع الفاشل صامتٌ — القديم يُعرَض
       setState(() => _fatal = e.status == 0
-          ? 'تعذّر الاتصال بالخادم'
+          ? context.l10n.serverUnreachable
           : tournamentErrorText(e.message));
     }
   }
@@ -116,7 +117,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(e.status == 0
-              ? 'تعذّر الاتصال بالخادم'
+              ? context.l10n.serverUnreachable
               : tournamentErrorText(e.message))));
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -151,7 +152,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
     } on ApiException {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تعذّر جلبُ الأصدقاء')));
+          SnackBar(content: Text(context.l10n.friendsFetchFailed)));
       return;
     }
     if (!mounted) return;
@@ -165,7 +166,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
         child: lists.friends.isEmpty
             ? Padding(
                 padding: const EdgeInsets.all(24),
-                child: Text('لا أصدقاءَ بعد — أضفهم من شاشة الأصدقاء برمزهم.',
+                child: Text(context.l10n.noFriendsYet,
                     style: TextStyle(color: t.text2)),
               )
             : ListView(
@@ -173,7 +174,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
-                    child: Text('ادعُ شريكًا — يدفع رسمَه عند قبوله',
+                    child: Text(context.l10n.invitePartnerPays,
                         style: TextStyle(
                             color: t.text, fontWeight: FontWeight.w800)),
                   ),
@@ -182,7 +183,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
                       leading: PlayerAvatar(
                           url: f.avatarUrl,
                           fallback: f.displayName.isEmpty
-                              ? '؟'
+                              ? context.l10n.unknownInitial
                               : f.displayName.characters.first,
                           size: 38),
                       title: Text(f.displayName,
@@ -213,7 +214,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              const SimpleTopBar(title: 'البطولات'),
+              SimpleTopBar(title: context.l10n.tournaments),
               Expanded(child: _body(t)),
             ],
           ),
@@ -225,7 +226,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
   Widget _body(BeloteTheme t) {
     if (_token == null) {
       return Center(
-        child: Text('سجّل الدخول للمشاركة في البطولات',
+        child: Text(context.l10n.signInForTournaments,
             style: TextStyle(color: t.text2)),
       );
     }
@@ -242,7 +243,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
                 setState(() => _fatal = null);
                 _refresh();
               },
-              child: const Text('إعادة المحاولة'),
+              child: Text(context.l10n.retry),
             ),
           ],
         ),
@@ -284,13 +285,13 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('أنشئ مسابقتك',
+                  Text(context.l10n.createYourEvent,
                       style: TextStyle(
                           color: t.text,
                           fontSize: 15,
                           fontWeight: FontWeight.w800)),
                   const SizedBox(height: 2),
-                  Text('باسمك وبرسمٍ تحدّده — رسم الإنشاء 50💎',
+                  Text(context.l10n.createEventSubtitle,
                       style: TextStyle(color: t.text2, fontSize: 12)),
                 ],
               ),
@@ -299,7 +300,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
               style: FilledButton.styleFrom(
                   backgroundColor: t.accent, foregroundColor: t.bg),
               onPressed: _busy ? null : _openCreateEventSheet,
-              child: const Text('أنشئ'),
+              child: Text(context.l10n.create),
             ),
           ],
         ),
@@ -331,7 +332,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('مسابقة جديدة',
+              Text(context.l10n.newEvent,
                   style: TextStyle(
                       color: t.text, fontSize: 17, fontWeight: FontWeight.w800)),
               const SizedBox(height: 12),
@@ -341,7 +342,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
                 style: TextStyle(color: t.text),
                 cursorColor: t.accent,
                 decoration: InputDecoration(
-                  labelText: 'اسم المسابقة',
+                  labelText: context.l10n.eventName,
                   labelStyle: TextStyle(color: t.text3),
                   counterText: '',
                   enabledBorder: OutlineInputBorder(
@@ -357,7 +358,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
                 style: TextStyle(color: t.text),
                 cursorColor: t.accent,
                 decoration: InputDecoration(
-                  labelText: 'رسم الدخول (10–500 💎)',
+                  labelText: context.l10n.entryFeeField,
                   labelStyle: TextStyle(color: t.text3),
                   enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(color: t.line)),
@@ -367,11 +368,11 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
               ),
               const SizedBox(height: 12),
               Row(children: [
-                Text('الحجم:', style: TextStyle(color: t.text2)),
+                Text(context.l10n.sizeLabel, style: TextStyle(color: t.text2)),
                 const SizedBox(width: 10),
                 for (final n in const [8, 16]) ...[
                   ChoiceChip(
-                    label: Text('$n فرق'),
+                    label: Text(context.l10n.teamsCount(n)),
                     selected: teams == n,
                     selectedColor: t.accent,
                     onSelected: (_) => setSheet(() => teams = n),
@@ -383,8 +384,11 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
               OutlinedButton.icon(
                 icon: Icon(Icons.schedule, size: 18, color: t.accentBright),
                 label: Text(
-                  'الموعد: ${startsAt.day}/${startsAt.month} · '
-                  '${startsAt.hour.toString().padLeft(2, '0')}:${startsAt.minute.toString().padLeft(2, '0')}',
+                  context.l10n.eventSchedule(
+                    '${startsAt.day}/${startsAt.month}',
+                    '${startsAt.hour.toString().padLeft(2, '0')}:'
+                        '${startsAt.minute.toString().padLeft(2, '0')}',
+                  ),
                   style: TextStyle(color: t.text),
                 ),
                 onPressed: () async {
@@ -408,8 +412,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
               const SizedBox(height: 10),
               // **الصدقُ قبل الدفع**: ماذا يدفع وماذا لا يناله.
               Text(
-                'رسم الإنشاء 50💎 غير مستردّ. رسوم المشاركين صندوقُ الفائزين '
-                '(البيت يقتطع 20%) — لا نصيبَ للمنشئ منها؛ المسابقة باسمك.',
+                context.l10n.createEventTerms,
                 style: TextStyle(color: t.text3, fontSize: 11.5, height: 1.6),
               ),
               const SizedBox(height: 12),
@@ -419,8 +422,8 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
                     foregroundColor: t.bg,
                     minimumSize: const Size.fromHeight(46)),
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('أنشئ المسابقة — 50💎',
-                    style: TextStyle(fontWeight: FontWeight.w800)),
+                child: Text(context.l10n.createEventConfirm,
+                    style: const TextStyle(fontWeight: FontWeight.w800)),
               ),
             ],
           ),
@@ -445,7 +448,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
   static String _countdown(int seconds) {
     if (seconds >= 3600) {
       final h = seconds ~/ 3600, m = (seconds % 3600) ~/ 60;
-      return '$h س $m د';
+      return AppText.s.hoursMinutes(h, m);
     }
     return _mmss(seconds);
   }
@@ -472,15 +475,15 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
               _chip(
                   t,
                   playing
-                      ? 'جارية الآن'
+                      ? context.l10n.eventLive
                       : ev.creatorName.isNotEmpty
-                          ? 'مسابقة لاعب'
-                          : 'فعاليّة'),
+                          ? context.l10n.eventPlayerMade
+                          : context.l10n.eventOfficial),
             ],
           ),
           if (ev.creatorName.isNotEmpty) ...[
             const SizedBox(height: 4),
-            Text('ينظّمها: ${ev.creatorName}',
+            Text(context.l10n.eventOrganizer(ev.creatorName),
                 style: TextStyle(
                     color: t.accentBright,
                     fontSize: 12.5,
@@ -488,21 +491,21 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
           ],
           const SizedBox(height: 6),
           Text(
-              'الدخول: ${ev.entryFee}💎  ·  المسجّلون: ${ev.players}/${ev.size}  ·  الصندوق: ${ev.pool}💎',
+              context.l10n.eventStats(ev.entryFee, ev.players, ev.size, ev.pool),
               style: TextStyle(color: t.text2, fontSize: 12.5)),
           if (!playing) ...[
             const SizedBox(height: 6),
             Row(children: [
               Icon(Icons.timer_outlined, size: 16, color: t.accentBright),
               const SizedBox(width: 6),
-              Text('تبدأ بعد ${_countdown(ev.startsInSeconds)}',
+              Text(context.l10n.startsIn(_countdown(ev.startsInSeconds)),
                   style: TextStyle(
                       color: t.accentBright, fontWeight: FontWeight.w700)),
             ]),
           ],
           if (ev.inviteFrom != null) ...[
             const SizedBox(height: 8),
-            Text('${ev.inviteFrom} يدعوك شريكًا له في هذه الفعاليّة 🤝',
+            Text(context.l10n.partnerInviteEvent('${ev.inviteFrom}'),
                 style: TextStyle(color: t.text, fontWeight: FontWeight.w700)),
             const SizedBox(height: 8),
             Row(children: [
@@ -513,7 +516,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
                     ? null
                     : () => _act(
                         (tk) => _api!.tournamentAccept(tk, eventId: ev.id)),
-                child: const Text('اقبل'),
+                child: Text(context.l10n.accept),
               ),
               const SizedBox(width: 8),
               OutlinedButton(
@@ -521,7 +524,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
                     ? null
                     : () => _act(
                         (tk) => _api!.tournamentDecline(tk, eventId: ev.id)),
-                child: const Text('ارفض'),
+                child: Text(context.l10n.decline),
               ),
             ]),
           ] else if (!playing) ...[
@@ -534,7 +537,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
                             ? null
                             : () => _act((tk) =>
                                 _api!.tournamentUnregister(tk, eventId: ev.id)),
-                        child: const Text('انسحب واسترد رسمك'),
+                        child: Text(context.l10n.withdrawRefund),
                       ),
                     ),
                     if (ev.partner == null) ...[
@@ -543,7 +546,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
                         onPressed:
                             _busy ? null : () => _pickPartner(eventId: ev.id),
                         icon: const Icon(Icons.group_add_outlined, size: 18),
-                        label: const Text('ادعُ شريكًا'),
+                        label: Text(context.l10n.invitePartner),
                       ),
                     ],
                   ])
@@ -556,12 +559,12 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
                         ? null
                         : () => _act((tk) =>
                             _api!.tournamentRegister(tk, eventId: ev.id)),
-                    child: Text('سجّل — ${ev.entryFee}💎'),
+                    child: Text(context.l10n.registerForFee(ev.entryFee)),
                   ),
           ],
           if (ev.partner != null) ...[
             const SizedBox(height: 6),
-            Text('شريكك: ${ev.partner} 🤝',
+            Text(context.l10n.yourPartner('${ev.partner}'),
                 style: TextStyle(
                     color: t.accentBright, fontWeight: FontWeight.w700)),
           ],
@@ -574,7 +577,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
                   foregroundColor: t.error,
                   side: BorderSide(color: t.error.withValues(alpha: 0.6))),
               icon: const Icon(Icons.cancel_outlined, size: 18),
-              label: const Text('ألغِ مسابقتك'),
+              label: Text(context.l10n.cancelMyEvent),
               onPressed: _busy ? null : () => _cancelMyEvent(ev),
             ),
           ],
@@ -589,22 +592,21 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: t.surface,
-        title: Text('إلغاء «${ev.title}»؟', style: TextStyle(color: t.text)),
+        title: Text(context.l10n.cancelEventTitle(ev.title), style: TextStyle(color: t.text)),
         content: Text(
-          'تُردُّ رسومُ المسجّلين (${ev.players}) كاملةً. '
-          'رسمُ الإنشاء (50💎) لا يعود.',
+          context.l10n.cancelEventBody(ev.players),
           style: TextStyle(color: t.text2, height: 1.6),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text('تراجُع', style: TextStyle(color: t.text3)),
+            child: Text(context.l10n.back, style: TextStyle(color: t.text3)),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
                 backgroundColor: t.error, foregroundColor: t.onAccent),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('ألغِ المسابقة'),
+            child: Text(context.l10n.cancelEventConfirm),
           ),
         ],
       ),
@@ -626,7 +628,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('أبطال آخر بطولة',
+                  Text(context.l10n.lastTournamentChampions,
                       style: TextStyle(
                           color: t.text, fontWeight: FontWeight.w800)),
                   const SizedBox(height: 4),
@@ -652,13 +654,13 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('${st.inviteFrom} يدعوك شريكًا له 🤝',
+            Text(context.l10n.partnerInvite('${st.inviteFrom}'),
                 style: TextStyle(color: t.text, fontWeight: FontWeight.w800)),
             const SizedBox(height: 4),
             Text(
                 st.registered
-                    ? 'بقبولك تُثبَّتان شريكين على طاولةٍ واحدة.'
-                    : 'بقبولك تُسجَّل وتدفع رسمَك (${st.entryFee}💎) وتُثبَّتان شريكين.',
+                    ? context.l10n.partnerInviteRegistered
+                    : context.l10n.partnerInviteWillPay(st.entryFee),
                 style: TextStyle(color: t.text2, fontSize: 12.5)),
             const SizedBox(height: 10),
             Row(
@@ -669,14 +671,14 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
                   onPressed: _busy
                       ? null
                       : () => _act((tk) => _api!.tournamentAccept(tk)),
-                  child: const Text('اقبل'),
+                  child: Text(context.l10n.accept),
                 ),
                 const SizedBox(width: 8),
                 OutlinedButton(
                   onPressed: _busy
                       ? null
                       : () => _act((tk) => _api!.tournamentDecline(tk)),
-                  child: const Text('ارفض'),
+                  child: Text(context.l10n.decline),
                 ),
               ],
             ),
@@ -713,18 +715,18 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
                   children: [
                     Row(
                       children: [
-                        Text('بطولة اليوم',
+                        Text(context.l10n.todaysTournament,
                             style: TextStyle(
                                 color: t.text,
                                 fontSize: 16,
                                 fontWeight: FontWeight.w800)),
                         const SizedBox(width: 8),
-                        _chip(t, 'إقصائيّة ${st.size}'),
+                        _chip(t, context.l10n.knockoutSize(st.size)),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Text(
-                        'الدخول: ${st.entryFee}💎 للشخص  ·  الصندوق حتى الآن: ${st.pool}💎',
+                        context.l10n.tournamentStats(st.entryFee, st.pool),
                         style: TextStyle(color: t.text2, fontSize: 12.5)),
                   ],
                 ),
@@ -732,7 +734,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          Text('الزوج الفائز يقتسم الصندوق — والذكاء يكمل النقص عند البدء.',
+          Text(context.l10n.tournamentPayoutNote,
               style: TextStyle(color: t.text3, fontSize: 11.5)),
           if (ends != null) ...[
             const SizedBox(height: 10),
@@ -740,7 +742,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
               children: [
                 Icon(Icons.timer_outlined, size: 16, color: t.accentBright),
                 const SizedBox(width: 6),
-                Text('تبدأ خلال ${_mmss(ends)}',
+                Text(context.l10n.startsWithin(_mmss(ends)),
                     style: TextStyle(
                         color: t.accentBright, fontWeight: FontWeight.w700)),
               ],
@@ -748,7 +750,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
           ],
           if (st.players.isNotEmpty) ...[
             const SizedBox(height: 12),
-            Text('المسجّلون ${st.players.length}/${st.size}',
+            Text(context.l10n.registeredCount(st.players.length, st.size),
                 style: TextStyle(color: t.text2, fontWeight: FontWeight.w700)),
             const SizedBox(height: 8),
             Wrap(
@@ -767,7 +769,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
                             ? null
                             : () =>
                                 _act((tk) => _api!.tournamentUnregister(tk)),
-                        child: const Text('انسحب واسترد رسمك'),
+                        child: Text(context.l10n.withdrawRefund),
                       )
                     : FilledButton(
                         style: FilledButton.styleFrom(
@@ -775,7 +777,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
                         onPressed: _busy
                             ? null
                             : () => _act((tk) => _api!.tournamentRegister(tk)),
-                        child: Text('سجّل — ${st.entryFee}💎'),
+                        child: Text(context.l10n.registerForFee(st.entryFee)),
                       ),
               ),
               if (st.registered && st.partner == null) ...[
@@ -783,14 +785,14 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
                 OutlinedButton.icon(
                   onPressed: _busy ? null : _pickPartner,
                   icon: const Icon(Icons.group_add_outlined, size: 18),
-                  label: const Text('ادعُ شريكًا'),
+                  label: Text(context.l10n.invitePartner),
                 ),
               ],
             ],
           ),
           if (st.partner != null) ...[
             const SizedBox(height: 8),
-            Text('شريكك: ${st.partner} 🤝',
+            Text(context.l10n.yourPartner('${st.partner}'),
                 style: TextStyle(
                     color: t.accentBright, fontWeight: FontWeight.w700)),
           ],
@@ -811,14 +813,14 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
           children: [
             PlayerAvatar(
                 url: p.avatarUrl,
-                fallback: p.name.isEmpty ? '؟' : p.name.characters.first,
+                fallback: p.name.isEmpty ? context.l10n.unknownInitial : p.name.characters.first,
                 size: 22),
             const SizedBox(width: 6),
-            Text(p.you ? 'أنت' : p.name,
+            Text(p.you ? context.l10n.seatYou : p.name,
                 style: TextStyle(color: t.text, fontSize: 12.5)),
             if (p.partner != null) ...[
               const SizedBox(width: 4),
-              Text('مع ${p.partner}',
+              Text(context.l10n.withPartner('${p.partner}'),
                   style: TextStyle(color: t.text3, fontSize: 11)),
             ],
           ],
@@ -838,20 +840,21 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
           ),
           onPressed: () => _enterTable(table),
           icon: const Icon(Icons.play_arrow_rounded),
-          label: const Text('ادخل طاولتك الآن',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+          label: Text(context.l10n.enterYourTable,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
         ),
       );
 
   /// اسمُ الجولة من **عدد مبارياتها** لا رقمِها: 1 نهائيّ · 2 نصف · 4 ربع·
   /// وما فوقُ «دور الـN» — فيصحّ لأيّ حجم قوسٍ حتى 512 فريقًا (فتح السعة)
   /// بلا افتراضٍ مقفول. الأرقامُ لاتينيّةٌ دائمًا ([[latin-digits-ui]]).
-  static String _roundName(int matchesInRound) => switch (matchesInRound) {
-        1 => 'النهائيّ',
-        2 => 'نصف النهائيّ',
-        4 => 'ربع النهائيّ',
-        >= 8 => 'دور الـ${matchesInRound * 2}',
-        _ => 'جولة',
+  static String _roundName(AppLocalizations l, int matchesInRound) =>
+      switch (matchesInRound) {
+        1 => l.roundFinal,
+        2 => l.roundSemi,
+        4 => l.roundQuarter,
+        >= 8 => l.roundOfN(matchesInRound * 2),
+        _ => l.roundGeneric,
       };
 
   Widget _bracket(BeloteTheme t, TournamentState st) {
@@ -888,7 +891,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
         for (final r in rounds) ...[
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 6),
-            child: Text(_roundName(fullSize(r)),
+            child: Text(_roundName(context.l10n, fullSize(r)),
                 style:
                     TextStyle(color: t.text2, fontWeight: FontWeight.w800)),
           ),
@@ -896,8 +899,10 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
           if ((infoOf[r]?.created ?? 0) > (byRound[r]?.length ?? 0))
             _card(t,
                 child: Text(
-                    'حُسمت ${infoOf[r]!.finished} من ${infoOf[r]!.matches} مباراة'
-                    '${(byRound[r]?.isNotEmpty ?? false) ? ' — تُعرَض مباراتُك' : ''}',
+                    context.l10n.roundProgress(infoOf[r]!.finished, infoOf[r]!.matches) +
+                        ((byRound[r]?.isNotEmpty ?? false)
+                            ? context.l10n.yourMatchShown
+                            : ''),
                     style: TextStyle(color: t.text3))),
           for (final m in ((byRound[r] ?? [])
             ..sort((a, b) => a.index.compareTo(b.index))))
@@ -905,7 +910,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
         ],
         if (!finalReached)
           _card(t,
-              child: Text('الجولة التالية تُبنى فور حسم مبارياتها الرافدة…',
+              child: Text(context.l10n.nextRoundPending,
                   style: TextStyle(color: t.text3))),
       ],
     );
@@ -935,12 +940,12 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
                                     shape: BoxShape.circle),
                               ),
                               const SizedBox(width: 6),
-                              Text('جارية',
+                              Text(context.l10n.matchLive,
                                   style: TextStyle(
                                       color: t.accentBright, fontSize: 11.5)),
                             ],
                           )
-                        : Text('ضدّ',
+                        : Text(context.l10n.versus,
                             style:
                                 TextStyle(color: t.text3, fontSize: 11.5)),
                   ),
@@ -977,11 +982,11 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
                       PlayerAvatar(
                           url: s.avatarUrl,
                           fallback:
-                              s.name.isEmpty ? '؟' : s.name.characters.first,
+                              s.name.isEmpty ? context.l10n.unknownInitial : s.name.characters.first,
                           size: 20),
                     const SizedBox(width: 5),
                     Text(
-                      s.bot ? 'ذكاء' : (s.you ? 'أنت' : s.name),
+                      s.bot ? context.l10n.botPlayer : (s.you ? context.l10n.seatYou : s.name),
                       style: TextStyle(
                         color: s.you ? t.accentBright : color,
                         fontWeight:

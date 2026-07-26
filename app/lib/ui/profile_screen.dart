@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_text.dart';
 import '../net/api_client.dart';
 import '../net/session_controller.dart';
 import '../services/avatar_picker.dart';
@@ -57,7 +58,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              const SimpleTopBar(title: 'ملفّي'),
+              SimpleTopBar(title: context.l10n.myProfile),
               Expanded(
                 child: session.isSignedIn
                     ? _signedIn(t, session)
@@ -78,7 +79,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               Icon(Icons.account_circle_outlined, color: t.text3, size: 64),
               const SizedBox(height: 14),
-              Text('سجّل الدخول لعرض ملفّك وإحصائياتك',
+              Text(context.l10n.signInToSeeProfile,
                   textAlign: TextAlign.center,
                   style: TextStyle(color: t.text2, fontSize: 15)),
               const SizedBox(height: 18),
@@ -89,8 +90,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   foregroundColor: t.onAccent,
                   padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
                 ),
-                child: const Text('تسجيل الدخول',
-                    style: TextStyle(fontWeight: FontWeight.w800)),
+                child: Text(context.l10n.signInAction,
+                    style: const TextStyle(fontWeight: FontWeight.w800)),
               ),
             ],
           ),
@@ -100,7 +101,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _signedIn(BeloteTheme t, SessionController s) {
     final p = s.player!;
     final stats = s.stats;
-    final name = p.displayName.isNotEmpty ? p.displayName : 'اللاعب';
+    final name = p.displayName.isNotEmpty
+        ? p.displayName
+        : context.l10n.playerDefaultName;
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
       children: [
@@ -187,11 +190,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _pill(t, 'التصنيف', '${stats?.rating ?? '—'}', accent: true),
+              _pill(t, context.l10n.rating, '${stats?.rating ?? '—'}', accent: true),
               const SizedBox(width: 10),
-              _pill(t, 'نسبة الفوز', stats == null ? '—' : '${stats.winRatePct}%'),
+              _pill(t, context.l10n.statWinRate, stats == null ? '—' : '${stats.winRatePct}%'),
               const SizedBox(width: 10),
-              _pill(t, 'المباريات', '${stats?.matches ?? '—'}'),
+              _pill(t, context.l10n.statMatches, '${stats?.matches ?? '—'}'),
             ],
           ),
           // **الرتبة** — المهارةُ باسمها وشريطُ تقدّمها نحو التالية. تُخفى إن كان
@@ -220,7 +223,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         // يقول «صورة الملفّ، زرّ» لا «م».
         container: true,
         button: true,
-        label: 'صورة الملفّ',
+        label: context.l10n.profilePhoto,
         child: GestureDetector(
           key: profileAvatarKey,
           onTap: _busy ? null : () => _editAvatar(t, p),
@@ -317,18 +320,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 8),
             ListTile(
               leading: Icon(Icons.photo_library, color: t.text2),
-              title: Text('اختر من الصور', style: TextStyle(color: t.text)),
+              title: Text(context.l10n.pickFromGallery, style: TextStyle(color: t.text)),
               onTap: () => Navigator.pop(c, 'gallery'),
             ),
             ListTile(
               leading: Icon(Icons.photo_camera, color: t.text2),
-              title: Text('التقط صورة', style: TextStyle(color: t.text)),
+              title: Text(context.l10n.takePhoto, style: TextStyle(color: t.text)),
               onTap: () => Navigator.pop(c, 'camera'),
             ),
             if (p.avatarUrl.isNotEmpty)
               ListTile(
                 leading: Icon(Icons.delete_outline, color: t.error),
-                title: Text('احذف الصورة', style: TextStyle(color: t.error)),
+                title: Text(context.l10n.deletePhoto, style: TextStyle(color: t.error)),
                 onTap: () => Navigator.pop(c, 'delete'),
               ),
             const SizedBox(height: 8),
@@ -346,6 +349,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   /// الخادم من تجزئة المحتوى، فلا يعرفه العميل قبل ردّه.
   Future<void> _uploadAvatar(AvatarSource source) async {
     final s = SessionScope.of(context);
+    // النصوصُ تُقرأ **قبل** الانتظار: بعده قد تكون الشجرةُ ذهبت.
+    final l = context.l10n;
     final picker = widget.picker ?? DeviceAvatarPicker();
     setState(() => _busy = true);
     try {
@@ -357,7 +362,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _toast(avatarErrorText(e.message));
     } catch (_) {
       // إذنٌ مرفوض أو عطبُ منصّة — رسالةٌ واحدةٌ صادقة بلا تفاصيل لا تعنيه.
-      _toast('تعذّر فتح الصور. تحقّق من الأذونات.');
+      _toast(l.photoPermissionError);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -397,7 +402,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: OutlinedButton.icon(
               onPressed: () => _confirmSignOut(t, s),
               icon: Icon(Icons.logout, color: t.text2, size: 18),
-              label: Text('تسجيل الخروج', style: TextStyle(color: t.text)),
+              label: Text(context.l10n.signOut, style: TextStyle(color: t.text)),
               style: OutlinedButton.styleFrom(
                 side: BorderSide(color: t.line),
                 padding: const EdgeInsets.symmetric(vertical: 14),
@@ -410,7 +415,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           TextButton.icon(
             onPressed: () => _confirmDelete(t, s, p),
             icon: Icon(Icons.delete_forever, color: t.error, size: 18),
-            label: Text('حذف الحساب نهائيًّا',
+            label: Text(context.l10n.deleteAccount,
                 style: TextStyle(color: t.error, fontWeight: FontWeight.w700)),
           ),
         ],
@@ -421,16 +426,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       builder: (c) => AlertDialog(
         backgroundColor: t.surface,
-        title: Text('تسجيل الخروج', style: TextStyle(color: t.text)),
-        content: Text('يبقى حسابك كما هو، وتعود إليه بهاتفك وكلمة سرّك.',
+        title: Text(context.l10n.signOut, style: TextStyle(color: t.text)),
+        content: Text(context.l10n.signOutNote,
             style: TextStyle(color: t.text2)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(c, false),
-              child: Text('تراجع', style: TextStyle(color: t.text2))),
+              child: Text(context.l10n.backAction, style: TextStyle(color: t.text2))),
           TextButton(
               onPressed: () => Navigator.pop(c, true),
-              child: Text('اخرج', style: TextStyle(color: t.accentBright))),
+              child: Text(context.l10n.signOutConfirm, style: TextStyle(color: t.accentBright))),
         ],
       ),
     );
@@ -456,7 +461,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(SnackBar(
-          content: Text('تعذّر الحذف: ${e.message}', textAlign: TextAlign.center),
+          content: Text(context.l10n.deleteFailed(e.message), textAlign: TextAlign.center),
           behavior: SnackBarBehavior.floating,
         ));
     }
@@ -474,7 +479,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           Row(
             children: [
-              Text('المستوى ',
+              Text(context.l10n.levelLabel,
                   style: TextStyle(color: t.text2, fontSize: 12.5)),
               Text('${s.level}',
                   // الأرقام لاتينيّةٌ دائمًا (CLAUDE.md)
@@ -482,8 +487,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   style: TextStyle(
                       color: t.accent, fontSize: 14, fontWeight: FontWeight.w800)),
               const Spacer(),
-              Text('${s.xpToNext} خبرة للتالي',
-                  textDirection: TextDirection.rtl,
+              Text(context.l10n.xpToNext(s.xpToNext),
                   style: TextStyle(color: t.text3, fontSize: 11.5)),
             ],
           ),
@@ -520,7 +524,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('محفظتي',
+          Text(context.l10n.myWallet,
               style: TextStyle(
                   color: t.text, fontSize: 15, fontWeight: FontWeight.w800)),
           const SizedBox(height: 10),
@@ -528,7 +532,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               const Icon(Icons.diamond, color: Color(0xFF5BC6F0), size: 18),
               const SizedBox(width: 8),
-              Text('الماس', style: TextStyle(color: t.text2, fontSize: 13)),
+              Text(context.l10n.diamonds, style: TextStyle(color: t.text2, fontSize: 13)),
               const Spacer(),
               Text('${s.diamonds}',
                   // الأرقام لاتينيّةٌ دائمًا (CLAUDE.md)
@@ -540,11 +544,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 12),
           Divider(color: t.line, height: 1),
           const SizedBox(height: 12),
-          Text('هداياي', style: TextStyle(color: t.text2, fontSize: 13)),
+          Text(context.l10n.myGifts, style: TextStyle(color: t.text2, fontSize: 13)),
           const SizedBox(height: 8),
           if (gifts.isEmpty)
             // **حالةٌ تشرح نفسها وتدلّ**: «لا هدايا» وحدها تُحبِط ولا تُرشد.
-            Text('لا هدايا بعد — اشترِ باقةً من المتجر.',
+            Text(context.l10n.noGiftsYet,
                 style: TextStyle(color: t.text3, fontSize: 12.5))
           else
             Wrap(
@@ -626,13 +630,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
 
   Widget _statsGrid(BeloteTheme t, PlayerStatsView s) {
+    final l = context.l10n;
     final stats = <(String, String)>[
-      ('نسبة الفوز', '${s.winRatePct}%'),
-      ('المباريات', '${s.matches}'),
-      ('الفوز', '${s.wins}'),
-      ('الخسارة', '${s.losses}'),
-      ('أفضل سلسلة', '${s.bestStreak}'),
-      ('السلسلة الحالية', '${s.winStreak}'),
+      (l.statWinRate, '${s.winRatePct}%'),
+      (l.statMatches, '${s.matches}'),
+      (l.statWins, '${s.wins}'),
+      (l.statLosses, '${s.losses}'),
+      (l.statBestStreak, '${s.bestStreak}'),
+      (l.statCurrentStreak, '${s.winStreak}'),
     ];
     return GridView.count(
       crossAxisCount: 2,
@@ -706,7 +711,7 @@ class _DeleteDialogState extends State<_DeleteDialog> {
           Icon(Icons.warning_amber_rounded, color: t.error),
           const SizedBox(width: 8),
           Expanded(
-              child: Text('حذف الحساب نهائيًّا',
+              child: Text(context.l10n.deleteAccount,
                   style: TextStyle(color: t.text, fontSize: 17))),
         ],
       ),
@@ -715,12 +720,12 @@ class _DeleteDialogState extends State<_DeleteDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'يزول اسمك ورمزك وماسك وتصنيفك وأصدقاؤك. لا رجعة في هذا.\n'
-            'يبقى رقمك متاحًا لحسابٍ جديدٍ إن أردت العودة.',
+            context.l10n.deleteAccountBody,
             style: TextStyle(color: t.text2, fontSize: 13.5, height: 1.6),
           ),
           const SizedBox(height: 14),
-          Text('اكتب رمزك للتأكيد:', style: TextStyle(color: t.text2, fontSize: 13)),
+          Text(context.l10n.typeYourTagToConfirm,
+              style: TextStyle(color: t.text2, fontSize: 13)),
           const SizedBox(height: 8),
           TextField(
             controller: _ctrl,
@@ -743,11 +748,11 @@ class _DeleteDialogState extends State<_DeleteDialog> {
       actions: [
         TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('تراجع', style: TextStyle(color: t.text2))),
+            child: Text(context.l10n.backAction, style: TextStyle(color: t.text2))),
         TextButton(
           // معطّلٌ حتى يطابق: الزرُّ الرماديّ يقول «تمهّل» بلا كلام.
           onPressed: _matches ? () => Navigator.pop(context, true) : null,
-          child: Text('احذف حسابي',
+          child: Text(context.l10n.deleteAccountConfirm,
               style: TextStyle(
                   color: _matches ? t.error : t.text3, fontWeight: FontWeight.w800)),
         ),

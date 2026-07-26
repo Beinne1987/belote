@@ -1,0 +1,1244 @@
+{
+  "@@locale": "ar",
+  "appTitle": "بلوت",
+  "@appTitle": {
+    "description": "اسم التطبيق"
+  },
+  "teamUs": "نحن",
+  "teamThem": "هم",
+  "bidNone": "لا ضمانة",
+  "bidAkwins": "أكوينس",
+  "bidPass": "تمرير",
+  "bidYours": "ضمانتك",
+  "bidSans": "صن",
+  "bidTout": "تو",
+  "suitTrefle": "أتريف",
+  "suitCarreau": "كارو",
+  "suitCoeur": "كير",
+  "suitPique": "أبيك",
+  "bidWithAkwins": "{bid} · أكوينس",
+  "@bidWithAkwins": {
+    "description": "الضمانة الجارية ومعها الأكوينس",
+    "placeholders": {
+      "bid": {
+        "type": "String"
+      }
+    }
+  },
+  "phaseDealing": "التوزيع",
+  "phaseBidding": "الضمانة",
+  "followSuitRequired": "يجب اتباع اللون",
+  "rankBeginner": "مبتدئ",
+  "rankPro": "محترف",
+  "rankExpert": "خبير",
+  "rankLegend": "أسطوريّ",
+  "seatYou": "أنت",
+  "seatOpponent": "الخصم",
+  "seatPartner": "الشريك",
+  "roundOver": "انتهت الجولة",
+  "roundNew": "جولة جديدة",
+  "matchNew": "مباراة جديدة",
+  "backToMenu": "القائمة",
+  "rating": "التصنيف",
+  "roundValue": "قيمة الجولة",
+  "matchWonUs": "فزتم بالمباراة!",
+  "matchWonThem": "فاز الخصم بالمباراة",
+  "matchTiebreak": "تعادل — جولة فاصلة",
+  "openRuleTie": "قاعدة مفتوحة: تعادل الأكوينس (نادر — لا حسم)",
+  "fouja": "فوجة",
+  "foujaWho": "من عمل الفوجة؟",
+  "opponentRight": "الخصم يمينك",
+  "opponentLeft": "الخصم يسارك",
+  "cancel": "إلغاء",
+  "foujaCancel": "إلغاء الفوجة",
+  "foujaClaimedBy": "{name} يعترض بالفوجة…",
+  "@foujaClaimedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "foujaWonUs": "فوجة — لكم نقاط الضمانة",
+  "foujaWonThem": "فوجة — للخصم نقاط الضمانة",
+  "reasonChute": "سقطت الضمانة",
+  "reasonAkwins": "أكوينس",
+  "reasonWhite": "جولة بيضاء!",
+  "reasonMade": "نجحت الضمانة",
+  "settingsLanguage": "اللغة",
+  "settingsLanguageArabic": "العربية",
+  "settingsLanguageFrench": "الفرنسية",
+  "exitGame": "خروج من اللعبة",
+  "settingsTitle": "الإعدادات",
+  "settingsName": "الاسم",
+  "settingsTheme": "الثيم",
+  "settingsSound": "الصوت",
+  "howToPlay": "كيف تلعب",
+  "supportSection": "الدعم الفنّي",
+  "supportWhatsapp": "واتساب",
+  "supportEmail": "البريد الإلكتروني",
+  "openFailed": "تعذّر الفتح على هذا الجهاز.",
+  "save": "حفظ",
+  "appVersion": "الإصدار {version}",
+  "@appVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "serverUnreachable": "تعذّر الاتصال بالخادم",
+  "friendsFetchFailed": "تعذّر جلبُ الأصدقاء",
+  "noFriendsYet": "لا أصدقاءَ بعد — أضفهم من شاشة الأصدقاء برمزهم.",
+  "invitePartnerPays": "ادعُ شريكًا — يدفع رسمَه عند قبوله",
+  "unknownInitial": "؟",
+  "tournaments": "البطولات",
+  "signInForTournaments": "سجّل الدخول للمشاركة في البطولات",
+  "retry": "إعادة المحاولة",
+  "createYourEvent": "أنشئ مسابقتك",
+  "createEventSubtitle": "باسمك وبرسمٍ تحدّده — رسم الإنشاء 50💎",
+  "create": "أنشئ",
+  "newEvent": "مسابقة جديدة",
+  "eventName": "اسم المسابقة",
+  "entryFeeField": "رسم الدخول (10–500 💎)",
+  "sizeLabel": "الحجم:",
+  "teamsCount": "{count} فرق",
+  "@teamsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "eventSchedule": "الموعد: {date} · {time}",
+  "@eventSchedule": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "createEventTerms": "رسم الإنشاء 50💎 غير مستردّ. رسوم المشاركين صندوقُ الفائزين (البيت يقتطع 20%) — لا نصيبَ للمنشئ منها؛ المسابقة باسمك.",
+  "createEventConfirm": "أنشئ المسابقة — 50💎",
+  "hoursMinutes": "{h} س {m} د",
+  "@hoursMinutes": {
+    "placeholders": {
+      "h": {
+        "type": "int"
+      },
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "eventLive": "جارية الآن",
+  "eventPlayerMade": "مسابقة لاعب",
+  "eventOfficial": "فعاليّة",
+  "eventOrganizer": "ينظّمها: {name}",
+  "@eventOrganizer": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "eventStats": "الدخول: {fee}💎  ·  المسجّلون: {players}/{size}  ·  الصندوق: {pool}💎",
+  "@eventStats": {
+    "placeholders": {
+      "fee": {
+        "type": "int"
+      },
+      "players": {
+        "type": "int"
+      },
+      "size": {
+        "type": "int"
+      },
+      "pool": {
+        "type": "int"
+      }
+    }
+  },
+  "startsIn": "تبدأ بعد {time}",
+  "@startsIn": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "partnerInviteEvent": "{name} يدعوك شريكًا له في هذه الفعاليّة 🤝",
+  "@partnerInviteEvent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "accept": "اقبل",
+  "decline": "ارفض",
+  "withdrawRefund": "انسحب واسترد رسمك",
+  "invitePartner": "ادعُ شريكًا",
+  "registerForFee": "سجّل — {fee}💎",
+  "@registerForFee": {
+    "placeholders": {
+      "fee": {
+        "type": "int"
+      }
+    }
+  },
+  "yourPartner": "شريكك: {name} 🤝",
+  "@yourPartner": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "cancelMyEvent": "ألغِ مسابقتك",
+  "cancelEventTitle": "إلغاء «{title}»؟",
+  "@cancelEventTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "cancelEventBody": "تُردُّ رسومُ المسجّلين ({players}) كاملةً. رسمُ الإنشاء (50💎) لا يعود.",
+  "@cancelEventBody": {
+    "placeholders": {
+      "players": {
+        "type": "int"
+      }
+    }
+  },
+  "back": "تراجُع",
+  "cancelEventConfirm": "ألغِ المسابقة",
+  "lastTournamentChampions": "أبطال آخر بطولة",
+  "partnerInvite": "{name} يدعوك شريكًا له 🤝",
+  "@partnerInvite": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "partnerInviteRegistered": "بقبولك تُثبَّتان شريكين على طاولةٍ واحدة.",
+  "partnerInviteWillPay": "بقبولك تُسجَّل وتدفع رسمَك ({fee}💎) وتُثبَّتان شريكين.",
+  "@partnerInviteWillPay": {
+    "placeholders": {
+      "fee": {
+        "type": "int"
+      }
+    }
+  },
+  "todaysTournament": "بطولة اليوم",
+  "knockoutSize": "إقصائيّة {size}",
+  "@knockoutSize": {
+    "placeholders": {
+      "size": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentStats": "الدخول: {fee}💎 للشخص  ·  الصندوق حتى الآن: {pool}💎",
+  "@tournamentStats": {
+    "placeholders": {
+      "fee": {
+        "type": "int"
+      },
+      "pool": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentPayoutNote": "الزوج الفائز يقتسم الصندوق — والذكاء يكمل النقص عند البدء.",
+  "startsWithin": "تبدأ خلال {time}",
+  "@startsWithin": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "registeredCount": "المسجّلون {players}/{size}",
+  "@registeredCount": {
+    "placeholders": {
+      "players": {
+        "type": "int"
+      },
+      "size": {
+        "type": "int"
+      }
+    }
+  },
+  "withPartner": "مع {name}",
+  "@withPartner": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "enterYourTable": "ادخل طاولتك الآن",
+  "roundFinal": "النهائيّ",
+  "roundSemi": "نصف النهائيّ",
+  "roundQuarter": "ربع النهائيّ",
+  "roundOfN": "دور الـ{n}",
+  "@roundOfN": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "roundGeneric": "جولة",
+  "roundProgress": "حُسمت {done} من {total} مباراة",
+  "@roundProgress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "yourMatchShown": " — تُعرَض مباراتُك",
+  "nextRoundPending": "الجولة التالية تُبنى فور حسم مبارياتها الرافدة…",
+  "matchLive": "جارية",
+  "versus": "ضدّ",
+  "botPlayer": "ذكاء",
+  "playerFallback": "لاعب",
+  "reportPlayer": "بلاغ عن {name}",
+  "@reportPlayer": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "blockPlayer": "حظر {name}",
+  "@blockPlayer": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "blockPlayerNote": "لا يصلك كلامه، ولا يراسلك ولا يدعوك.",
+  "reportSent": "وصل بلاغك — سيُراجَع.",
+  "playerBlocked": "حُظر {name} — لن يصلك كلامه.",
+  "@playerBlocked": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "blockFailed": "تعذّر الحظر — تحقّق من الاتّصال.",
+  "errInviteOffline": "صديقك غير متّصل ولا تصله الإشعارات — لن يعلم بدعوتك حتى يفتح اللعبة.",
+  "errInviteNotFriend": "أضِفه صديقًا أوّلًا لتدعوه.",
+  "errInviteSeatTaken": "المقعد شُغل — اختر غيره.",
+  "errInviteStarted": "المباراة بدأت — لا يمكن دعوة أحدٍ الآن.",
+  "errInviteNotPrivate": "الدعوة للطاولة الخاصّة فقط — أنشئ واحدةً ثمّ ادعُه.",
+  "errGiftInsufficient": "ماسك لا يكفي لهذه الهديّة.",
+  "errGiftNotOnTable": "لم يعد على الطاولة.",
+  "errGiftSelf": "لا تُهدي نفسك.",
+  "errGiftUnknown": "هذه الهديّة لم تعد متاحة.",
+  "errVipGiftEmpty": "نفدت هدايا VIP اليوم — تعود ثلاثٌ غدًا.",
+  "errVipGiftNotVip": "هذه الهدايا لمشتركي VIP.",
+  "inviteRewardMsg": "صديقُك انضمّ — نلتَ لعبةً إضافيّةً اليوم! 🎉",
+  "errGeneric": "تعذّر تنفيذ ما طلبت — حاول مرّةً أخرى.",
+  "spectatingCount": "تشاهد · {count}",
+  "@spectatingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "enteringStands": "جاري الدخول إلى المدرّجات…",
+  "reconnecting": "إعادة الاتصال…",
+  "playOnline": "اللعب أونلاين",
+  "logout": "خروج",
+  "quickMatch": "لعب سريع",
+  "quickMatchSub": "اجلس على أول طاولة متاحة مع لاعبين",
+  "createPrivateTable": "إنشاء طاولة خاصّة",
+  "createPrivateTableSub": "ادعُ أصدقاءك برمز الطاولة",
+  "tableCode": "رمز الطاولة",
+  "joinByCode": "انضمام برمز",
+  "seatRolePartner": "شريكًا لك",
+  "seatRoleOpponent": "خصمًا لك",
+  "invitedPlayer": "دُعي {name}",
+  "@invitedPlayer": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "privateTable": "طاولة خاصّة",
+  "quickMatchTitle": "مطابقة سريعة",
+  "tableCodeIs": "الرمز: {code}",
+  "@tableCodeIs": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "startMatch": "ابدأ المباراة",
+  "searchingPlayers": "جاري البحث عن لاعبين…",
+  "searchingPlayersSub": "نبحث لك عن منافسين على الطاولة",
+  "errServerFull": "الخوادم ممتلئة الآن — حاول بعد قليل.",
+  "errSpectateUnavailable": "انتهت هذه المباراة أو لم تعد متاحة للمشاهدة.",
+  "errSpectateSeated": "أنت على طاولةٍ الآن — غادرها ثم شاهد.",
+  "errPlayLimit": "انتهت لعباتُك اليوم — تعود غدًا. والعبُ مع الذكاء بلا حدود.",
+  "errJoinFailed": "تعذّر الانضمام — تحقّق من الرمز.",
+  "errNoSeat": "لا مقعد متاح على هذه الطاولة.",
+  "errUnauthorized": "انتهت الجلسة — سجّل الدخول من جديد.",
+  "errConnection": "انقطع الاتصال بالخادم.",
+  "errUnexpected": "حدث خطأ غير متوقّع.",
+  "goBack": "رجوع",
+  "invitesYouToTable": "{name} يدعوك إلى طاولته",
+  "@invitesYouToTable": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "later": "لاحقًا",
+  "join": "انضمّ",
+  "fillingSeatsNote": "نبحث عن لاعبين للمقاعد الفارغة… وإن لم نجد بدأنا بلاعبي الذكاء.",
+  "playerDefaultName": "اللاعب",
+  "navHome": "الرئيسية",
+  "navLeaderboard": "التصنيف",
+  "navStore": "المتجر",
+  "navFriends": "الأصدقاء",
+  "navAbout": "حول اللعبة",
+  "quickPlayOffline": "لعب سريع",
+  "quickPlayOfflineSub": "ضدّ الذكاء — بلا اتصال",
+  "vipActiveSub": "اشتراكُك قائم — مزاياك كلُّها معك",
+  "vipOfferSub": "مجلسٌ خاصّ · إطارٌ · هدايا · لعبٌ بلا حدود",
+  "missions": "المهامّ",
+  "missionsSub": "يوميّة وأسبوعيّة — خبرةٌ وماس",
+  "tournamentsSub": "بطولة اليوم · فعاليات بجوائز",
+  "liveMatches": "مباريات حيّة",
+  "liveMatchesSub": "شاهد الجاري الآن · شجّع بالهدايا",
+  "comingSoon": "قريبًا",
+  "notifications": "الإشعارات",
+  "offline": "غير متصل",
+  "signIn": "دخول",
+  "onlineNeedsSignIn": "مع لاعبين حقيقيّين — يتطلّب دخولًا",
+  "onlineWithPlayers": "مع لاعبين حقيقيّين",
+  "graceUnlimited": "أهلًا بك! لعبٌ بلا حدود — الباقي: {left}",
+  "@graceUnlimited": {
+    "placeholders": {
+      "left": {
+        "type": "String"
+      }
+    }
+  },
+  "unlimitedLeft": "لعبٌ بلا حدود — الباقي: {left}",
+  "@unlimitedLeft": {
+    "placeholders": {
+      "left": {
+        "type": "String"
+      }
+    }
+  },
+  "bonusFromInvites": " (منها {bonus} من دعوة أصدقائك)",
+  "@bonusFromInvites": {
+    "placeholders": {
+      "bonus": {
+        "type": "int"
+      }
+    }
+  },
+  "gamesLeftToday": "{count, plural, =0{انتهت لعباتُك اليوم — تعود غدًا} =1{بقيت لك لعبةٌ واحدةٌ اليوم} =2{بقيت لك لعبتان اليوم} other{بقيت لك {count} لعباتٍ اليوم}}",
+  "@gamesLeftToday": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "expired": "انتهت",
+  "daysLeft": "{count, plural, =1{يومٌ واحد} =2{يومان} other{{count} أيّام}}",
+  "@daysLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hoursLeft": "{count, plural, =0{أقلُّ من ساعة} =1{ساعةٌ واحدة} =2{ساعتان} other{{count} ساعات}}",
+  "@hoursLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "myProfile": "ملفّي",
+  "signInToSeeProfile": "سجّل الدخول لعرض ملفّك وإحصائياتك",
+  "signInAction": "تسجيل الدخول",
+  "statWinRate": "نسبة الفوز",
+  "statMatches": "المباريات",
+  "statWins": "الفوز",
+  "statLosses": "الخسارة",
+  "statBestStreak": "أفضل سلسلة",
+  "statCurrentStreak": "السلسلة الحالية",
+  "profilePhoto": "صورة الملفّ",
+  "pickFromGallery": "اختر من الصور",
+  "takePhoto": "التقط صورة",
+  "deletePhoto": "احذف الصورة",
+  "photoPermissionError": "تعذّر فتح الصور. تحقّق من الأذونات.",
+  "signOut": "تسجيل الخروج",
+  "deleteAccount": "حذف الحساب نهائيًّا",
+  "signOutNote": "يبقى حسابك كما هو، وتعود إليه بهاتفك وكلمة سرّك.",
+  "backAction": "تراجع",
+  "signOutConfirm": "اخرج",
+  "deleteFailed": "تعذّر الحذف: {reason}",
+  "@deleteFailed": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "levelLabel": "المستوى ",
+  "xpToNext": "{xp} خبرة للتالي",
+  "@xpToNext": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "myWallet": "محفظتي",
+  "diamonds": "الماس",
+  "myGifts": "هداياي",
+  "noGiftsYet": "لا هدايا بعد — اشترِ باقةً من المتجر.",
+  "deleteAccountBody": "يزول اسمك ورمزك وماسك وتصنيفك وأصدقاؤك. لا رجعة في هذا.\nيبقى رقمك متاحًا لحسابٍ جديدٍ إن أردت العودة.",
+  "typeYourTagToConfirm": "اكتب رمزك للتأكيد:",
+  "deleteAccountConfirm": "احذف حسابي",
+  "addByTag": "إضافة بالرمز",
+  "blockedList": "المحظورون",
+  "signInToSeeFriends": "سجّل الدخول لترى أصدقاءك.",
+  "friendsFetchFailedShort": "تعذّر جلب الأصدقاء.",
+  "incomingRequests": "يطلبون صداقتك",
+  "yourFriends": "أصدقاؤك",
+  "awaitingReply": "بانتظار ردّهم",
+  "online": "متصل",
+  "chat": "محادثة",
+  "acceptShort": "اقبل",
+  "nowFriends": "صرتما صديقين",
+  "declineShort": "ارفض",
+  "removeFriendAction": "احذف من الأصدقاء",
+  "cancelRequest": "اسحب الطلب",
+  "removeFriendTitle": "حذف صديق",
+  "removeFriendBody": "تحذف {name} من أصدقائك؟",
+  "@removeFriendBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteShort": "احذف",
+  "requestDeclined": "رُفض الطلب",
+  "friendRemoved": "حُذف الصديق",
+  "requestWithdrawn": "سُحب الطلب",
+  "retryAction": "أعِد المحاولة",
+  "listFetchFailed": "تعذّر جلب القائمة.",
+  "nobodyBlocked": "لا أحدَ محظور.",
+  "unblock": "فكّ الحظر",
+  "requestSent": "أُرسل الطلب",
+  "addByTagHint": "اطلب من صاحبك رمزه (٦ خانات) من ملفّه الشخصيّ.",
+  "sendRequest": "أرسل الطلب",
+  "storeFetchFailed": "تعذّر جلب المتجر",
+  "bundlePurchased": "نالك {qty}× {gift}",
+  "@bundlePurchased": {
+    "placeholders": {
+      "qty": {
+        "type": "int"
+      },
+      "gift": {
+        "type": "String"
+      }
+    }
+  },
+  "notEnoughForBundle": "ماسك لا يكفي — الباقة {price}💎",
+  "@notEnoughForBundle": {
+    "placeholders": {
+      "price": {
+        "type": "int"
+      }
+    }
+  },
+  "purchaseFailed": "تعذّر الشراء",
+  "connectionFailed": "تعذّر الاتّصال",
+  "unlimitedEnjoy": "لعبٌ بلا حدودٍ — استمتع!",
+  "notEnoughForTicket": "ماسك لا يكفي — التذكرة {price}💎",
+  "@notEnoughForTicket": {
+    "placeholders": {
+      "price": {
+        "type": "int"
+      }
+    }
+  },
+  "storeTitle": "المتجر",
+  "retryShort": "إعادة",
+  "tabPlay": "اللعب",
+  "tabGifts": "الهدايا",
+  "tabDiamonds": "الماس",
+  "storeEmpty": "لا بضاعةَ في المتجر الآن.",
+  "ticketsIntro": "العب بلا حدودٍ طوال المدّة — أنت وأصدقاؤك.",
+  "unlimitedActiveNotice": "لديك لعبٌ بلا حدودٍ الآن. أيُّ شراءٍ يمدّده من نهايته.",
+  "cheaperThanSevenDays": "أوفرُ من سبع تذاكرِ يوم",
+  "ticketFullDay": "يومٌ كامل — 24 ساعة",
+  "ticketFullWeek": "أسبوعٌ كامل — 7 أيّام",
+  "ticketDays": "{days} أيّام",
+  "@ticketDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "ticketHours": "{hours} ساعة",
+  "@ticketHours": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "giftsIntro": "اشترِ الآن، وأهدِ متى شئت.",
+  "diamondsIntro": "كلُّ ماسةٍ بأوقيّة. والباقةُ الأكبر تُعطيك أكثر.",
+  "bankilySoon": "الشراء عبر بنكيلي — قريبًا.",
+  "bonusPct": "هديّة {pct}%",
+  "@bonusPct": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
+  "priceOuguiya": "{price} أوقية",
+  "@priceOuguiya": {
+    "placeholders": {
+      "price": {
+        "type": "int"
+      }
+    }
+  },
+  "ownedCount": "تملك {count}",
+  "@ownedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "savePct": "وفّر {pct}%",
+  "@savePct": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
+  "missionDailyPlay": "العب ثلاث مباريات",
+  "missionDailyWin": "فُزْ بمباراة",
+  "missionDailyFriend": "العب مع صديق",
+  "missionDailyGift": "أهدِ هديّة",
+  "missionDailyFouja": "اكشِف فوجةً واحدة",
+  "missionWeeklyPlay": "العب عشرين مباراة",
+  "missionWeeklyWin": "فُزْ بعشر مباريات",
+  "missionWeeklyFriend": "العب ثلاث مباريات مع صديق",
+  "missionWeeklyInvite": "ادعُ صديقًا إلى طاولتك",
+  "missionWeeklyGifts": "أهدِ عشرَ هدايا",
+  "missionWeeklyRoom": "أنشئ غرفةً خاصّة",
+  "missionWeeklyClean": "العب عشرَ مبارياتٍ بلا فوجة",
+  "missionsUnavailable": "المهامّ غير متاحةٍ الآن.",
+  "missionsFetchFailed": "تعذّر جلب المهامّ",
+  "missionRewardClaimed": "نلت {diamonds}💎 و{xp} خبرة",
+  "@missionRewardClaimed": {
+    "placeholders": {
+      "diamonds": {
+        "type": "int"
+      },
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "missionStateChanged": "تغيّرت حالةُ المهمّة",
+  "claimFailed": "تعذّر القبض",
+  "missionsDaily": "يوميّة",
+  "missionsDailyReset": "تُصفَّر كلَّ يوم",
+  "missionsWeekly": "أسبوعيّة",
+  "missionsWeeklyReset": "تُصفَّر كلَّ اثنين",
+  "xpSuffix": " خبرة",
+  "claim": "اقبض",
+  "vipFetchFailed": "تعذّر جلب الاشتراك",
+  "vipWelcome": "أهلًا بك في VIP!",
+  "notEnoughForVip": "ماسك لا يكفي — الاشتراك {price}💎",
+  "@notEnoughForVip": {
+    "placeholders": {
+      "price": {
+        "type": "int"
+      }
+    }
+  },
+  "subscribeFailed": "تعذّر الاشتراك",
+  "vipExtend": "مدّد اشتراكك",
+  "vipChoosePlan": "اختر اشتراكك",
+  "vipFrameNote": "إطارُك الخاصُّ يرافقك على كلّ طاولة",
+  "vipActiveUntil": "أنت VIP — حتى {date}",
+  "@vipActiveUntil": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "vipPerkRoom": "مجلسٌ خاصّ",
+  "vipPerkRoomSub": "غرفتُك أنت وأصدقاؤك — لا يدخلها غريب.",
+  "vipPerkUnlimited": "لعبٌ بلا حدود",
+  "vipPerkUnlimitedSub": "انسَ الخمسَ لعبات — العب ما شئت طوال اشتراكك.",
+  "vipPerkDiamonds": "{gems} ماسةً كلَّ شهر",
+  "@vipPerkDiamonds": {
+    "placeholders": {
+      "gems": {
+        "type": "int"
+      }
+    }
+  },
+  "vipPerkDiamondsSub": "تصلك دفعةً شهريّةً ما دام اشتراكُك قائمًا.",
+  "vipPerkBadge": "شارةُ VIP",
+  "vipPerkBadgeSub": "ترافق اسمَك أينما جلست.",
+  "vipGiftsTitle": "هدايا لا يملكها غيرُك",
+  "vipGiftsSub": "ثلاثٌ كلَّ يومٍ مجّانًا — تُرسلها فيراها كلُّ من على الطاولة.",
+  "planYear": "سنةٌ كاملة",
+  "planMonth": "شهرٌ واحد",
+  "saveVsMonthly": "وفّر {pct}% عن الشهريّ",
+  "@saveVsMonthly": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
+  "ruleBasicsTitle": "الأساس",
+  "ruleBasicsBody": "أربعة لاعبين، فريقان (المقعدان 0 و2 ضدّ 1 و3). 32 ورقة (من 7 إلى الآس). اتجاه اللعب عكس عقارب الساعة — التالي هو من على يمينك.",
+  "ruleDealTitle": "التوزيع",
+  "ruleDealBody": "يوزَّع 3 ثم 2، ثم دور الضمانة، ثم 3 أخيرة (8 لكل لاعب). يمين الموزّع أوّل من يضمن ويلعب، وهو موزّع الجولة القادمة.",
+  "ruleBidTitle": "الضمانة",
+  "ruleBidBody": "دورة واحدة بالضبط (4 أدوار). اللاعب الأول لا يمرّ. الرفع فقط — لا فتح دورة جديدة بعد الرفع. اللون المضمون هو الحكم.",
+  "ruleAkwinsTitle": "الأكوينس",
+  "ruleAkwinsBody": "للخصم فقط، في دوره فقط — يوقف الضمانة فورًا ويضاعف قيمة الجولة (32 للّون · 52 لصن/تو).",
+  "rulePlayTitle": "اللعب",
+  "rulePlayBody": "إن ملكتَ لون الافتتاح فالْزَمه. إن لم تملكه فالعب أي ورقة — ولا تُجبر على القصّ بالحكم ولا على تجاوز أعلى حكم.",
+  "ruleUnitsTitle": "الوحدات",
+  "ruleUnitsBody": "في الحكم: J=20 و9=14. في اللون العادي: J=2 و9=0. الآس 11، العشرة 10، K=4، Q=3، و8/7 صفر. صن/تو: كل الألوان بسُلَّم الحكم.",
+  "ruleFoujaTitle": "الفوجة",
+  "ruleFoujaBody": "عدم اتباع اللون رغم امتلاكه. للخصم أن يعترض متى اكتشفها؛ إن ثبتت أخذ المعترِض قيمة الضمانة كاملة، وإن كان الاتهام خاطئًا أخذها الطرف الآخر. وتتوقف الجولة فورًا.",
+  "ruleWinTitle": "الفوز",
+  "ruleWinBody": "أوّل من يبلغ 100 نقطة والأعلى يفوز بالمباراة. عند التعادل عند 100 فأكثر تُلعب جولة فاصلة.",
+  "momentMvp": "رجل المباراة",
+  "momentBestBid": "أفضل إعلان",
+  "momentBestBidDetail": "جنى {points} نقطة في الجولة {round}",
+  "@momentBestBidDetail": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      },
+      "round": {
+        "type": "int"
+      }
+    }
+  },
+  "momentStrongestCard": "أقوى ورقة",
+  "momentStrongestCardDetail": "خطفت {units} وحدةً في أبليٍّ واحد",
+  "@momentStrongestCardDetail": {
+    "placeholders": {
+      "units": {
+        "type": "int"
+      }
+    }
+  },
+  "momentLongestStreak": "أطول سلسلة",
+  "momentLongestStreakDetail": "{count} أبالٍ متتاليةً بلا أن يقطعها أحد",
+  "@momentLongestStreakDetail": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "matchMoments": "لحظات المباراة",
+  "tricksCount": "{count} أبالٍ",
+  "@tricksCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "unitsCount": "{count} وحدة",
+  "@unitsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bidsWonCount": "وفّى بـ{count} ضمانة",
+  "@bidsWonCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "foujaCaughtCount": "كشف {count} فوجة",
+  "@foujaCaughtCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bidWithAkwinsShort": "{bid} أكوينس",
+  "@bidWithAkwinsShort": {
+    "placeholders": {
+      "bid": {
+        "type": "String"
+      }
+    }
+  },
+  "youSuffix": "{name} (أنت)",
+  "@youSuffix": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "authTagline": "العب مع أصدقائك حول العالم",
+  "createAccount": "إنشاء حساب",
+  "desktopAuthNote": "إنشاءُ الحساب واستعادةُ كلمة السرّ يحتاجان رمزًا بالرسائل ⇒ من تطبيق الهاتف. وتسجيلُ الدخول هنا يعمل كاملًا.",
+  "continueAsGuest": "الدخول كضيف",
+  "invalidPhone": "أدخل رقم هاتف صالحًا",
+  "phoneAuthUnsupported": "الدخول بالهاتف غير مدعوم على هذه المنصّة",
+  "enterSixDigitCode": "أدخل الرمز المكوَّن من ٦ أرقام",
+  "passwordTooShort": "كلمة السرّ ٦ أحرف على الأقلّ",
+  "enterPassword": "أدخل كلمة السرّ",
+  "enterYourName": "أدخل اسمك",
+  "enterYourCity": "أدخل مدينتك",
+  "resetPasswordTitle": "استعادة كلمة السرّ",
+  "resetPasswordSub": "أدخل رقمك لنرسل رمز تأكيد",
+  "sendCode": "إرسال الرمز",
+  "codeTitle": "رمز التأكيد",
+  "codeSentTo": "أدخل الرمز المُرسَل إلى {phone}",
+  "@codeSentTo": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
+  "verify": "تحقّق",
+  "newPasswordTitle": "كلمة سرّ جديدة",
+  "newPasswordSub": "اختر كلمة سرّ جديدة لحسابك",
+  "saveAndSignIn": "حفظ ودخول",
+  "fieldPhone": "رقم الهاتف",
+  "fieldNewPassword": "كلمة السرّ الجديدة",
+  "fieldPassword": "كلمة السرّ",
+  "fieldPasswordMin": "كلمة السرّ (٦ أحرف على الأقلّ)",
+  "fieldName": "الاسم",
+  "fieldCity": "المدينة / الولاية",
+  "loginSub": "ادخل برقم هاتفك وكلمة السرّ",
+  "forgotPassword": "نسيت كلمة السرّ؟",
+  "noAccountCreateOne": "ليس لديك حساب؟ أنشئ حسابًا",
+  "haveAccountSignIn": "لديك حساب؟ سجّل الدخول",
+  "registerPhoneSub": "سنرسل رمزًا لتأكيد رقمك",
+  "completeAccount": "أكمل حسابك",
+  "completeAccountSub": "كلمة سرّ للدخول لاحقًا، واسمك ودولتك ومدينتك",
+  "createAccountAction": "إنشاء الحساب",
+  "dmConnectionFailed": "تعذّر الاتّصال بالخادم.",
+  "sendFailed": "تعذّر الإرسال — تحقّق من الاتّصال.",
+  "blockTitle": "حظر {name}؟",
+  "@blockTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "blockBody": "يُحذف من أصدقائك، ولا يراسلك ولا يدعوك، ولا يصلك كلامه على الطاولة.",
+  "blockConfirm": "احظر",
+  "reportPlayerMenu": "بلاغ عن اللاعب",
+  "blockMenu": "حظر",
+  "writeMessageHint": "اكتب رسالةً…",
+  "noMessagesYet": "لا رسائلَ بعد — ابدأ الحديث.",
+  "reportAbout": "بلاغ عن {name}",
+  "@reportAbout": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reportNote": "يصل البلاغ إدارةَ اللعبة وتُراجعه بنفسها.",
+  "reportHint": "ما الذي حدث؟ (اختياريّ)",
+  "giftRose": "وردة",
+  "giftTea": "أتاي",
+  "giftSweet": "حلوى",
+  "giftCrown": "تاج",
+  "giftCamel": "جمل",
+  "giftCar": "سيّارة",
+  "giftVipFlower": "وردةُ VIP",
+  "giftVipBox": "صندوقُ VIP",
+  "giftVipPitcher": "بَراد VIP",
+  "giftTitle": "إهداء",
+  "giftHumansOnly": "الهدايا للاعبين البشر — ولا يجلس معك الآن غير الذكاء.\nادعُ صاحبك إلى طاولةٍ خاصّة لتُهديه.",
+  "giftToWhom": "إلى مَن؟",
+  "giftToAll": "للجميع",
+  "vipGifts": "هدايا VIP",
+  "remainingCount": "بقيت {count}",
+  "@remainingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "giftWhat": "ماذا تُهدي؟",
+  "giftAllCostNote": "تصل الهديّةُ إلى {count} لاعبين — ويُخصم ثمنُها لكلٍّ منهم.",
+  "@giftAllCostNote": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "giftCostNote": "يُخصم الثمن من ماسك.",
+  "claimFailedRetry": "تعذّر الاستلام — حاول ثانيةً",
+  "activateFailedRetry": "تعذّر التفعيل — حاول ثانيةً",
+  "giftDayTitle": "هديّةٌ منّا: يومٌ كامل",
+  "openFullDayTitle": "افتح يومًا كاملًا",
+  "playLimitGiftBody": "انتهت لعباتُك الخمسُ اليوم — وهذه أوّلُ مرّة. خذ 24 ساعةً بلا حدودٍ منّا، والعب ما شئت مع أصدقائك.",
+  "playLimitPlainBody": "انتهت لعباتُك اليوم — تعود غدًا.",
+  "playLimitOfferBody": "انتهت لعباتُك الخمسُ اليوم. فعّل اللعب بلا حدودٍ 24 ساعةً والعب ما شئت مع أصدقائك.",
+  "offlineAlwaysFree": "واللعبُ مع الذكاء يبقى مجّانيًّا بلا حدود.",
+  "claimGift": "استلم الهديّة",
+  "activateNow": "فعّل الآن",
+  "yourTable": "طاولتك",
+  "seatRoleYou": "أنت",
+  "seatRoleYourPartner": "شريكك",
+  "seatRoleYourOpponent": "خصمك",
+  "inviteShort": "ادعُ",
+  "whoSitsHere": "من يجلس {role}؟",
+  "@whoSitsHere": {
+    "placeholders": {
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "noFriendsAddByTag": "لا أصدقاء بعد. أضِف صاحبك برمزه من شاشة الأصدقاء.",
+  "noFriendOnlineInviteAnyway": "لا صديق متّصلٌ الآن — ادعُه على أيّ حال، يصله إشعارٌ على هاتفه.",
+  "offlineGroup": "غير متّصلين",
+  "offlineWillBeNotified": "غير متصل — يصله إشعار",
+  "welcomeTitle": "أهلًا بك",
+  "welcomeGiftsBody": "هذه هديّتُنا لك — أهدِها لمن تلعب معه.",
+  "thanks": "شكرًا",
+  "aboutGameTitle": "بيلوت",
+  "aboutMauritanianEdition": "النسخة الموريتانية",
+  "aboutSection": "عن اللعبة",
+  "aboutBody": "بيلوت كما تُلعب في موريتانيا: أربعة لاعبين، فريقان، وضمانةٌ بدورةٍ واحدة، والأكوينس للخصم في دوره. قواعدُها كاملةً في «كيف تلعب».",
+  "aboutDevSection": "برمجة وتطوير",
+  "aboutMadeWithLove": "صُنعت بشغفٍ للعبة أهلها 🃏",
+  "aboutVersionSection": "إصدار التطبيق",
+  "appInitial": "ب",
+  "giveGift": "أهدِه",
+  "unmutePlayer": "إلغاء كتم {name}",
+  "@unmutePlayer": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "mutePlayer": "اكتم {name}",
+  "@mutePlayer": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "relFriend": "صديقك",
+  "relOutgoing": "بانتظار ردّه",
+  "relIncoming": "اقبل صداقته",
+  "relAdd": "أضِف صديقًا",
+  "signInToWatch": "سجّل الدخول لمشاهدة المباريات.",
+  "liveFetchFailed": "تعذّر جلب المباريات — تحقّق من الاتّصال.",
+  "refresh": "تحديث",
+  "tournamentChip": "بطولة",
+  "versusShort": "ضد",
+  "watchMatch": "شاهد المباراة",
+  "updateNewVersion": "نسخة جديدة {version}",
+  "@updateNewVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateAvailable": "تتوفّر نسخة أحدث من اللعبة.",
+  "updateFailed": "تعذّر التحديث",
+  "installing": "جارٍ التثبيت…",
+  "downloading": "جارٍ التنزيل… {percent}%",
+  "@downloading": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "updateNow": "تحديث الآن",
+  "voiceLive": "صوتي مفتوح — اضغط لقطع الصوت",
+  "voiceConnecting": "يتّصل…",
+  "voiceFailed": "تعذّر الصوت — اضغط للمحاولة",
+  "voiceOff": "الصوت مقطوع — اضغط لتتكلّم",
+  "giftToAllTip": "هديّة للجميع",
+  "giftToPlayer": "هديّة لِ{name}",
+  "@giftToPlayer": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "markAllRead": "تعليم الكلّ",
+  "agoNow": "الآن",
+  "agoMinutes": "منذ {count} دقيقة",
+  "@agoMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "agoHours": "منذ {count} ساعة",
+  "@agoHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "agoDays": "منذ {count} يوم",
+  "@agoDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "honorBoardWeek": "لوحة الشرف — هذا الأسبوع",
+  "seeAll": "الكلّ",
+  "honorBoardNote": "الأوّلُ في كلّ فئةٍ يحمل لقبَها طوال الأسبوع القادم — يراه كلُّ من يجلس معه.",
+  "honorBoard": "لوحة الشرف",
+  "playerCardDemo": "بطاقة اللاعب",
+  "playerCardDemoSub": "عاديّة · نشطة (صاحب الدور)",
+  "rankNextTitle": "{title} · التالية: {next}",
+  "@rankNextTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "next": {
+        "type": "String"
+      }
+    }
+  },
+  "leaderboardFetchFailed": "تعذّر جلب التصنيف",
+  "leaderboardEmpty": "لا تصنيف بعد — العب مباريات أونلاين لتظهر هنا.",
+  "matchesAndWins": "{matches} مباراة · {wins} فوز",
+  "@matchesAndWins": {
+    "placeholders": {
+      "matches": {
+        "type": "int"
+      },
+      "wins": {
+        "type": "int"
+      }
+    }
+  },
+  "chatTitle": "الدردشة",
+  "vipUpsellTitle": "لماذا لا تصير VIP؟",
+  "vipUpsellBody": "تشتري التذاكرَ كثيرًا — والشهرُ الكاملُ من VIP بثمن عشرِ تذاكرٍ فقط، ومعه لعبٌ بلا حدود، ومجلسٌ خاصّ، وهدايا حصريّة، و50💎 كلَّ شهر.",
+  "seeVip": "شاهد VIP",
+  "friendFallback": "صديقك",
+  "invitesYou": "{name} يدعوك",
+  "@invitesYou": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteToPrivateTable": "إلى طاولته الخاصّة — مقعدٌ محجوزٌ لك.",
+  "nameEntryPrompt": "أهلًا بك — اكتب اسمك للبدء",
+  "nameHint": "اسمك",
+  "start": "ابدأ",
+  "profileOf": "ملفّ {name}",
+  "@profileOf": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "messagesTip": "الرسائل",
+  "latestNews": "آخر الأخبار",
+  "rankedMatchesLeft": "تبقّت {count} مباراةً مصنَّفةً للتصنيف",
+  "@rankedMatchesLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ratingLabel": "التصنيف ",
+  "rankedMatchesLeftLong": "تبقّت {count} مباراةً مصنَّفةً لتحصل على رتبتك",
+  "@rankedMatchesLeftLong": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rankTopReached": "بلغتَ أعلى السُّلَّم — الأسطورةُ تُدافع لا تصعد",
+  "rankPointsToNext": "إلى {title}: {points} نقطة تصنيف",
+  "@rankPointsToNext": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "reportAction": "أبلِغ",
+  "pointsCount": "{count} نقطة",
+  "@pointsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "developerName": "محمد الأمين / تقرة / بينة",
+  "languageArabicNative": "العربية",
+  "demoNameOne": "أحمدو",
+  "demoNameTwo": "المختار",
+  "demoNameThree": "سيدي أحمد",
+  "demoNameFour": "بَبَّه",
+  "errFriendInvalidTag": "الرمز غير صحيح — ٦ خانات كما تظهر في ملفّ صاحبك.",
+  "errFriendNotFound": "لا لاعب بهذا الرمز. تأكّد منه.",
+  "errFriendSelf": "هذا رمزك أنت.",
+  "errFriendAlready": "بينكما طلبٌ أو صداقةٌ بالفعل.",
+  "errFriendNoRequest": "لا طلبَ ينتظر ردَّك من هذا اللاعب.",
+  "errFriendNotFriend": "لا علاقة بينكما أصلًا.",
+  "errMessageNotFriend": "الرسائل بين الأصدقاء — أضفه صديقًا أوّلًا.",
+  "errMessageBlocked": "لا يمكن مراسلة هذا اللاعب.",
+  "errMessageEmpty": "اكتب رسالةً أوّلًا.",
+  "errBlockNotFound": "اللاعب غير موجود.",
+  "errBlockSelf": "لا تحظر نفسك.",
+  "errAvatarTooLarge": "الصورة كبيرة. اختر واحدةً أصغر.",
+  "errAvatarBadType": "هذا ليس ملفَّ صورة. اختر صورةً (JPG أو PNG).",
+  "errAvatarEmpty": "الملفّ فارغ.",
+  "errTrnClosed": "بطولةٌ جاريةٌ الآن — التسجيل بعد نهايتها.",
+  "errTrnAlreadyRegistered": "أنت مسجَّلٌ أصلًا.",
+  "errTrnNotRegistered": "لستَ مسجَّلًا في هذه البطولة.",
+  "errTrnFull": "اكتمل العدد — بطولةٌ قادمةٌ تفتح قريبًا.",
+  "errTrnInsufficient": "ماسُك لا يكفي لرسم الدخول.",
+  "errTrnNotFriends": "الشراكة بين الأصدقاء — أضفه صديقًا أوّلًا.",
+  "errTrnPairTaken": "لأحدكما شريكٌ أو دعوةٌ قائمة.",
+  "errTrnNoInvite": "لا دعوةَ شراكةٍ قائمة.",
+  "errTrnBadRequest": "طلبٌ غير صالح.",
+  "errTrnHasActiveEvent": "لك مسابقةٌ قائمة — أكملها أو ألغِها أوّلًا.",
+  "errTrnBadTitle": "الاسم من 3 إلى 30 حرفًا.",
+  "errTrnBadFee": "رسم الدخول من 10 إلى 500 ماسة.",
+  "errTrnBadTeams": "الحجم: 8 أو 16 فريقًا.",
+  "errTrnBadTime": "الموعد بين 10 دقائق و7 أيّام من الآن.",
+  "chatSalam": "سلامٌ عليكم",
+  "chatNice": "لعبةٌ جميلة",
+  "chatBravo": "أحسنت",
+  "chatLuck": "بالتوفيق",
+  "chatHurry": "أسرِع قليلًا",
+  "chatSorry": "آسف",
+  "chatThanks": "شكرًا",
+  "chatBye": "إلى اللقاء",
+  "guestOnlineTitle": "اللعب أونلاين",
+  "guestOnlineBody": "أنشئ حسابًا للّعب مع لاعبين حقيقيّين وحفظ تقدّمك ورصيدك.",
+  "spectator": "مشاهد",
+  "giftSentTo": "{from} أهدى {to}",
+  "@giftSentTo": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "voiceNotEnabled": "الصوت غير مُفعَّلٍ على الخادم بعد.",
+  "voiceNotAtTable": "لست على طاولة.",
+  "voiceSessionOver": "انتهت جلستك — أعِد الدخول.",
+  "voiceConnectFailed": "تعذّر الاتّصال بالصوت. تأكّد من إذن الميكروفون والشبكة.",
+  "errUnexpectedShort": "خطأ غير متوقّع",
+  "errPhoneInvalid": "رقم الهاتف غير صحيح",
+  "errCodeInvalid": "الرمز غير صحيح",
+  "errCodeExpired": "انتهت صلاحية الرمز — اطلب رمزًا جديدًا",
+  "errTooManyAttempts": "محاولاتٌ كثيرة — حاول لاحقًا",
+  "errQuotaExceeded": "تجاوزتَ الحصّة المسموحة — حاول لاحقًا",
+  "errNetwork": "تعذّر الاتصال بالشبكة",
+  "errVerifyFailed": "فشل التحقّق",
+  "errNoCodeSent": "لم يُرسَل رمزٌ بعد",
+  "errTokenFailed": "تعذّر إصدار توكن الدخول",
+  "errInstallAndroidOnly": "التثبيت داخل التطبيق مدعوم على أندرويد فقط",
+  "errInstallPermission": "فعّل «السماح من هذا المصدر» ثمّ اضغط إعادة المحاولة",
+  "errDownloadFailed": "فشل التنزيل (رمز {code})",
+  "@errDownloadFailed": {
+    "placeholders": {
+      "code": {
+        "type": "int"
+      }
+    }
+  },
+  "errDownloadIncomplete": "التنزيل غير مكتمل — حاول لاحقًا",
+  "errInstallerOpen": "تعذّر فتح المثبّت ({reason})",
+  "@errInstallerOpen": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "errUpdateGeneric": "تعذّر التحديث — تحقّق من الاتصال وحاول لاحقًا"
+}

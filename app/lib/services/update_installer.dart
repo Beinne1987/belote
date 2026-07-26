@@ -1,10 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+
+import '../l10n/app_text.dart';
 import 'package:http/http.dart' as http;
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+
 
 /// طور تثبيت التحديث داخل التطبيق.
 enum InstallPhase { downloading, installing, error }
@@ -32,14 +35,14 @@ class UpdateInstaller {
   /// النظام. يُغلق البثّ عند تسليم المثبّت أو عند خطأٍ نهائيّ.
   Stream<InstallProgress> install(String apkUrl) async* {
     if (!supported) {
-      yield const InstallProgress(InstallPhase.error,
-          message: 'التثبيت داخل التطبيق مدعوم على أندرويد فقط');
+      yield InstallProgress(InstallPhase.error,
+          message: AppText.s.errInstallAndroidOnly);
       return;
     }
     // أندرويد ٨+ يطلب إذن «تثبيت تطبيقات غير معروفة» لهذا التطبيق (يفتح شاشة الإعداد).
     if (!await _ensureInstallPermission()) {
-      yield const InstallProgress(InstallPhase.error,
-          message: 'فعّل «السماح من هذا المصدر» ثمّ اضغط إعادة المحاولة');
+      yield InstallProgress(InstallPhase.error,
+          message: AppText.s.errInstallPermission);
       return;
     }
 
@@ -54,7 +57,7 @@ class UpdateInstaller {
       final res = await client.send(http.Request('GET', Uri.parse(apkUrl)));
       if (res.statusCode != 200) {
         yield InstallProgress(InstallPhase.error,
-            message: 'فشل التنزيل (رمز ${res.statusCode})');
+            message: AppText.s.errDownloadFailed(res.statusCode));
         return;
       }
       final total = res.contentLength ?? 0;
@@ -75,8 +78,8 @@ class UpdateInstaller {
 
       // تأكّد من اكتمال التنزيل — ملفٌّ ناقص يفشل التثبيت بصمت.
       if (total > 0 && received < total) {
-        yield const InstallProgress(InstallPhase.error,
-            message: 'التنزيل غير مكتمل — حاول لاحقًا');
+        yield InstallProgress(InstallPhase.error,
+            message: AppText.s.errDownloadIncomplete);
         return;
       }
 
@@ -87,12 +90,12 @@ class UpdateInstaller {
       );
       if (open.type != ResultType.done) {
         yield InstallProgress(InstallPhase.error,
-            message: 'تعذّر فتح المثبّت (${open.message})');
+            message: AppText.s.errInstallerOpen(open.message));
       }
     } catch (e) {
       debugPrint('UpdateInstaller فشل: $e');
-      yield const InstallProgress(InstallPhase.error,
-          message: 'تعذّر التحديث — تحقّق من الاتصال وحاول لاحقًا');
+      yield InstallProgress(InstallPhase.error,
+          message: AppText.s.errUpdateGeneric);
     } finally {
       await sink?.close();
       client.close();

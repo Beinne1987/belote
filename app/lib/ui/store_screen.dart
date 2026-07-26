@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_text.dart';
 import '../net/api_client.dart';
 import '../net/session_controller.dart';
 import '../theme/belote_theme.dart';
@@ -68,7 +69,7 @@ class _StoreScreenState extends State<StoreScreen> {
         });
       }
     } catch (_) {
-      if (mounted) setState(() => _error = 'تعذّر جلب المتجر');
+      if (mounted) setState(() => _error = context.l10n.storeFetchFailed);
     }
   }
 
@@ -77,15 +78,15 @@ class _StoreScreenState extends State<StoreScreen> {
     try {
       await widget.session.buyGiftBundle(b.id);
       if (!mounted) return;
-      _toast('نالك ${b.qty}× ${_nameOf(b.gift)}');
+      _toast(context.l10n.bundlePurchased(b.qty, _nameOf(b.gift)));
     } on ApiException catch (e) {
       if (!mounted) return;
       // 402 حالةٌ تُشرَح لا عطبٌ يُبلَّغ: قُل له كم ينقصه بدل «فشل الشراء».
       _toast(e.status == 402
-          ? 'ماسك لا يكفي — الباقة ${b.price}💎'
-          : 'تعذّر الشراء');
+          ? context.l10n.notEnoughForBundle(b.price)
+          : context.l10n.purchaseFailed);
     } catch (_) {
-      if (mounted) _toast('تعذّر الاتّصال');
+      if (mounted) _toast(context.l10n.connectionFailed);
     } finally {
       if (mounted) setState(() => _buying = null);
     }
@@ -96,7 +97,7 @@ class _StoreScreenState extends State<StoreScreen> {
     try {
       final suggestVip = await widget.session.buyTicket(k.id);
       if (!mounted) return;
-      _toast('لعبٌ بلا حدودٍ — استمتع!');
+      _toast(context.l10n.unlimitedEnjoy);
       // **اشترى تذاكرَ كثيرة ⇒ اعرض VIP**: التذكرةُ بابٌ إليه. الخادمُ قرّر المتى.
       if (suggestVip) await showVipUpsell(context, widget.session);
     } on ApiException catch (e) {
@@ -104,13 +105,13 @@ class _StoreScreenState extends State<StoreScreen> {
       if (e.status == 402) {
         // **402 يقود إلى مخرجٍ لا إلى حائط**: ينقصه ماسٌ ⇒ افتح صفحتَه بدل
         // «تعذّر الشراء» التي تتركه واقفًا.
-        _toast('ماسك لا يكفي — التذكرة ${k.price}💎');
+        _toast(context.l10n.notEnoughForTicket(k.price));
         setState(() => _tab = _StoreTab.diamonds);
       } else {
-        _toast('تعذّر الشراء');
+        _toast(context.l10n.purchaseFailed);
       }
     } catch (_) {
-      if (mounted) _toast('تعذّر الاتّصال');
+      if (mounted) _toast(context.l10n.connectionFailed);
     } finally {
       if (mounted) setState(() => _buying = null);
     }
@@ -120,8 +121,9 @@ class _StoreScreenState extends State<StoreScreen> {
       .showSnackBar(SnackBar(content: Text(msg), duration: const Duration(seconds: 2)));
 
   String _nameOf(String giftId) {
+    final l = context.l10n;
     for (final g in giftCatalogUi) {
-      if (g.id == giftId) return g.name;
+      if (g.id == giftId) return g.name(l);
     }
     return giftId; // خادمٌ أحدثُ من التطبيق ⇒ المعرّف خيرٌ من فراغ
   }
@@ -141,7 +143,7 @@ class _StoreScreenState extends State<StoreScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              const SimpleTopBar(title: 'المتجر'),
+              SimpleTopBar(title: context.l10n.storeTitle),
               _balance(t),
               Expanded(child: _body(t)),
             ],
@@ -178,7 +180,7 @@ class _StoreScreenState extends State<StoreScreen> {
 
   Widget _body(BeloteTheme t) {
     if (_error != null) {
-      return _center(t, _error!, action: TextButton(onPressed: _load, child: const Text('إعادة')));
+      return _center(t, _error!, action: TextButton(onPressed: _load, child: Text(context.l10n.retryShort)));
     }
     if (_bundles == null || _packs == null || _tickets == null) {
       return const Center(child: CircularProgressIndicator());
@@ -192,13 +194,13 @@ class _StoreScreenState extends State<StoreScreen> {
 
     final tabs = <_TabSpec>[
       if (_tickets!.isNotEmpty)
-        const _TabSpec(_StoreTab.tickets, 'اللعب', Icons.all_inclusive),
+        _TabSpec(_StoreTab.tickets, context.l10n.tabPlay, Icons.all_inclusive),
       if (byGift.isNotEmpty)
-        const _TabSpec(_StoreTab.gifts, 'الهدايا', Icons.card_giftcard),
+        _TabSpec(_StoreTab.gifts, context.l10n.tabGifts, Icons.card_giftcard),
       if (_packs!.isNotEmpty)
-        const _TabSpec(_StoreTab.diamonds, 'الماس', Icons.diamond),
+        _TabSpec(_StoreTab.diamonds, context.l10n.tabDiamonds, Icons.diamond),
     ];
-    if (tabs.isEmpty) return _center(t, 'لا بضاعةَ في المتجر الآن.');
+    if (tabs.isEmpty) return _center(t, context.l10n.storeEmpty);
 
     // النوعُ المختارُ قد يغيب (خادمٌ أطفأ قسمًا) ⇒ نقع على أوّل موجودٍ بدل صفحةٍ فارغة.
     final tab = tabs.any((x) => x.tab == _tab) ? _tab : tabs.first.tab;
@@ -267,13 +269,13 @@ class _StoreScreenState extends State<StoreScreen> {
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
             children: [
-              Text('العب بلا حدودٍ طوال المدّة — أنت وأصدقاؤك.',
+              Text(context.l10n.ticketsIntro,
                   style: TextStyle(color: t.text3, fontSize: 12.5)),
               const SizedBox(height: 12),
               // **مَن عنده تذكرةٌ حيّةٌ يُقال له** — وشراؤه الثاني يمدّد لا يُهدَر.
               if (a != null && a.unlimited) ...[
                 _notice(t, Icons.all_inclusive,
-                    'لديك لعبٌ بلا حدودٍ الآن. أيُّ شراءٍ يمدّده من نهايته.'),
+                    context.l10n.unlimitedActiveNotice),
                 const SizedBox(height: 12),
               ],
               for (final k in _tickets!) _ticketRow(t, k),
@@ -306,7 +308,7 @@ class _StoreScreenState extends State<StoreScreen> {
                     style: TextStyle(
                         color: t.text, fontSize: 15, fontWeight: FontWeight.w800)),
                 if (best)
-                  Text('أوفرُ من سبع تذاكرِ يوم',
+                  Text(context.l10n.cheaperThanSevenDays,
                       style: TextStyle(
                           color: t.accent,
                           fontSize: 11.5,
@@ -348,10 +350,10 @@ class _StoreScreenState extends State<StoreScreen> {
   /// الاسمُ العربيُّ محلّيٌّ — الخادمُ لا يحمل نصًّا (كالهدايا والمهامّ).
   /// **مشتقٌّ من ساعات الخادم** لا مكتوبٌ بيدٍ: تغييرُ المدّة خادميًّا لا يُكذّب النصّ.
   String _ticketName(TicketView k) => switch (k.hours) {
-        24 => 'يومٌ كامل — 24 ساعة',
-        168 => 'أسبوعٌ كامل — 7 أيّام',
-        final h when h % 24 == 0 => '${h ~/ 24} أيّام',
-        final h => '$h ساعة',
+        24 => context.l10n.ticketFullDay,
+        168 => context.l10n.ticketFullWeek,
+        final h when h % 24 == 0 => context.l10n.ticketDays(h ~/ 24),
+        final h => context.l10n.ticketHours(h),
       };
 
   Widget _notice(BeloteTheme t, IconData icon, String msg) => Container(
@@ -377,7 +379,7 @@ class _StoreScreenState extends State<StoreScreen> {
       ListView(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
         children: [
-          Text('اشترِ الآن، وأهدِ متى شئت.',
+          Text(context.l10n.giftsIntro,
               style: TextStyle(color: t.text3, fontSize: 12.5)),
           const SizedBox(height: 12),
           for (final e in byGift.entries) _giftGroup(t, e.key, e.value),
@@ -392,7 +394,7 @@ class _StoreScreenState extends State<StoreScreen> {
   Widget _diamondsPage(BeloteTheme t) => ListView(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
         children: [
-          Text('كلُّ ماسةٍ بأوقيّة. والباقةُ الأكبر تُعطيك أكثر.',
+          Text(context.l10n.diamondsIntro,
               style: TextStyle(color: t.text3, fontSize: 12.5)),
           const SizedBox(height: 12),
           for (final p in _packs!) _packRow(t, p),
@@ -409,7 +411,7 @@ class _StoreScreenState extends State<StoreScreen> {
                 Icon(Icons.info_outline, size: 16, color: t.text3),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text('الشراء عبر بنكيلي — قريبًا.',
+                  child: Text(context.l10n.bankilySoon,
                       style: TextStyle(color: t.text3, fontSize: 12.5)),
                 ),
               ],
@@ -452,13 +454,13 @@ class _StoreScreenState extends State<StoreScreen> {
                 ],
               ),
               if (p.bonus > 0)
-                Text('هديّة ${p.bonusPct}%',
+                Text(context.l10n.bonusPct(p.bonusPct),
                     style: TextStyle(
                         color: t.accent, fontSize: 11.5, fontWeight: FontWeight.w700)),
             ],
           ),
           const Spacer(),
-          Text('${p.price} أوقية',
+          Text(context.l10n.priceOuguiya(p.price),
               textDirection: TextDirection.ltr,
               style: TextStyle(
                   color: t.text2, fontSize: 13.5, fontWeight: FontWeight.w700)),
@@ -511,7 +513,7 @@ class _StoreScreenState extends State<StoreScreen> {
                         borderRadius: BorderRadius.circular(999),
                         border: Border.all(color: t.line),
                       ),
-                      child: Text('تملك $owned',
+                      child: Text(context.l10n.ownedCount(owned),
                           textDirection: TextDirection.ltr,
                           style: TextStyle(color: t.text2, fontSize: 11.5)),
                     ),
@@ -582,7 +584,7 @@ class _StoreScreenState extends State<StoreScreen> {
                       color: t.accent,
                       borderRadius: BorderRadius.circular(999),
                     ),
-                    child: Text('وفّر ${b.discountPct}%',
+                    child: Text(context.l10n.savePct(b.discountPct),
                         style: TextStyle(
                             color: t.onAccent, fontSize: 10, fontWeight: FontWeight.w800)),
                   ),

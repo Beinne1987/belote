@@ -139,9 +139,11 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 10));
 
     final bids = c.tableView!.seatBids;
-    expect(bids[0], isNotNull); // صاحب الضمانة له فقاعة (نصّ صن)
-    expect(bids[1], 'تمرير');
-    expect(bids[2], 'تمرير');
-    expect(bids[3], 'تمرير');
+    expect(bids[0], isNotNull); // صاحب الضمانة له فقاعة (صن)
+    expect(bids[0]!.suit, isNull); // صنٌّ بلا لون ⇒ تبقى نصًّا
+    for (final i in [1, 2, 3]) {
+      expect(bids[i]!.label, 'تمرير', reason: 'مقعد $i');
+      expect(bids[i]!.isPass, isTrue, reason: 'مقعد $i');
+    }
   });
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../data/countries.dart';
+import '../../l10n/app_text.dart';
 import '../../theme/belote_theme.dart';
 
 /// يبني رقم E.164 من بادئة الدولة والأرقام المُدخَلة (يُسقط غير الأرقام والأصفار البادئة).
@@ -50,7 +51,9 @@ Future<Country?> pickCountry(BuildContext context) {
             final c = kCountries[i];
             return ListTile(
               leading: Text(c.flag, style: const TextStyle(fontSize: 22)),
-              title: Text(c.ar, style: TextStyle(color: t.text)),
+              title: Text(
+                  c.nameIn(Localizations.localeOf(context).languageCode),
+                  style: TextStyle(color: t.text)),
               trailing: Text('+${c.dial}', style: TextStyle(color: t.text3)),
               onTap: () => Navigator.of(context).pop(c),
             );
@@ -138,7 +141,7 @@ class AuthScaffold extends StatelessWidget {
                 alignment: Alignment.topRight,
                 child: IconButton(
                   icon: Icon(Icons.arrow_forward, color: t.text2),
-                  tooltip: 'رجوع',
+                  tooltip: context.l10n.goBack,
                   onPressed: () => Navigator.of(context).maybePop(),
                 ),
               ),

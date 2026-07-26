@@ -1,0 +1,12 @@
+# توليد `AppLocalizations` من ملفّات ARB.
+#
+# **الخرجُ في `lib/l10n` لا في حزمةٍ اصطناعيّة**: ملفّاتٌ حقيقيّةٌ في الشجرة
+# تُقرأ وتُراجَع في الكومِت، ولا يكسرها فرقُ نسخةٍ في `.dart_tool`.
+arb-dir: lib/l10n
+template-arb-file: app_ar.arb
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+output-dir: lib/l10n
+nullable-getter: false
+# العربيّةُ هي القالب ⇒ أيُّ مفتاحٍ ناقصٍ في الفرنسيّة يسقط إليها لا إلى فراغ.
+untranslated-messages-file: l10n_untranslated.json

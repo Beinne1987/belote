@@ -6,6 +6,7 @@ import 'app_settings.dart';
 import 'boot.dart';
 import 'game/game_controller.dart';
 import 'game/view_model.dart';
+import 'l10n/app_text.dart';
 import 'net/api_client.dart';
 import 'net/presence_link.dart';
 import 'net/session_controller.dart';
@@ -183,20 +184,30 @@ class _BeloteAppState extends State<BeloteApp> with WidgetsBindingObserver {
           controller: _session,
           child: PresenceScope(
             link: _presence,
-            child: MaterialApp(
-              navigatorKey: _navKey,
-              title: 'Belote',
-              debugShowCheckedModeBanner: false,
-              theme: buildTheme(),
-              // **الفأرةُ تسحب القوائمَ كالإصبع** على ويندوز وماك.
-              scrollBehavior: const AppScrollBehavior(),
-              // الترتيبُ مقصود: الاتّجاهُ أوّلًا ثمّ المسرح — فإطارُ المجلس حول
-              // المسرح يرث RTL كبقيّة الشجرة.
-              builder: (context, child) => Directionality(
-                textDirection: TextDirection.rtl,
-                child: AppFrame(child: child!),
+            child: ListenableBuilder(
+              listenable: _settings,
+              builder: (context, _) => MaterialApp(
+                navigatorKey: _navKey,
+                onGenerateTitle: (context) =>
+                    context.l10n.appTitle,
+                debugShowCheckedModeBanner: false,
+                theme: buildTheme(),
+                // **الفأرةُ تسحب القوائمَ كالإصبع** على ويندوز وماك.
+                scrollBehavior: const AppScrollBehavior(),
+                // اللغةُ من اختيار اللاعب لا من لغة الهاتف — والعربيّةُ الافتراض.
+                locale: _settings.locale,
+                supportedLocales: AppSettings.supportedLocales,
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                // **لا اتّجاهَ مثبَّتًا**: `Localizations` يشتقّه من اللغة
+                // (العربيّةُ RTL والفرنسيّةُ LTR) فتنقلب الشجرةُ كلُّها معها.
+                // إطارُ المجلس حول المسرح يرثه كبقيّة الشجرة.
+                builder: (context, child) {
+                  // تُقرأ نصوصُ اللغة النشطة خارج الشجرة أيضًا (الكنترولرات).
+                  AppText.bind(context.l10n);
+                  return AppFrame(child: child!);
+                },
+                home: const _Root(),
               ),
-              home: const _Root(),
             ),
           ),
         ),
@@ -398,19 +409,18 @@ class _RootState extends State<_Root> {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('اللعب أونلاين', textDirection: TextDirection.rtl),
-        content: const Text(
-          'أنشئ حسابًا للّعب مع لاعبين حقيقيّين وحفظ تقدّمك ورصيدك.',
-          textDirection: TextDirection.rtl,
-        ),
+        title: Text(ctx.l10n.guestOnlineTitle),
+        content: Text(ctx.l10n.guestOnlineBody),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('لاحقًا')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(ctx.l10n.later)),
           FilledButton(
             onPressed: () {
               Navigator.pop(ctx);
               _pushAuth(context);
             },
-            child: const Text('إنشاء حساب'),
+            child: Text(ctx.l10n.createAccount),
           ),
         ],
       ),

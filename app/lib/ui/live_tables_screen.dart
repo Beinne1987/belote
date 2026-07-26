@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../net/api_client.dart';
 import '../net/session_controller.dart';
+import '../l10n/app_text.dart';
 import '../theme/belote_theme.dart';
 import 'online_game_page.dart';
 import 'player_avatar.dart';
@@ -61,7 +62,7 @@ class _LiveTablesScreenState extends State<LiveTablesScreen> {
     if (token == null || api == null) {
       setState(() {
         _loading = false;
-        _error = 'سجّل الدخول لمشاهدة المباريات.';
+        _error = context.l10n.signInToWatch;
       });
       return;
     }
@@ -85,7 +86,7 @@ class _LiveTablesScreenState extends State<LiveTablesScreen> {
       if (!mounted) return;
       setState(() {
         _loading = false;
-        if (_tables.isEmpty) _error = 'تعذّر جلب المباريات — تحقّق من الاتّصال.';
+        if (_tables.isEmpty) _error = context.l10n.liveFetchFailed;
       });
     }
   }
@@ -115,9 +116,9 @@ class _LiveTablesScreenState extends State<LiveTablesScreen> {
           child: Column(
             children: [
               SimpleTopBar(
-                title: 'مباريات حيّة',
+                title: context.l10n.liveMatches,
                 trailing: IconButton(
-                  tooltip: 'تحديث',
+                  tooltip: context.l10n.refresh,
                   onPressed: () => _refresh(),
                   icon: Icon(Icons.refresh, color: t.text2),
                 ),
@@ -190,11 +191,13 @@ class _TableCard extends StatelessWidget {
 
   /// اسمُ صاحب المقعد [seat] — الذكاءُ باسمٍ محايد (لا نكشف أنّه روبوت: نفسُ
   /// سياسة شاشة المطابقة التي تُخفيه عن الجالسين أنفسهم).
-  String _name(int seat) {
+  String _name(AppLocalizations l, int seat) {
     for (final p in table.players) {
-      if (p.seat == seat) return p.ai || p.name.isEmpty ? 'لاعب' : p.name;
+      if (p.seat == seat) {
+        return p.ai || p.name.isEmpty ? l.playerFallback : p.name;
+      }
     }
-    return 'لاعب';
+    return l.playerFallback;
   }
 
   LiveTablePlayer? _at(int seat) {
@@ -233,7 +236,7 @@ class _TableCard extends StatelessWidget {
                   if (table.tournament) ...[
                     Icon(Icons.emoji_events, size: 18, color: t.accentBright),
                     const SizedBox(width: 6),
-                    Text('بطولة',
+                    Text(context.l10n.tournamentChip,
                         style: TextStyle(
                             color: t.accentBright,
                             fontSize: 12,
@@ -251,13 +254,13 @@ class _TableCard extends StatelessWidget {
               const SizedBox(height: 10),
               Row(
                 children: [
-                  Expanded(child: _team(t, 0, 2, table.usScore)),
+                  Expanded(child: _team(context, t, 0, 2, table.usScore)),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: Text('ضد',
+                    child: Text(context.l10n.versusShort,
                         style: TextStyle(color: t.text3, fontSize: 12)),
                   ),
-                  Expanded(child: _team(t, 1, 3, table.themScore)),
+                  Expanded(child: _team(context, t, 1, 3, table.themScore)),
                 ],
               ),
               const SizedBox(height: 10),
@@ -266,7 +269,7 @@ class _TableCard extends StatelessWidget {
                   Icon(Icons.play_circle_outline,
                       size: 18, color: t.accentBright),
                   const SizedBox(width: 6),
-                  Text('شاهد المباراة',
+                  Text(context.l10n.watchMatch,
                       style: TextStyle(
                           color: t.accentBright,
                           fontSize: 13,
@@ -281,34 +284,34 @@ class _TableCard extends StatelessWidget {
   }
 
   /// عمودُ فريقٍ: لاعباه فوق بعضهما + نقاطُه. [a] و[b] مقعدا الفريق.
-  Widget _team(BeloteTheme t, int a, int b, int score) {
+  Widget _team(BuildContext context, BeloteTheme t, int a, int b, int score) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _player(t, a),
+        _player(context, t, a),
         const SizedBox(height: 4),
-        _player(t, b),
+        _player(context, t, b),
         const SizedBox(height: 6),
-        Text('$score نقطة',
+        Text(context.l10n.pointsCount(score),
             style: TextStyle(
                 color: t.text, fontSize: 13, fontWeight: FontWeight.w800)),
       ],
     );
   }
 
-  Widget _player(BeloteTheme t, int seat) {
+  Widget _player(BuildContext context, BeloteTheme t, int seat) {
     final p = _at(seat);
     return Row(
       children: [
         PlayerAvatar(
           url: p?.avatarUrl ?? '',
-          fallback: _name(seat).characters.first,
+          fallback: _name(context.l10n, seat).characters.first,
           size: 22,
         ),
         const SizedBox(width: 6),
         Flexible(
           child: Text(
-            _name(seat),
+            _name(context.l10n, seat),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(color: t.text2, fontSize: 12.5),

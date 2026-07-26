@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_text.dart';
 import '../theme/belote_theme.dart';
 
 /// أدواتُ الطاولة الجانبيّة: **الرسائلُ وحدَها**، ظاهرةً بلا قائمةٍ تُفتَح.
@@ -28,7 +29,7 @@ class TableControls extends StatelessWidget {
         if (onOpenChat != null)
           TableToolButton(
             icon: Icons.chat_bubble_outline,
-            tip: 'الرسائل',
+            tip: context.l10n.messagesTip,
             onTap: onOpenChat!,
           ),
       ],

@@ -9,6 +9,7 @@ import 'package:app/ui/quick_chat_picker.dart';
 import 'package:app/game/seat_player.dart';
 import 'package:belote_engine/belote_engine.dart';
 import 'package:flutter/material.dart';
+import 'package:app/l10n/app_localizations_ar.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// الدردشة السريعة والهدايا في العميل — نظيرُ `reactions_test.dart`. الثلاثة تتقاسم
@@ -218,7 +219,9 @@ void main() {
       await t.pumpAndSettle();
 
       for (final g in giftCatalogUi) {
-        expect(find.text(g.name), findsOneWidget, reason: '${g.name} مفقودةٌ من الكتالوج');
+        final name = g.name(AppLocalizationsAr());
+        expect(find.text(name), findsOneWidget,
+            reason: '$name مفقودةٌ من الكتالوج');
       }
       await t.tap(find.text('سالم')); // المستقبِل الثاني
       await t.pump();

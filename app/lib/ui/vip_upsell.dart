@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../net/session_controller.dart';
+import '../l10n/app_text.dart';
 import '../theme/belote_theme.dart';
 import 'vip_screen.dart';
 
@@ -24,22 +25,19 @@ Future<void> showVipUpsell(BuildContext context, SessionController session) {
           Icon(Icons.workspace_premium, color: t.accent, size: 22),
           const SizedBox(width: 8),
           Expanded(
-            child: Text('لماذا لا تصير VIP؟',
-                textDirection: TextDirection.rtl,
+            child: Text(context.l10n.vipUpsellTitle,
                 style: TextStyle(
                     color: t.text, fontSize: 18, fontWeight: FontWeight.w800)),
           ),
         ],
       ),
       content: Text(
-        'تشتري التذاكرَ كثيرًا — والشهرُ الكاملُ من VIP بثمن عشرِ تذاكرٍ فقط، ومعه '
-        'لعبٌ بلا حدود، ومجلسٌ خاصّ، وهدايا حصريّة، و50💎 كلَّ شهر.',
-        textDirection: TextDirection.rtl,
+        context.l10n.vipUpsellBody,
         style: TextStyle(color: t.text2, fontSize: 13.5, height: 1.6),
       ),
       actions: [
         TextButton(
-            onPressed: () => Navigator.pop(ctx), child: const Text('لاحقًا')),
+            onPressed: () => Navigator.pop(ctx), child: Text(context.l10n.later)),
         FilledButton(
           style: FilledButton.styleFrom(
               backgroundColor: t.accent, foregroundColor: t.onAccent),
@@ -49,7 +47,7 @@ Future<void> showVipUpsell(BuildContext context, SessionController session) {
               builder: (_) => VipScreen(session: session),
             ));
           },
-          child: const Text('شاهد VIP'),
+          child: Text(context.l10n.seeVip),
         ),
       ],
     ),

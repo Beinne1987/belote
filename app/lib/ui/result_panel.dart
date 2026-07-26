@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../game/view_model.dart';
 import '../net/player_rank.dart';
-import '../strings_ar.dart';
+import '../l10n/app_text.dart';
+import '../l10n/labels.dart';
 import '../theme/belote_theme.dart';
 import 'match_summary.dart';
 import 'rank_badge.dart';
@@ -44,19 +45,20 @@ class ResultPanel extends StatelessWidget {
   /// بين الجولات لا زرّ: تُعرض النتيجة ثوانٍ ثم تتقدّم تلقائيًّا (الجولة الفاصلة كذلك).
   bool get _matchWon => result.matchOutcome == 0 || result.matchOutcome == 1;
 
-  String get _title {
-    if (result.openRuleAkwinsTie) return S.openRuleTie;
+  String _title(AppLocalizations l) {
+    if (result.openRuleAkwinsTie) return l.openRuleTie;
     return switch (result.matchOutcome) {
-      0 => S.matchWonUs,
-      1 => S.matchWonThem,
-      'tiebreak' => S.matchTiebreak,
-      _ => S.roundOver,
+      0 => l.matchWonUs,
+      1 => l.matchWonThem,
+      'tiebreak' => l.matchTiebreak,
+      _ => l.roundOver,
     };
   }
 
   @override
   Widget build(BuildContext context) {
     final t = BeloteTheme.of(context);
+    final l = context.l10n;
     // مرفوعة للأعلى وبتعتيم خفيف كي يبقى الورق المكشوف مرئيًّا أسفلها (طلب صاحب المشروع).
     return Container(
       color: Colors.black.withValues(alpha: 0.32),
@@ -82,7 +84,7 @@ class ResultPanel extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              _title,
+              _title(l),
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: t.feltInk,
@@ -94,9 +96,8 @@ class ResultPanel extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 result.reason == 'fouja'
-                    ? (result.usPoints > 0 ? S.foujaWonUs : S.foujaWonThem)
-                    : '${S.reasonLabel(result.reason)} · ${S.roundValue} ${result.roundValue}',
-                textDirection: TextDirection.rtl,
+                    ? (result.usPoints > 0 ? l.foujaWonUs : l.foujaWonThem)
+                    : '${Labels.reason(l, result.reason)} · ${l.roundValue} ${result.roundValue}',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: t.feltInk2, fontSize: 13),
               ),
@@ -105,8 +106,8 @@ class ResultPanel extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _points(S.us, result.usPoints, t.accent, t.feltInk),
-                  _points(S.them, result.themPoints, t.text2, t.feltInk),
+                  _points(l.teamUs, result.usPoints, t.accent, t.feltInk),
+                  _points(l.teamThem, result.themPoints, t.text2, t.feltInk),
                 ],
               ),
             ],
@@ -114,20 +115,25 @@ class ResultPanel extends StatelessWidget {
             const Divider(color: Colors.white24, height: 1),
             const SizedBox(height: 12),
             // رصيد المباراة
+            // **الفرنسيّةُ أطول**: «Nous»/«Eux» مع الأرقام يتجاوزان عرضَ هاتفٍ
+            // ضيّق ⇒ كلُّ طرفٍ مرنٌ ينكمش قبل أن يفيض الصفّ.
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _total(S.us, result.usTotal, t.accent, t.feltInk),
+                Flexible(
+                    child: _total(l.teamUs, result.usTotal, t.accent, t.feltInk)),
                 const SizedBox(width: 8),
                 Text('—', style: TextStyle(color: t.feltInk2)),
                 const SizedBox(width: 8),
-                _total(S.them, result.themTotal, t.text2, t.feltInk),
+                Flexible(
+                    child:
+                        _total(l.teamThem, result.themTotal, t.text2, t.feltInk)),
               ],
             ),
             // التصنيف: مباراةٌ مصنّفة انتهت ⇒ التقييم الجديد وتغيّره.
             if (_matchWon && rating != null && ratingDelta != null) ...[
               const SizedBox(height: 12),
-              _rating(t),
+              _rating(t, l),
             ],
             // **الترقيةُ تُرى حين تُستحقّ**: الشارةُ هنا لا في الملفّ وحدَه.
             if (_matchWon && rank != null) ...[
@@ -155,8 +161,8 @@ class ResultPanel extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 22, vertical: 12),
                       ),
-                      child: const Text(S.backToMenu,
-                          style: TextStyle(fontWeight: FontWeight.w800)),
+                      child: Text(l.backToMenu,
+                          style: const TextStyle(fontWeight: FontWeight.w800)),
                     ),
                   if (onExit != null && onNewMatch != null)
                     const SizedBox(width: 12),
@@ -169,8 +175,8 @@ class ResultPanel extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 28, vertical: 12),
                       ),
-                      child: const Text(S.newMatch,
-                          style: TextStyle(fontWeight: FontWeight.w800)),
+                      child: Text(l.matchNew,
+                          style: const TextStyle(fontWeight: FontWeight.w800)),
                     ),
                 ],
               ),
@@ -184,13 +190,13 @@ class ResultPanel extends StatelessWidget {
   }
 
   /// «التصنيف 1016 ▲ +16» — الأرقام لاتينية ومعزولة الاتّجاه (ملاحظة CLAUDE.md).
-  Widget _rating(BeloteTheme t) {
+  Widget _rating(BeloteTheme t, AppLocalizations l) {
     final up = ratingDelta! >= 0;
     final color = up ? t.accent : t.text2;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text('${S.rating} ', style: TextStyle(color: t.feltInk2, fontSize: 13)),
+        Text('${l.rating} ', style: TextStyle(color: t.feltInk2, fontSize: 13)),
         Text('$rating',
             textDirection: TextDirection.ltr,
             style: TextStyle(
@@ -218,8 +224,13 @@ class ResultPanel extends StatelessWidget {
       );
 
   Widget _total(String label, int value, Color color, Color ink) => Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text('$label ', style: TextStyle(color: color, fontSize: 13)),
+          Flexible(
+              child: Text('$label ',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: color, fontSize: 13))),
           Text('$value',
               textDirection: TextDirection.ltr,
               style: TextStyle(
