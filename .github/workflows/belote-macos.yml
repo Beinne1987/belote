@@ -37,10 +37,27 @@ jobs:
       # `FlutterMacOS.framework` إلى الحزمة. كاشٌ بائتٌ (أو محرّكُ debug) يعطي
       # حزمةً رموزُها في `App.framework` سليمةٌ و`FlutterMacOS` لا يطابقها.
       # يُنزَّل المحرّكُ نظيفًا بـ`flutter precache --macos` أدناه.
-      - name: Setup Flutter 3.44.6
+      # **النسخةُ مثبَّتةٌ على 3.41.9 عمدًا — آخرُ ثابتةٍ قبل 3.44.0.**
+      #
+      # 3.44.0 أدخلت `Directly generate a Mach-O dynamic library using
+      # gen_snapshot` (‏93756969bb4، ورُدَّت مرّتين في المنبع قبل أن تستقرّ):
+      # صار `gen_snapshot` يكتب `App.framework` بنفسه بدل أن يُخرج تجميعةً
+      # يربطها `clang`. المكتبةُ الناتجة تخرج **بلا جدول تصدير لـdyld** —
+      # لا `LC_DYLD_INFO_ONLY` ولا `LC_DYLD_EXPORTS_TRIE` — وبـ
+      # `minos/sdk = 10.15` بدل قيمة المشروع. فيعجز المحرّكُ عن إيجاد لقطة
+      # Dart فيها ويموت قبل أوّل إطار على macOS 11:
+      #     Isolate snapshot invalid and could not be inferred from settings
+      #     Could not create Dart VM instance  ⇒  Segmentation fault
+      #
+      # حزمةُ hisabi العاملة على الجهاز نفسِه تُبنى بـ3.29.0 ومكتبتُها فيها
+      # `LC_DYLD_INFO_ONLY` — وهذه المقارنةُ هي التي كشفت العلّة. وحزمُ بيلوت
+      # كلُّها تقبل 3.41.9 (أعلى قيدٍ فيها `flutter: >=3.27.0` من
+      # `firebase_core`). يحرسه `verify_app_snapshot.py` أدناه: إن عادت نسخةٌ
+      # أحدثُ بالسلوك نفسِه، يفشل البناءُ هنا لا عند اللاعب.
+      - name: Setup Flutter 3.41.9
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.6'
+          flutter-version: '3.41.9'
           channel: 'stable'
           cache: false
 
@@ -82,7 +99,7 @@ jobs:
         continue-on-error: true
 
       # **أرضٌ نظيفةٌ قبل البناء**: كلُّ ما قد يحمل محرّكًا قديمًا أو أثرَ بناءٍ
-      # سابقٍ يُمحى، ثمّ يُنزَّل محرّكُ ماك من جديدٍ للنسخة المثبَّتة (3.44.6).
+      # سابقٍ يُمحى، ثمّ يُنزَّل محرّكُ ماك من جديدٍ للنسخة المثبَّتة (3.41.9).
       # هذا علاجُ «App.framework سليمٌ وFlutterMacOS لا يطابقه».
       - name: Clean slate (no stale engine or build residue)
         run: |
@@ -143,6 +160,13 @@ jobs:
       # ثابتٍ في أداته متجاهلًا `MACOSX_DEPLOYMENT_TARGET`.)
       - name: Verify minimum macOS of every binary (11.0)
         run: python3 tool/verify_min_macos.py build/macos/Build/Products/Release/Belote.app 11.0 16.0
+
+      # **حارسُ لقطة Dart** — الدرسُ الأغلى (2026-07-26): الحزمةُ مرّت بكلّ ما
+      # سبق (الوجود · المعماريّتان · AOT · أدنى نسخة · التوقيع) وماتت على
+      # Big Sur قبل أن تُرسم بكسل، لأنّ رموزَ اللقطة كانت في الجدول الساكن
+      # وحدَه ولا يراها `dyld`. الرموزُ موجودةٌ لـ`nm` وغائبةٌ عن المحرّك.
+      - name: Verify Dart snapshot is reachable by dyld
+        run: python3 tool/verify_app_snapshot.py build/macos/Build/Products/Release/Belote.app
 
       # التحقّق + إعادةُ توقيعٍ ad-hoc تحفظ الـ entitlements (وإلّا فقدت النسخةُ
       # المنشورة صلاحيةَ الشبكة داخل الصندوق الرمليّ = بلا إنترنت بصمت).
@@ -262,6 +286,7 @@ jobs:
           codesign -d --entitlements :- "$A" | grep -q network.client || {
             echo "::error::network.client entitlement lost inside the DMG"; exit 1; }
           python3 tool/verify_min_macos.py "$A" 11.0 16.0
+          python3 tool/verify_app_snapshot.py "$A"
           echo "✅ DMG contents match what was tested"
 
       - name: Upload artifact
