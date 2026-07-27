@@ -139,7 +139,7 @@ class GiftVisuals {
 /// الدرجة دفعةً واحدة، وهذا هو المقصود من «إطارٍ مشترك».
 const _fxByRarity = <GiftRarity, GiftFx>{
   GiftRarity.common: GiftFx(
-    travel: Duration(milliseconds: 760),
+    travel: Duration(milliseconds: 1100),
     arc: 0.30,
     spin: 0,
     trail: 10,
@@ -149,7 +149,7 @@ const _fxByRarity = <GiftRarity, GiftFx>{
     shockRing: false,
   ),
   GiftRarity.rare: GiftFx(
-    travel: Duration(milliseconds: 920),
+    travel: Duration(milliseconds: 1320),
     arc: 0.36,
     spin: 0,
     trail: 15,
@@ -159,7 +159,7 @@ const _fxByRarity = <GiftRarity, GiftFx>{
     shockRing: false,
   ),
   GiftRarity.epic: GiftFx(
-    travel: Duration(milliseconds: 1180),
+    travel: Duration(milliseconds: 1680),
     arc: 0.44,
     spin: 1,
     trail: 21,
@@ -169,7 +169,7 @@ const _fxByRarity = <GiftRarity, GiftFx>{
     shockRing: true,
   ),
   GiftRarity.legendary: GiftFx(
-    travel: Duration(milliseconds: 1450),
+    travel: Duration(milliseconds: 2050),
     arc: 0.52,
     spin: 1.5,
     trail: 27,
@@ -218,7 +218,7 @@ final _overrides = <String, GiftFx Function(GiftFx base)>{
   'car': (b) => b.copyWith(
       spin: 0,
       arc: 0.22,
-      travel: const Duration(milliseconds: 900),
+      travel: const Duration(milliseconds: 1250),
       glow: const Color(0xFF8FD8FF)),
 };
 

@@ -29,7 +29,11 @@ const kSeatAnchors = <Alignment>[
 const kStandsAnchor = Alignment(0, 1.06);
 
 /// زمنُ أثر الوصول بعد ملامسة البطاقة (الحلقةُ والشظايا وبطاقةُ الاسم).
-const kGiftBurst = Duration(milliseconds: 460);
+///
+/// كان 460ms فمرّت الهديّةُ قبل أن تُدرَك: **بطاقةُ الاسم هي الرسالة** («فلانٌ
+/// أهدى فلانًا») ولا تُقرأ في نصف ثانية. الطولُ هنا زمنُ قراءةٍ لا زخرفة —
+/// ويباعد أيضًا بين هديّتين متتاليتين في الطابور (`_flightGap` في الكنترولر).
+const kGiftBurst = Duration(milliseconds: 900);
 
 /// رحلةٌ واحدةٌ في الطابور.
 @immutable

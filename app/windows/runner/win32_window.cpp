@@ -203,8 +203,9 @@ Win32Window::MessageHandler(HWND hwnd,
     case WM_GETMINMAXINFO: {
       MINMAXINFO* info = reinterpret_cast<MINMAXINFO*>(lparam);
       const double scale = GetDpiForWindow(hwnd) / 96.0;
-      info->ptMinTrackSize.x = static_cast<LONG>(640 * scale);
-      info->ptMinTrackSize.y = static_cast<LONG>(560 * scale);
+      // 640×560 كانت تعطي مسرحًا 448×560 — أضيقَ من الهاتف نفسِه (393×852).
+      info->ptMinTrackSize.x = static_cast<LONG>(720 * scale);
+      info->ptMinTrackSize.y = static_cast<LONG>(620 * scale);
       return 0;
     }
 

@@ -70,10 +70,26 @@ class AppFrame extends StatelessWidget {
             colors: [t.surface.withValues(alpha: 0.55), t.bg],
           ),
         ),
+        // (جُرّب رفعٌ بصريٌّ ‎−6% لتصحيح الإحساس تحت شريط العنوان، فأسقطته:
+        // يخالف حارسَ «المسرحُ متمركز» ويزيح 44 بكسلًا على 4K — والمكسبُ أصغرُ
+        // من ثمنِ إضعاف الحارس.)
         child: Center(
-          child: SizedBox(
+          child: Container(
             width: stage.width,
             height: stage.height,
+            // **ظلُّ تماسٍ تحت المسرح** — لا حولَه: الطاولةُ تقرأ قائمةً في
+            // الغرفة لا مستطيلًا ملصوقًا على خلفيّة. نصفُ القطر يتبع ارتفاعَ
+            // المسرح فلا يذوب على الشاشات الكبيرة.
+            decoration: BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  color: t.shadow.withValues(alpha: 0.55),
+                  blurRadius: stage.height * 0.06,
+                  spreadRadius: -stage.height * 0.012,
+                  offset: Offset(0, stage.height * 0.022),
+                ),
+              ],
+            ),
             child: ClipRect(
               child: MediaQuery(
                 // المساحاتُ الآمنة (نتوءُ الكاميرا · شريطُ الإيماءات) شأنُ
