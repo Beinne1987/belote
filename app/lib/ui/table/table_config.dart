@@ -76,6 +76,16 @@ class TableConfig {
   /// شعارٌ باهتٌ في وسط اللبّاد (حَلَقتان + نجمة).
   final bool showEmblem;
 
+  /// **وضوحُ ما في قلب اللبّاد** (0..1): هلالُ العلم ونجمتُه · طباعةُ VIP ·
+  /// الميداليّة. 1 = كما هو، و0 = يختفي.
+  ///
+  /// **لماذا يخفت أثناء اللعب** (طلبُ المالك 2026-08-03): الهلالُ الذهبيُّ قطرُه
+  /// ‎0.31 من أصغر بُعدٍ، ودائرةُ الحيلة تُرمى فوقه بالضبط — فتقع أربعُ أوراقٍ
+  /// ملوّنةٍ على شعارٍ ذهبيٍّ عالي التباين، والعينُ تقرأ الاثنين معًا فتبطئ.
+  /// وحذفُه ليس واردًا: علمُ اللبّاد هويّةُ الطاولة. الحلُّ خفوتٌ لحظةَ اللعب
+  /// وعودةٌ كاملةٌ بين الجولات — الهويّةُ باقيةٌ والحيلةُ تُقرأ.
+  final double centerDim;
+
   const TableConfig({
     this.woodColor = const Color(0xFF5A3620),
     this.woodGloss = 0.55,
@@ -98,6 +108,7 @@ class TableConfig {
     this.inlayColor = const Color(0xFFD9B45B),
     this.showReflection = true,
     this.showEmblem = false, // أُزيلت النجمةُ الوسطى بطلب المالك؛ علمُ اللبّاد يكفي
+    this.centerDim = 1.0,
   });
 
   TableConfig copyWith({
@@ -122,6 +133,7 @@ class TableConfig {
     Color? inlayColor,
     bool? showReflection,
     bool? showEmblem,
+    double? centerDim,
   }) =>
       TableConfig(
         woodColor: woodColor ?? this.woodColor,
@@ -145,6 +157,7 @@ class TableConfig {
         inlayColor: inlayColor ?? this.inlayColor,
         showReflection: showReflection ?? this.showReflection,
         showEmblem: showEmblem ?? this.showEmblem,
+        centerDim: centerDim ?? this.centerDim,
       );
 
   /// أطُرٌ جاهزةٌ للمقارنة السريعة في اللوحة.
@@ -229,7 +242,8 @@ class TableConfig {
       other.showInlay == showInlay &&
       other.inlayColor == inlayColor &&
       other.showReflection == showReflection &&
-      other.showEmblem == showEmblem;
+      other.showEmblem == showEmblem &&
+      other.centerDim == centerDim;
 
   @override
   int get hashCode => Object.hashAll([
@@ -254,5 +268,6 @@ class TableConfig {
         inlayColor,
         showReflection,
         showEmblem,
+        centerDim,
       ]);
 }

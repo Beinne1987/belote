@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../app_settings.dart';
 import '../l10n/app_text.dart';
 import '../theme/belote_theme.dart';
+import 'layout.dart';
 
 /// شاشة إدخال الاسم المحلّي — تُستعمل لـ**الدخول كضيف** (اسمٌ يُحفظ محلّيًّا بلا حساب).
 /// عند [guest] تُفعّل وضع الضيف أيضًا. تُغلَق بعد الحفظ (الجذر يبني الرئيسية).
@@ -45,7 +46,7 @@ class _NameEntryScreenState extends State<NameEntryScreen> {
           ),
         ),
         child: SafeArea(
-          child: Center(
+          child: FormPane(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(28),
               child: Column(

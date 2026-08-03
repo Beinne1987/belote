@@ -24,6 +24,7 @@ import 'player_seat_round.dart';
 import 'quick_chat_picker.dart';
 import 'reaction_picker.dart';
 import 'result_panel.dart';
+import 'table/table_config.dart';
 import 'table/table_geometry.dart';
 import 'table/table_surface.dart';
 import 'table_controls.dart';
@@ -412,6 +413,8 @@ class TableScreen extends StatelessWidget {
                   view.bidderSeat == null
                       ? null
                       : _seat(context.l10n, view.bidderSeat!).name;
+              // **طورُ اللعب**: عليه يخفت شعارُ اللبّاد المركزيّ ([_Felt]).
+              final inPlay = view.phase == GamePhase.playing;
 
               return Stack(
                 children: [
@@ -427,9 +430,10 @@ class TableScreen extends StatelessWidget {
                         ? Padding(
                             padding: EdgeInsets.all(
                                 VipRoom.inset(math.min(w, h))),
-                            child: const TableSurface(config: TableSurface.vip),
+                            child: _Felt(
+                                base: TableSurface.vip, playing: inPlay),
                           )
-                        : const TableSurface(config: TableSurface.hall),
+                        : _Felt(base: TableSurface.hall, playing: inPlay),
                   ),
 
                   // ── لوحُ المباراة: النتيجة + الضمانة باسم الضامن ──
@@ -549,7 +553,10 @@ class TableScreen extends StatelessWidget {
                           // اللمسةَ فتموت الورقةُ الطرفيّة.
                           maxWidth: w - 2 * HandFanMetrics.edgeGuard,
                           interactive: view.humanCanPlay,
-                          // القانونية لم تعد مفروضة: أي ورقة تُلعب (الفوجة مسموحة).
+                          // **القانونيّةُ تُمَيَّز ولا تُفرَض**: كلُّ ورقةٍ
+                          // تُلعَب — الفوجةُ قاعدةٌ في هذه اللعبة لا خطأً يُمنَع
+                          // — لكنّ المخالفةَ تخفت في دورك فتكون قصدًا لا زلّة.
+                          legalCards: view.legalCards,
                           onPlay: (card) => onPlayCard?.call(card),
                         ),
                       ),
@@ -653,6 +660,23 @@ class TableScreen extends StatelessWidget {
                       ),
                     ),
 
+                  // ── «دورك الآن»: ومضةٌ فوق خطّ العلم عند بدء دورك ──
+                  // **فوق العدّاد لا مكانَه**: العدّادُ يقول كم بقي، وهذه تقول
+                  // إنّه بدأ — وعلى نافذةِ حاسوبٍ عريضةٍ لا تكفي إشارةٌ في
+                  // وسط الطاولة: عينُ اللاعب على يده. `IgnorePointer` لازم:
+                  // كلُّ ما يعلو الطاولةَ يبتلع لمسةً (درسُ 2026-07-21).
+                  if (result == null && !view.claimingFouja)
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: timerBottom + 12,
+                      child: IgnorePointer(
+                        child: Center(
+                          child: _TurnCue(active: view.humanCanPlay),
+                        ),
+                      ),
+                    ),
+
                   // ── توزيع الورق: أوراق تنطلق من مقعد الموزّع إلى الجميع ──
                   if (view.phase == GamePhase.dealing)
                     Positioned.fill(
@@ -673,7 +697,12 @@ class TableScreen extends StatelessWidget {
                       left: 0,
                       right: 0,
                       bottom: aboveHand - 6,
-                      child: BidBar(view: bidBar!, onBid: onBid!),
+                      child: BidBar(
+                        view: bidBar!,
+                        onBid: onBid!,
+                        // يكبر مع الطاولة كما تكبر الأوراقُ والمقاعد.
+                        chipSide: TableMetrics.bidChipSide(w, h),
+                      ),
                     ),
 
                   // ── لوحة النتيجة: تظهر كلّما وُجدت نتيجة جولة (بين الجولات وعند انتهاء
@@ -705,6 +734,128 @@ class TableScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+/// **«دورك الآن»** — ومضةٌ تظهر لحظةَ يصير الدورُ لك ثمّ تنصرف.
+///
+/// عقربُ الدور ([TurnClock]) يشير إلى المقعد في وسط الطاولة، وهو كافٍ على شاشة
+/// هاتفٍ يسعها البصرُ كلَّها. وعلى نافذةِ حاسوبٍ عرضُها شبرٌ ونصف تكون عينُ
+/// اللاعب على يده أو على وجه خصمه، فيمرّ دورُه وهو ينتظر — ثمّ يلعب الذكاءُ
+/// مكانَه. الومضةُ تلتقط البصرَ حيث كان.
+///
+/// **ولا تبقى**: تظهر وتصمد لحظةً وتخفت ([Motion.turnCueHold]) — لافتةٌ مقيمةٌ
+/// تصير خلفيّةً لا تُقرأ. ومُتحكّمٌ واحدٌ يحمل الظهورَ والصمودَ والخفوت ⇒ لا
+/// مؤقّتاتٍ معلّقةً خلف الاختبارات، ويُتلَف مع الودجت.
+class _TurnCue extends StatefulWidget {
+  final bool active;
+  const _TurnCue({required this.active});
+
+  @override
+  State<_TurnCue> createState() => _TurnCueState();
+}
+
+class _TurnCueState extends State<_TurnCue>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: Motion.turnCueFade * 2 + Motion.turnCueHold,
+  );
+
+  late final Animation<double> _fade = TweenSequence<double>([
+    TweenSequenceItem(
+      tween: Tween(begin: 0.0, end: 1.0).chain(CurveTween(curve: Curves.easeOut)),
+      weight: Motion.turnCueFade.inMilliseconds.toDouble(),
+    ),
+    TweenSequenceItem(
+      tween: ConstantTween(1.0),
+      weight: Motion.turnCueHold.inMilliseconds.toDouble(),
+    ),
+    TweenSequenceItem(
+      tween: Tween(begin: 1.0, end: 0.0).chain(CurveTween(curve: Curves.easeIn)),
+      weight: Motion.turnCueFade.inMilliseconds.toDouble(),
+    ),
+  ]).animate(_c);
+
+  @override
+  void initState() {
+    super.initState();
+    // **دورٌ يبدأ ونحن نُبنى**: أوّلُ دورٍ في الجولة قد يسبق أوّلَ بناء.
+    if (widget.active) _c.forward(from: 0);
+  }
+
+  @override
+  void didUpdateWidget(_TurnCue old) {
+    super.didUpdateWidget(old);
+    // **الحافّةُ الصاعدةُ وحدَها**: `humanCanPlay` يبقى صحيحًا طولَ دورك، فبناءٌ
+    // آخرُ (ورقةُ خصمٍ · هديّةٌ · نبضةُ عدّاد) ليس دورًا جديدًا.
+    if (widget.active && !old.active) _c.forward(from: 0);
+    if (!widget.active && _c.isAnimating) _c.stop();
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = BeloteTheme.of(context);
+    return FadeTransition(
+      opacity: _fade,
+      child: Semantics(
+        // يُنطَق حين يظهر — القارئُ الصوتيّ لا يرى وميضًا.
+        liveRegion: true,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          decoration: BoxDecoration(
+            color: t.accent,
+            borderRadius: BorderRadius.circular(999),
+            boxShadow: [
+              BoxShadow(color: t.shadow, blurRadius: 12, offset: const Offset(0, 4)),
+            ],
+          ),
+          child: Text(
+            context.l10n.turnYours,
+            style: TextStyle(
+              color: t.onAccent,
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// **سطحُ الطاولة وشعارُه الذي يخفت أثناء اللعب.**
+///
+/// هلالُ العلم ونجمتُه (وطباعةُ VIP) في قلب اللبّاد بالضبط — وهناك تُرمى أوراقُ
+/// الحيلة. أربعُ أوراقٍ ملوّنةٍ فوق شعارٍ ذهبيٍّ عالي التباين تُقرَآن معًا، فتبطئ
+/// العين. الشعارُ يخفت لحظةَ اللعب ويعود كاملًا بين الجولات: **الهويّةُ باقيةٌ
+/// والحيلةُ تُقرَأ** — وحذفُه لم يكن واردًا (علمُ اللبّاد هويّةُ الطاولة).
+///
+/// **الخفوتُ متدرّجٌ لا قفزة**: تبدُّلُ شفافيّةٍ فجائيٌّ على اللبّاد يقرأ ومضةَ
+/// عطبٍ لا قرارَ تصميم. والرسّامُ داخل `RepaintBoundary` و`shouldRepaint` يقارن
+/// الإعدادَ ⇒ إعادةُ الرسم محصورةٌ في مرّتَي التدرّج لكلّ جولة، لا كلّ إطار.
+class _Felt extends StatelessWidget {
+  final TableConfig base;
+  final bool playing;
+  const _Felt({required this.base, required this.playing});
+
+  /// كم يبقى من وضوح الشعار أثناء اللعب. ثلثٌ تقريبًا: يُرى أنّه هناك، ولا
+  /// يزاحم ورقةً فوقه.
+  static const double dimmed = 0.34;
+
+  @override
+  Widget build(BuildContext context) => TweenAnimationBuilder<double>(
+        tween: Tween(begin: 1, end: playing ? dimmed : 1.0),
+        duration: Motion.feltEmblemFade,
+        curve: Curves.easeOut,
+        builder: (context, v, _) =>
+            TableSurface(config: base.copyWith(centerDim: v)),
+      );
 }
 
 /// **لوحةٌ على الطاولة** — سطحٌ داكنٌ شفيفٌ بحدٍّ ذهبيٍّ رفيع، تُركَّب عليه الكتابة.

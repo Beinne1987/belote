@@ -4,6 +4,7 @@ import 'package:app/platform/app_platform.dart';
 import 'package:app/ui/auth/auth_landing_screen.dart';
 import 'package:app/theme/theme_manager.dart';
 import 'package:app/ui/app_frame.dart';
+import 'package:app/ui/layout.dart';
 import 'package:app/ui/player_hand_fan.dart';
 import 'package:app/ui/player_seat_round.dart';
 import 'package:app/ui/table_metrics.dart';
@@ -58,13 +59,27 @@ const _desktops = [
   Size(1600, 600), // عريضةٌ قصيرة — أقسى حالة
 ];
 
+/// شاشةُ لعبٍ: يلفّها **مسرحٌ** كما تفعل صفحتا اللعب في الإنتاج.
 Widget _wrap(Widget child) => ThemeScope(
       manager: ThemeManager(),
       child: MaterialApp(
         scrollBehavior: const AppScrollBehavior(),
         builder: (context, c) => Directionality(
           textDirection: TextDirection.rtl,
-          child: AppFrame(child: c!),
+          child: TableStage(child: c!),
+        ),
+        home: child,
+      ),
+    );
+
+/// شاشةُ لوبيٍّ: **بلا مسرح** — تأخذ النافذةَ كاملةً كما في الإنتاج.
+Widget _wrapPlain(Widget child) => ThemeScope(
+      manager: ThemeManager(),
+      child: MaterialApp(
+        scrollBehavior: const AppScrollBehavior(),
+        builder: (context, c) => Directionality(
+          textDirection: TextDirection.rtl,
+          child: c!,
         ),
         home: child,
       ),
@@ -131,6 +146,41 @@ void main() {
           lessThanOrEqualTo(150.0));
       expect(TableMetrics.seatSize(big.width, big.height),
           lessThanOrEqualTo(78.0));
+    });
+
+    /// **شريطُ الضمانة يكبر مع الطاولة.** كان مقاسًا ثابتًا (رمزٌ 46 وزرٌّ 38
+    /// وصفٌّ 340): على نافذةِ حاسوبٍ كبرت الأوراقُ والمقاعدُ وبقي هو بحجم
+    /// الهاتف، فقرأ لوحةَ هاتفٍ مُلصَقةً على طاولةِ حاسوب.
+    test('الضمانةُ: أرقامُ الهاتف أرضيّةٌ لا سقف', () {
+      // كلُّ هاتفٍ يقع تحت الأرضيّة ⇒ الشريطُ هناك كما هو **حرفيًّا**.
+      // من أضيق هاتفٍ إلى أعرضه (440×956) — والمقلوبِ عرضًا.
+      for (final p in const [
+        Size(320, 568),
+        Size(360, 800),
+        Size(393, 852),
+        Size(430, 932),
+        Size(440, 956),
+        Size(852, 393),
+      ]) {
+        expect(TableMetrics.bidChipSide(p.width, p.height), 46.0,
+            reason: '$p');
+        expect(TableMetrics.bidPillHeight(p.width, p.height), closeTo(38, 1e-9));
+        expect(TableMetrics.bidRowMax(p.width, p.height), closeTo(340, 1e-9));
+      }
+
+      final stage = AppStage.of(const Size(1920, 1080));
+      expect(TableMetrics.bidChipSide(stage.width, stage.height),
+          greaterThan(46.0));
+      // وبسقفٍ: لا يصير رمزُ اللون لوحةً على شاشة 4K.
+      final big = AppStage.of(const Size(3840, 2160));
+      expect(TableMetrics.bidChipSide(big.width, big.height),
+          lessThanOrEqualTo(76.0));
+      // والنسبُ محفوظةٌ مهما كبر: الصفّان كتلةٌ واحدةٌ لا مقاسان يفترقان.
+      final side = TableMetrics.bidChipSide(big.width, big.height);
+      expect(TableMetrics.bidPillHeight(big.width, big.height) / side,
+          closeTo(38 / 46, 1e-9));
+      expect(TableMetrics.bidRowMax(big.width, big.height) / side,
+          closeTo(340 / 46, 1e-9));
     });
   });
 
@@ -222,22 +272,30 @@ void main() {
     });
   });
 
-  group('شاشاتٌ غيرُ الطاولة داخل المسرح', () {
-    testWidgets(
-        'شاشةُ الدخول: تُرسَم داخل المسرح، وتقول حدَّ المنصّة قبل المحاولة',
+  group('شاشاتٌ غيرُ الطاولة تأخذ النافذة', () {
+    /// **المسرحُ للطاولة وحدَها** (2026-08-03): كان يلفّ الشجرةَ كلَّها من
+    /// `MaterialApp.builder`، فتُقصّ معه شاشاتُ اللوبي في عمودٍ بعرض 0.8 من
+    /// الارتفاع وفراغين على جانبيه — «واجهةُ هاتفٍ مكبَّرة». الشاشاتُ الآن تأخذ
+    /// النافذةَ كاملةً، والنموذجُ وحدَه مسقوفٌ بـ[AppLayout.maxForm].
+    testWidgets('شاشةُ الدخول: نموذجٌ متمركزٌ لا ممطوط، وتقول حدَّ المنصّة',
         (t) async {
       t.view.physicalSize = const Size(1920, 1080);
       t.view.devicePixelRatio = 1.0;
       addTearDown(t.view.reset);
-      await t.pumpWidget(_wrap(AuthLandingScreen(
+      await t.pumpWidget(_wrapPlain(AuthLandingScreen(
         api: ApiClient(),
         onAuthenticated: (_) async {},
       )));
       await t.pumpAndSettle();
 
-      final stage = AppStage.of(const Size(1920, 1080));
+      // الشاشةُ تملأ النافذة…
       final screen = t.getRect(find.byType(AuthLandingScreen));
-      expect(screen.width, closeTo(stage.width, 0.5));
+      expect(screen.width, closeTo(1920, 0.5));
+      // …والنموذجُ داخلها متمركزٌ بعرضٍ مقروء (لا زرَّ بعرض مترٍ ونصف).
+      final pane = t.getRect(find.byType(FormPane));
+      final form = t.getRect(find.byType(SingleChildScrollView));
+      expect(form.width, lessThanOrEqualTo(AppLayout.maxForm + 1e-6));
+      expect(pane.left, closeTo(1920 - pane.right, 0.5));
       // **الدخولُ يعمل على الحاسوب، وإنشاءُ الحساب لا** (رمزُ SMS من Firebase
       // لا تنفيذَ له هناك) ⇒ يُقال قبل أن يملأ اللاعبُ بياناتِه لا بعدها.
       expect(find.text('تسجيل الدخول'), findsWidgets);

@@ -13,6 +13,7 @@ import '../net/table_client.dart';
 import '../sfx.dart';
 import '../theme/belote_theme.dart';
 import '../voice/voice_controller.dart';
+import 'app_frame.dart';
 import 'chat_sheet.dart';
 import 'dm_screen.dart' show showReportDialog;
 import 'gift_picker.dart' show giftEmoji, showGiftSheet;
@@ -341,7 +342,7 @@ class _OnlineGamePageState extends State<OnlineGamePage> {
         final invite = _c.invite;
         final notice = _c.notice;
         final standsGift = _c.standsGiftLabel;
-        return Stack(
+        final layers = Stack(
           children: [
             body,
             // شارةُ الجمهور: تظهر للجالس والمتفرّج متى وُجد مشاهدون — الجمهورُ
@@ -365,6 +366,12 @@ class _OnlineGamePageState extends State<OnlineGamePage> {
               ),
           ],
         );
+        // **المسرحُ للطاولة وحدَها** ([TableStage]): القائمةُ واللوبي شاشتا
+        // لوبيٍّ تأخذان النافذةَ كاملةً على الحاسوب كبقيّة الشاشات. واللافتاتُ
+        // داخلَ المسرح لا حولَه — خبرٌ عن الطاولة يُقرأ فوقها لا في زاوية الغرفة.
+        return _c.stage == OnlineStage.playing
+            ? TableStage(child: layers)
+            : layers;
       },
     );
   }

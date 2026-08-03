@@ -4,6 +4,7 @@ import '../../net/api_client.dart';
 import '../../services/phone_auth.dart';
 import '../../l10n/app_text.dart';
 import '../../theme/belote_theme.dart';
+import '../layout.dart';
 import '../name_entry_screen.dart';
 import 'forgot_password_screen.dart';
 import 'login_screen.dart';
@@ -53,7 +54,7 @@ class AuthLandingScreen extends StatelessWidget {
           ),
         ),
         child: SafeArea(
-          child: Center(
+          child: FormPane(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(28),
               child: Column(

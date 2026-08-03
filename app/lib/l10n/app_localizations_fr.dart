@@ -30,6 +30,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get bidYours => 'Votre contrat';
 
   @override
+  String get turnYours => 'À vous de jouer';
+
+  @override
   String get bidSans => 'SA';
 
   @override
@@ -46,6 +49,40 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get suitPique => 'Pique';
+
+  @override
+  String get rankNameA => 'As';
+
+  @override
+  String get rankName10 => 'Dix';
+
+  @override
+  String get rankNameK => 'Roi';
+
+  @override
+  String get rankNameQ => 'Dame';
+
+  @override
+  String get rankNameJ => 'Valet';
+
+  @override
+  String get rankName9 => 'Neuf';
+
+  @override
+  String get rankName8 => 'Huit';
+
+  @override
+  String get rankName7 => 'Sept';
+
+  @override
+  String cardName(String rank, String suit) {
+    return '$rank de $suit';
+  }
+
+  @override
+  String foujaCardHint(String card) {
+    return '$card — irrégulière';
+  }
 
   @override
   String bidWithAkwins(String bid) {

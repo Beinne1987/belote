@@ -1,4 +1,5 @@
 import 'package:app/game/view_model.dart';
+import 'package:app/motion.dart';
 import 'package:app/l10n/app_localizations_ar.dart';
 import 'package:app/l10n/labels.dart';
 import 'package:app/theme/theme_manager.dart';
@@ -257,6 +258,71 @@ void main() {
       expect(find.byType(BidBar), findsOneWidget);
       expect(find.byIcon(Icons.add_reaction_outlined), findsNothing,
           reason: 'الزرُّ يركب شريطَ الضمانة');
+    });
+  });
+
+  /// **«دورك الآن»** (المهمّة ٩ من إبيك الحاسوب): على نافذةٍ عريضةٍ تكون عينُ
+  /// اللاعب على يده أو على وجه خصمه، فيمرّ دورُه ويلعب الذكاءُ مكانَه.
+  group('لافتةُ «دورك الآن»', () {
+    Future<void> pumpTurn(WidgetTester t, {required bool mine}) async {
+      t.view.physicalSize = const Size(393, 852);
+      t.view.devicePixelRatio = 1.0;
+      addTearDown(t.view.reset);
+      await t.pumpWidget(_wrap(TableScreen(
+        view: TableView(
+          myHand: _hand,
+          handCounts: const [8, 8, 8, 8],
+          usScore: 12,
+          themScore: 30,
+          bid: const Bid.ofSuit('coeur'),
+          bidderSeat: 0,
+          akwins: false,
+          dealerSeat: 3,
+          seatBids: const [null, null, null, null],
+          turn: 0,
+          trick: const [],
+          legalCards: const {},
+          phase: GamePhase.playing,
+          humanCanPlay: mine,
+        ),
+      )));
+      await t.pump(); // إطارٌ واحدٌ: الومضةُ في بدايتها
+    }
+
+    /// شفافيّةُ اللافتة الآن — تُقاس ولا يُنظَر إلى لقطة.
+    double cueOpacity(WidgetTester t) {
+      final f = find.ancestor(
+          of: find.text(AppLocalizationsAr().turnYours),
+          matching: find.byType(FadeTransition));
+      return t.widget<FadeTransition>(f.first).opacity.value;
+    }
+
+    testWidgets('تظهر في دوري ثمّ **تنصرف** — لا تقيم فوق الطاولة', (t) async {
+      await pumpTurn(t, mine: true);
+      await t.pump(Motion.turnCueFade);
+      expect(cueOpacity(t), closeTo(1.0, 0.02), reason: 'لم تظهر');
+
+      // بعد الصمود والخفوت: لا أثرَ لها على الطاولة.
+      await t.pump(Motion.turnCueHold + Motion.turnCueFade);
+      expect(cueOpacity(t), closeTo(0.0, 0.02), reason: 'لافتةٌ مقيمةٌ تصير خلفيّة');
+    });
+
+    testWidgets('في غير دوري: لا تظهر أصلًا', (t) async {
+      await pumpTurn(t, mine: false);
+      await t.pump(Motion.turnCueFade);
+      expect(cueOpacity(t), 0.0);
+    });
+
+    /// درسُ 2026-07-21: **كلُّ ما يعلو الطاولةَ يبتلع لمسةً** — واللافتةُ تمرّ
+    /// فوق منطقة الأوراق.
+    testWidgets('لا تسرق لمسةً', (t) async {
+      await pumpTurn(t, mine: true);
+      expect(
+        find.ancestor(
+            of: find.text(AppLocalizationsAr().turnYours),
+            matching: find.byType(IgnorePointer)),
+        findsWidgets,
+      );
     });
   });
 

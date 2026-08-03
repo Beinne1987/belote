@@ -21,7 +21,6 @@ import 'ui/notifications_screen.dart';
 import 'ui/update_dialog.dart';
 import 'sfx.dart';
 import 'theme.dart';
-import 'theme/belote_theme.dart';
 import 'theme/theme_manager.dart';
 import 'platform/app_platform.dart';
 import 'ui/app_frame.dart';
@@ -35,6 +34,7 @@ import 'ui/auth/auth_landing_screen.dart';
 import 'ui/online_game_page.dart';
 import 'ui/profile_screen.dart';
 import 'ui/settings_screen.dart';
+import 'ui/splash_screen.dart';
 import 'ui/store_screen.dart';
 import 'ui/table_screen.dart';
 import 'ui/tournaments_screen.dart';
@@ -203,8 +203,10 @@ class _BeloteAppState extends State<BeloteApp> with WidgetsBindingObserver {
                 // إطارُ المجلس حول المسرح يرثه كبقيّة الشجرة.
                 builder: (context, child) {
                   // تُقرأ نصوصُ اللغة النشطة خارج الشجرة أيضًا (الكنترولرات).
+                  // **ولا مسرحَ هنا**: المسرحُ ([TableStage]) يلفّ صفحتَي اللعب
+                  // وحدَهما — واللوبي يأخذ النافذةَ كاملةً (انظر [AppLayout]).
                   AppText.bind(context.l10n);
-                  return AppFrame(child: child!);
+                  return child!;
                 },
                 home: const _Root(),
               ),
@@ -287,9 +289,10 @@ class _RootState extends State<_Root> {
   Widget build(BuildContext context) {
     final settings = AppSettingsScope.of(context);
     final session = SessionScope.of(context);
-    final t = BeloteTheme.of(context);
     if (!_artReady || !settings.loaded || !session.loaded) {
-      return Scaffold(backgroundColor: t.bg, body: const SizedBox.shrink());
+      // **حالةُ تحميلٍ تُقرأ** لا خلفيّةً فارغة: على الحاسوب تُفتَح النافذةُ قبل
+      // أن يجهز ما تحتها، فثوانٍ من الأخضر الفارغ تقرأ تطبيقًا معلَّقًا.
+      return const SplashScreen();
     }
     // **إثباتُ أنّ إطارًا حقيقيًّا رُسم** — يقرؤه مشغّلُ ماك (انظر [uiReadyMarker]).
     WidgetsBinding.instance.addPostFrameCallback((_) => _announceReady());
@@ -480,20 +483,24 @@ class _GamePageState extends State<GamePage> {
     ];
     return ListenableBuilder(
       listenable: _controller,
-      builder: (context, _) => TableScreen(
-        view: _controller.tableView,
-        bidBar: _controller.bidBar,
-        result: _controller.roundResult,
-        seats: seats,
-        onBid: _controller.placeBid,
-        onPlayCard: _controller.playCard,
-        onNewMatch: _controller.newMatch,
-        // لحظاتُ المباراة أوفلاينَ أيضًا — نفسُ حساب الخادم في المحرّك.
-        summary: _controller.matchSummary,
-        onStartFoujaClaim: _controller.startFoujaClaim,
-        onCancelFoujaClaim: _controller.cancelFoujaClaim,
-        onAccuseFouja: _controller.accuseFouja,
-        onTurnTick: () => Sfx.instance.play(GameSound.turnTick),
+      // **المسرحُ يلفّ الطاولةَ لا التطبيق**: على نافذةٍ عريضةٍ تُقتطع الطاولةُ
+      // متمركزةً في «غرفةٍ» بدل أن تُمطّ فيتباعد الخصمان مترًا ([TableStage]).
+      builder: (context, _) => TableStage(
+        child: TableScreen(
+          view: _controller.tableView,
+          bidBar: _controller.bidBar,
+          result: _controller.roundResult,
+          seats: seats,
+          onBid: _controller.placeBid,
+          onPlayCard: _controller.playCard,
+          onNewMatch: _controller.newMatch,
+          // لحظاتُ المباراة أوفلاينَ أيضًا — نفسُ حساب الخادم في المحرّك.
+          summary: _controller.matchSummary,
+          onStartFoujaClaim: _controller.startFoujaClaim,
+          onCancelFoujaClaim: _controller.cancelFoujaClaim,
+          onAccuseFouja: _controller.accuseFouja,
+          onTurnTick: () => Sfx.instance.play(GameSound.turnTick),
+        ),
       ),
     );
   }

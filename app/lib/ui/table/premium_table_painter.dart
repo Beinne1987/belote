@@ -269,11 +269,13 @@ class PremiumTablePainter extends CustomPainter {
     canvas.drawRect(
         Rect.fromLTWH(rect.left, rect.bottom - band, rect.width, band), red);
 
-    // الهلالُ والنجمةُ ذهبيّان في القلب الأخضر.
+    // الهلالُ والنجمةُ ذهبيّان في القلب الأخضر — يخفتان أثناء اللعب كي لا
+    // ينافسا أوراقَ الحيلة فوقهما مباشرةً ([TableConfig.centerDim]).
+    if (cfg.centerDim <= 0.01) return;
     final c = rect.center;
     final r = minSide * 0.155;
     final gold = Paint()
-      ..color = cfg.flagGold
+      ..color = cfg.flagGold.withValues(alpha: cfg.centerDim)
       ..isAntiAlias = true;
 
     // الهلال: دائرةٌ ذهبيّةٌ تُقتطَع منها أخرى مزاحةٌ للأعلى ⇒ فتحتُه نحو الأعلى.
@@ -316,11 +318,12 @@ class PremiumTablePainter extends CustomPainter {
 
   // ── طباعةُ VIP الذهبيّة في وسط الطاولة ────────────────────────────────
   void _paintCenterLabel(Canvas canvas, Rect rect, double minSide) {
+    if (cfg.centerDim <= 0.01) return;
     final style = TextStyle(
       fontSize: minSide * 0.17,
       fontWeight: FontWeight.w900,
       letterSpacing: minSide * 0.02,
-      color: cfg.inlayColor,
+      color: cfg.inlayColor.withValues(alpha: cfg.centerDim),
     );
     final tp = TextPainter(
       text: TextSpan(text: cfg.centerLabel, style: style),
@@ -344,7 +347,7 @@ class PremiumTablePainter extends CustomPainter {
   void _paintEmblem(Canvas canvas, Rect rect, double minSide) {
     final c = rect.center;
     final r = minSide * 0.16;
-    final ink = cfg.inlayColor.withValues(alpha: 0.14);
+    final ink = cfg.inlayColor.withValues(alpha: 0.14 * cfg.centerDim);
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = minSide * 0.006

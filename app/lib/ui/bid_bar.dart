@@ -18,12 +18,22 @@ class BidBar extends StatelessWidget {
   final BidBarView view;
   final void Function(BidAction action) onBid;
 
-  const BidBar({super.key, required this.view, required this.onBid});
+  /// ضلعُ رمز اللون — يأتي من مقاس الطاولة ([TableMetrics.bidChipSide]) لا من
+  /// رقمٍ هنا: الشريطُ يكبر مع الأوراق والمقاعد بدل أن يبقى بحجم هاتفٍ وحده.
+  final double chipSide;
+
+  const BidBar({
+    super.key,
+    required this.view,
+    required this.onBid,
+    this.chipSide = 46,
+  });
 
   @override
   Widget build(BuildContext context) {
     final t = BeloteTheme.of(context);
     final l = context.l10n;
+    final grow = chipSide / 46; // كلُّ المقاسات نِسَبٌ من مقاس الهاتف المُقرّ
     // التقسيمُ في الواجهة وحدَها — ترتيبُ `options` من المحرّك يبقى كما هو.
     final suits = view.options.where((o) => o.suit != null).toList();
     final rest = view.options.where((o) => o.suit == null).toList();
@@ -38,36 +48,43 @@ class BidBar extends StatelessWidget {
             l.bidYours,
             style: TextStyle(
               color: t.feltInk2,
-              fontSize: 12,
+              fontSize: 12 * grow,
               fontWeight: FontWeight.w700,
               shadows: const [
                 Shadow(color: Colors.black54, blurRadius: 3),
               ],
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8 * grow),
           // Wrap لا تمرير: كل الخيارات مرئية — لا شيء مخفيّ خلف السحب.
           if (suits.isNotEmpty)
             Wrap(
-              spacing: 8,
-              runSpacing: 8,
+              spacing: 8 * grow,
+              runSpacing: 8 * grow,
               alignment: WrapAlignment.center,
               children: [
-                for (final o in suits) _SuitChip(option: o, onBid: onBid),
+                for (final o in suits)
+                  _SuitChip(option: o, onBid: onBid, side: chipSide),
               ],
             ),
-          if (suits.isNotEmpty && rest.isNotEmpty) const SizedBox(height: 8),
+          if (suits.isNotEmpty && rest.isNotEmpty) SizedBox(height: 8 * grow),
           // صفٌّ واحدٌ مضمون: أنصبةٌ متساويةٌ لا `Wrap` — النصُّ يضمر عند الضيق
           // ولا ينزل الزرُّ سطرًا. المدى محدودٌ كي لا تمتدّ الأزرارُ عرضَ
           // الشاشة على اللوح.
           if (rest.isNotEmpty)
             ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 340),
+              constraints: BoxConstraints(maxWidth: 340 * grow),
               child: Row(
                 children: [
                   for (final o in rest) ...[
-                    if (o != rest.first) const SizedBox(width: 6),
-                    Expanded(child: _BidButton(option: o, onBid: onBid)),
+                    if (o != rest.first) SizedBox(width: 6 * grow),
+                    Expanded(
+                      child: _BidButton(
+                        option: o,
+                        onBid: onBid,
+                        height: BidPill.height * grow,
+                      ),
+                    ),
                   ],
                 ],
               ),
@@ -84,11 +101,11 @@ class _SuitChip extends StatelessWidget {
   final BidOption option;
   final void Function(BidAction action) onBid;
 
-  const _SuitChip({required this.option, required this.onBid});
+  /// ضلعُه. أرضيّتُه 46: صغيرٌ كي تسع الأربعةُ صفًّا واحدًا على أضيق هاتف،
+  /// وأكبرُ من 44 ⇒ يبقى هدفَ لمسٍ سليمًا.
+  final double side;
 
-  /// صغيرٌ كي تسع الأربعةُ صفًّا واحدًا على أضيق هاتف، وأكبرُ من 44 ⇒ يبقى
-  /// هدفَ لمسٍ سليمًا.
-  static const double _side = 46;
+  const _SuitChip({required this.option, required this.onBid, this.side = 46});
 
   @override
   Widget build(BuildContext context) {
@@ -103,13 +120,13 @@ class _SuitChip extends StatelessWidget {
         opacity: enabled ? 1 : 0.42,
         child: Material(
           color: Colors.transparent,
-          borderRadius: SuitBidChip.radiusFor(_side),
+          borderRadius: SuitBidChip.radiusFor(side),
           child: InkWell(
-            borderRadius: SuitBidChip.radiusFor(_side),
+            borderRadius: SuitBidChip.radiusFor(side),
             onTap: enabled ? () => onBid(option.action) : null,
             child: SuitBidChip(
               suit: option.suit!,
-              side: _side,
+              side: side,
               // المعطّلةُ برمادِ الحبر لا بلونه: تبقى مقروءةً ولا تُغري باللمس.
               ink: enabled ? null : t.text3,
             ),
@@ -125,8 +142,13 @@ class _SuitChip extends StatelessWidget {
 class _BidButton extends StatelessWidget {
   final BidOption option;
   final void Function(BidAction action) onBid;
+  final double height;
 
-  const _BidButton({required this.option, required this.onBid});
+  const _BidButton({
+    required this.option,
+    required this.onBid,
+    this.height = BidPill.height,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -147,11 +169,12 @@ class _BidButton extends StatelessWidget {
         opacity: enabled ? 1 : 0.5,
         child: Material(
           color: Colors.transparent,
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(height * 0.58),
           child: InkWell(
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: BorderRadius.circular(height * 0.58),
             onTap: enabled ? () => onBid(option.action) : null,
-            child: BidPill(label: option.label, tone: tone),
+            child:
+                BidPill(label: option.label, tone: tone, boxHeight: height),
           ),
         ),
       ),

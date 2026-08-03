@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../app_settings.dart';
@@ -8,6 +10,7 @@ import '../theme/belote_theme.dart';
 import 'content_strip.dart';
 import 'home_bottom_bar.dart';
 import 'honor_board.dart';
+import 'layout.dart';
 import 'player_avatar.dart';
 
 /// الشاشة الرئيسية — واجهة الدخول بالهوية البصرية. بياناتٌ مبدئية محلّية (بلا خادم بعد).
@@ -59,34 +62,42 @@ class HomeScreen extends StatelessWidget {
     final serverName = session.player?.displayName ?? '';
     final display =
         (signedIn && serverName.isNotEmpty) ? serverName : (localName.isEmpty ? l.playerDefaultName : localName);
+
+    // **وجهاتٌ واحدةٌ لشريطين**: التصنيفُ والمتجرُ والأصدقاءُ وحول اللعبة —
+    // خرجت من قائمة البطاقات إلى الشريط، فبطاقةٌ وزرٌّ لشيءٍ واحدٍ مدخلان.
+    final navItems = [
+      HomeBarItem(icon: Icons.home, label: l.navHome),
+      HomeBarItem(icon: Icons.leaderboard, label: l.navLeaderboard),
+      HomeBarItem(icon: Icons.shopping_cart, label: l.navStore),
+      // شارةُ الرسائل غير المقروءة تلزم الأصدقاءَ أينما ذهب زرُّهم.
+      HomeBarItem(
+          icon: Icons.group, label: l.navFriends, badge: session.unreadMessages),
+      HomeBarItem(icon: Icons.info_outline, label: l.navAbout),
+    ];
+    void navTap(int i) {
+      if (i == 0) return; // نحن في الرئيسيّة ⇒ لا شيء
+      final go = switch (i) {
+        1 => onLeaderboard,
+        2 => onStore,
+        3 => onFriends,
+        _ => onAbout,
+      };
+      (go ?? () => _soon(context))();
+    }
+
+    final size = AppLayout.sizeOf(context);
+    final rail = size != AppSize.phone;
+
     return Scaffold(
-      // **وجهاتٌ ثابتةٌ تحت الإبهام**: التصنيفُ والمتجرُ والأصدقاءُ وحول اللعبة
-      // خرجت من قائمة البطاقات إلى هنا — بطاقةٌ وزرٌّ لشيءٍ واحدٍ مدخلان.
-      bottomNavigationBar: HomeBottomBar(
-        currentIndex: 0, // نحن في الرئيسيّة؛ البقيّةُ شاشاتٌ تُفتَح فوقها
-        items: [
-          HomeBarItem(icon: Icons.home, label: l.navHome),
-          HomeBarItem(icon: Icons.leaderboard, label: l.navLeaderboard),
-          HomeBarItem(icon: Icons.shopping_cart, label: l.navStore),
-          // شارةُ الرسائل غير المقروءة تلزم الأصدقاءَ أينما ذهب زرُّهم.
-          HomeBarItem(
-              icon: Icons.group,
-              label: l.navFriends,
-              badge: session.unreadMessages),
-          HomeBarItem(icon: Icons.info_outline, label: l.navAbout),
-        ],
-        onTap: (i) {
-          final go = switch (i) {
-            0 => null, // نحن فيها ⇒ لا شيء
-            1 => onLeaderboard,
-            2 => onStore,
-            3 => onFriends,
-            _ => onAbout,
-          };
-          if (i == 0) return;
-          (go ?? () => _soon(context))();
-        },
-      ),
+      // **التنقّلُ السفليُّ للهاتف وحدَه**: على الحاسوب يحلّ محلَّه شريطٌ جانبيّ
+      // ([HomeSideNav]) — لا شريطَ إبهامٍ في قاع نافذةٍ عرضُها 1600.
+      bottomNavigationBar: rail
+          ? null
+          : HomeBottomBar(
+              currentIndex: 0, // نحن في الرئيسيّة؛ البقيّةُ شاشاتٌ تُفتَح فوقها
+              items: navItems,
+              onTap: navTap,
+            ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -96,79 +107,34 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
         child: SafeArea(
-          child: Column(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _PlayerBar(
-                name: display,
-                signedIn: signedIn,
-                isVip: session.isVip,
-                avatarUrl: session.player?.avatarUrl ?? '',
-                tag: session.player?.tag ?? '',
-                rating: session.stats?.rating,
-                diamonds: session.diamonds,
-                unread: session.unreadNotifications,
-                onSignIn: onOnline,
-                onSettings: onSettings,
-                onProfile: onProfile,
-                onNotifications: onNotifications,
-              ),
+              if (rail)
+                HomeSideNav(
+                  currentIndex: 0,
+                  items: navItems,
+                  onTap: navTap,
+                  compact: size == AppSize.tablet,
+                ),
               Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                child: Column(
                   children: [
-                    // لافتاتُ المالك وأخبارُه (من لوحة التحكّم) — لا محتوى ⇒ لا أثر.
-                    const ContentStrip(),
-                    // **لوحةُ الشرف فوق أزرار اللعب**: أوّلُ ما تقع عليه العينُ
-                    // وجوهُ المتصدّرين — وهي المحرّك: من رآه هناك أراد مكانه.
-                    // فارغةٌ (بلا فائزٍ أو خادمٍ أقدم) ⇒ تختفي بلا أثر.
-                    HonorBoardSection(board: session.honors),
-                    _CategoryCard(
-                      title: l.quickPlayOffline,
-                      subtitle: l.quickPlayOfflineSub,
-                      icon: Icons.style, // مروحة أوراق (لا نرد)
-                      big: true,
-                      onTap: onPlay,
+                    _PlayerBar(
+                      name: display,
+                      signedIn: signedIn,
+                      isVip: session.isVip,
+                      avatarUrl: session.player?.avatarUrl ?? '',
+                      tag: session.player?.tag ?? '',
+                      rating: session.stats?.rating,
+                      diamonds: session.diamonds,
+                      unread: session.unreadNotifications,
+                      onSignIn: onOnline,
+                      onSettings: onSettings,
+                      onProfile: onProfile,
+                      onNotifications: onNotifications,
                     ),
-                    _CategoryCard(
-                      title: l.playOnline,
-                      subtitle: _onlineSubtitle(l, signedIn, session.allowance),
-                      icon: Icons.public,
-                      big: true,
-                      badge: _PlayCounter(allowance: session.allowance),
-                      onTap: onOnline ?? () => _soon(context),
-                    ),
-                    // **المشتركُ يرى «اشتراكي» لا عرضًا لما يملك.**
-                    _CategoryCard(
-                      title: 'VIP',
-                      subtitle: session.isVip
-                          ? l.vipActiveSub
-                          : l.vipOfferSub,
-                      icon: Icons.workspace_premium,
-                      badge: session.isVip
-                          ? Icon(Icons.check_circle, size: 18, color: t.accent)
-                          : null,
-                      onTap: onVip ?? () => _soon(context),
-                    ),
-                    _CategoryCard(
-                      title: l.missions,
-                      subtitle: l.missionsSub,
-                      icon: Icons.checklist,
-                      onTap: onMissions ?? () => _soon(context),
-                    ),
-                    _CategoryCard(
-                      title: l.tournaments,
-                      subtitle: l.tournamentsSub,
-                      icon: Icons.emoji_events,
-                      onTap: onTournaments ?? () => _soon(context),
-                    ),
-                    // مشاهدةٌ مجّانيّة ([[spectator-system]]): تُبقي من نفدت
-                    // لعباتُه داخل اللعبة، وهداياها ماسٌ خالصٌ للبيت.
-                    _CategoryCard(
-                      title: l.liveMatches,
-                      subtitle: l.liveMatchesSub,
-                      icon: Icons.connected_tv,
-                      onTap: onWatchLive ?? () => _soon(context),
-                    ),
+                    Expanded(child: _body(context, size)),
                   ],
                 ),
               ),
@@ -177,6 +143,119 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// **اللعبُ أوّلًا** (طلبُ المالك 2026-08-03) — ثمّ الأقسامُ الثانويّة، ثمّ
+  /// اللافتاتُ ولوحةُ الشرف.
+  ///
+  /// كانت اللافتاتُ ولوحةُ الشرف تتصدّران القائمةَ فيفتح اللاعبُ التطبيقَ على
+  /// إعلانٍ ووجوهِ متصدّرين، ويُمرّر ليجد «العب». وسببُ تصدّرِها قائمٌ (من رأى
+  /// المتصدّرين أراد مكانهم) — لذلك **لا تُحذَف**: على الحاسوب تنتقل إلى لوحةٍ
+  /// جانبيّةٍ تبقى مرئيّةً كاملةً بلا أن تزاحم، وعلى الهاتف تنزل تحت خيارَي اللعب.
+  Widget _body(BuildContext context, AppSize size) {
+    final feed = [
+      // لافتاتُ المالك وأخبارُه (من لوحة التحكّم) — لا محتوى ⇒ لا أثر.
+      const ContentStrip(),
+      // فارغةٌ (بلا فائزٍ أو خادمٍ أقدم) ⇒ تختفي بلا أثر.
+      HonorBoardSection(board: SessionScope.of(context).honors),
+    ];
+
+    // **الحاسوب: عمودان.** اللعبُ في العمود الواسع، والنشاطُ في لوحةٍ جانبيّةٍ
+    // بعرضٍ ثابت — فما كان يُمرَّر إليه صار يُرى معه.
+    if (size == AppSize.desktop) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(16, 8, 8, 24),
+              children: _playSection(context, size),
+            ),
+          ),
+          SizedBox(
+            width: AppLayout.sidePanel,
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(8, 8, 16, 24),
+              children: feed,
+            ),
+          ),
+        ],
+      );
+    }
+
+    // الهاتفُ واللوح: عمودٌ واحدٌ مسقوفُ العرض كي لا يمتدّ السطرُ بلا نهاية.
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: AppLayout.maxContent),
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          children: [..._playSection(context, size), ...feed],
+        ),
+      ),
+    );
+  }
+
+  /// خيارا اللعب الكبيران ثمّ الأقسامُ الثانويّة — بعمودٍ أو بعمودين حسب المقاس.
+  List<Widget> _playSection(BuildContext context, AppSize size) {
+    final t = BeloteTheme.of(context);
+    final l = context.l10n;
+    final session = SessionScope.of(context);
+    final cols = AppLayout.cardColumns(size);
+
+    final play = _CategoryCard(
+      title: l.quickPlayOffline,
+      subtitle: l.quickPlayOfflineSub,
+      icon: Icons.style, // مروحة أوراق (لا نرد)
+      big: true,
+      onTap: onPlay,
+    );
+    final online = _CategoryCard(
+      title: l.playOnline,
+      subtitle: _onlineSubtitle(l, session.isSignedIn, session.allowance),
+      icon: Icons.public,
+      big: true,
+      badge: _PlayCounter(allowance: session.allowance),
+      onTap: onOnline ?? () => _soon(context),
+    );
+    final secondary = <Widget>[
+      // **المشتركُ يرى «اشتراكي» لا عرضًا لما يملك.**
+      _CategoryCard(
+        title: 'VIP',
+        subtitle: session.isVip ? l.vipActiveSub : l.vipOfferSub,
+        icon: Icons.workspace_premium,
+        badge: session.isVip
+            ? Icon(Icons.check_circle, size: 18, color: t.accent)
+            : null,
+        onTap: onVip ?? () => _soon(context),
+      ),
+      _CategoryCard(
+        title: l.missions,
+        subtitle: l.missionsSub,
+        icon: Icons.checklist,
+        onTap: onMissions ?? () => _soon(context),
+      ),
+      _CategoryCard(
+        title: l.tournaments,
+        subtitle: l.tournamentsSub,
+        icon: Icons.emoji_events,
+        onTap: onTournaments ?? () => _soon(context),
+      ),
+      // مشاهدةٌ مجّانيّة ([[spectator-system]]): تُبقي من نفدت لعباتُه داخل
+      // اللعبة، وهداياها ماسٌ خالصٌ للبيت.
+      _CategoryCard(
+        title: l.liveMatches,
+        subtitle: l.liveMatchesSub,
+        icon: Icons.connected_tv,
+        onTap: onWatchLive ?? () => _soon(context),
+      ),
+    ];
+
+    if (cols == 1) return [play, online, ...secondary];
+    return [
+      _CardRow(children: [play, online]),
+      for (var i = 0; i < secondary.length; i += 2)
+        _CardRow(children: secondary.sublist(i, math.min(i + 2, secondary.length))),
+    ];
   }
 
   void _soon(BuildContext context) {
@@ -189,6 +268,34 @@ class HomeScreen extends StatelessWidget {
         behavior: SnackBarBehavior.floating,
       ));
   }
+}
+
+/// صفٌّ من بطاقتَي قسمٍ متجاورتين (الشاشاتُ الواسعة).
+///
+/// **متساويتا العرض والارتفاع**: `IntrinsicHeight` يجعل قصيرةَ الوصف بطولِ
+/// جارتها، وبلا ذلك يبدو الصفُّ مكسورًا كلّما اختلف طولُ سطرٍ. وبطاقةٌ فردةٌ في
+/// آخر الصفّ تبقى بنصف العرض لا ممطوطةً — الشبكةُ تُقرأ شبكةً.
+class _CardRow extends StatelessWidget {
+  final List<Widget> children;
+  const _CardRow({required this.children});
+
+  @override
+  Widget build(BuildContext context) => IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (var i = 0; i < children.length; i++) ...[
+              if (i > 0) const SizedBox(width: 12),
+              Expanded(child: children[i]),
+            ],
+            // فردةٌ في صفٍّ سعتُه اثنتان ⇒ يُترَك مكانُ الثانية فارغًا.
+            if (children.length == 1) ...[
+              const SizedBox(width: 12),
+              const Spacer(),
+            ],
+          ],
+        ),
+      );
 }
 
 /// شريط اللاعب العلويّ. مصادَقًا: اسم الخادم + تقييم + Chips/Diamonds حقيقيّة.
@@ -619,7 +726,12 @@ class _CategoryCardState extends State<_CategoryCard> {
           child: Material(
             color: Colors.transparent,
             borderRadius: BorderRadius.circular(18),
-            child: InkWell(
+            // **زرٌّ باسمه للقارئ الصوتيّ**: بلا هذا يقرأ العنوانَ والوصفَ نصَّين
+            // منفصلين ولا يقول إنّهما مضغوطان.
+            child: Semantics(
+              button: true,
+              label: widget.title,
+              child: InkWell(
               onTap: widget.onTap,
               borderRadius: BorderRadius.circular(18),
               splashColor: ink.withValues(alpha: 0.10),
@@ -683,10 +795,18 @@ class _CategoryCardState extends State<_CategoryCard> {
                         widget.badge!,
                       const SizedBox(width: 8),
                     ],
-                    Icon(Icons.chevron_left,
-                        color: big ? t.onAccent.withValues(alpha: 0.55) : t.text3),
+                    // **السهمُ يتبع اتّجاه اللغة**: في العربيّة يمضي يسارًا وفي
+                    // الفرنسيّة يمينًا. كان `chevron_left` مثبَّتًا ⇒ يشير في
+                    // الواجهة الفرنسيّة إلى **خارج** البطاقة عكسَ ما يفتح.
+                    Icon(
+                      Directionality.of(context) == TextDirection.rtl
+                          ? Icons.chevron_left
+                          : Icons.chevron_right,
+                      color: big ? t.onAccent.withValues(alpha: 0.55) : t.text3,
+                    ),
                   ],
                 ),
+              ),
               ),
             ),
           ),

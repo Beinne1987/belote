@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../data/countries.dart';
 import '../../l10n/app_text.dart';
 import '../../theme/belote_theme.dart';
+import '../layout.dart';
 
 /// يبني رقم E.164 من بادئة الدولة والأرقام المُدخَلة (يُسقط غير الأرقام والأصفار البادئة).
 String toE164(Country dial, String local) {
@@ -138,14 +139,16 @@ class AuthScaffold extends StatelessWidget {
           child: Stack(
             children: [
               Align(
-                alignment: Alignment.topRight,
+                // **بدايةُ السطر لا يمينُ الشاشة**: `topRight` مطلقٌ ⇒ يقع في
+                // الفرنسيّة (LTR) في **نهاية** السطر حيث لا يُتوقَّع رجوع.
+                alignment: AlignmentDirectional.topStart,
                 child: IconButton(
-                  icon: Icon(Icons.arrow_forward, color: t.text2),
+                  icon: Icon(AppLayout.backArrow(context), color: t.text2),
                   tooltip: context.l10n.goBack,
                   onPressed: () => Navigator.of(context).maybePop(),
                 ),
               ),
-              Center(
+              FormPane(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(28),
                   child: Column(

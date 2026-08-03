@@ -20,6 +20,28 @@ class Labels {
         _ => suit,
       };
 
+  /// اسمُ الرتبة **كما تُنطق على الطاولة** — لا ترجمةً حرفيّةً من الإنجليزيّة.
+  ///
+  /// الأسماءُ منقولةٌ من `docs/RULES.md` حرفيًّا (الآس · الديس · أرواه · الضم ·
+  /// الفالة · النيف · الويت · الست) وأصلُها فرنسيٌّ مُموريتَن. **لا تُخترَع هنا
+  /// تسمية**: من كتب «ملك» و«بنت» ترجم لعبةً أخرى.
+  /// (والاسمُ `cardRank` لا `rank`: [rank] رتبةُ **اللاعب** في التصنيف.)
+  static String cardRank(AppLocalizations l, String rank) => switch (rank) {
+        'A' => l.rankNameA,
+        '10' => l.rankName10,
+        'K' => l.rankNameK,
+        'Q' => l.rankNameQ,
+        'J' => l.rankNameJ,
+        '9' => l.rankName9,
+        '8' => l.rankName8,
+        '7' => l.rankName7,
+        _ => rank,
+      };
+
+  /// ورقةٌ كاملةٌ منطوقةً — للقارئ الصوتيّ حيث لا يُغني الرسم.
+  static String card(AppLocalizations l, Card card) =>
+      l.cardName(cardRank(l, card.rank), suit(l, card.suit));
+
   /// الضمانةُ الجارية. [akwins] يلحق بها الأكوينس.
   static String bid(AppLocalizations l, Bid? bid, {bool akwins = false}) {
     if (bid == null) return l.bidNone;

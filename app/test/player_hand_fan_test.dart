@@ -3,8 +3,12 @@ import 'dart:math' as math;
 import 'package:app/ui/card_face.dart';
 import 'package:app/ui/player_hand_fan.dart';
 import 'package:app/theme/theme_manager.dart';
+import 'package:app/l10n/app_localizations_ar.dart';
+import 'package:app/l10n/labels.dart';
 import 'package:belote_engine/belote_engine.dart';
+import 'package:flutter/gestures.dart' show PointerDeviceKind;
 import 'package:flutter/material.dart' hide Card;
+import 'package:flutter/services.dart' show LogicalKeyboardKey;
 import 'package:flutter_test/flutter_test.dart';
 
 /// يدٌ من ثمانِ أوراقٍ كاليد الحقيقيّة أوّلَ الجولة.
@@ -333,4 +337,242 @@ void main() {
       }
     });
   });
+
+  // ── تمييزُ القانونيّة: يُرى ولا يمنع ──
+
+  group('تمييزُ الورقة القانونيّة', () {
+    /// شفافيّةُ ورقةٍ بعينها: أقربُ `Opacity` فوقها في الشجرة.
+    double opacityOf(WidgetTester t, Card c) => t
+        .widget<Opacity>(
+            find.ancestor(of: _card(c), matching: find.byType(Opacity)).first)
+        .opacity;
+
+    Widget fan(Set<Card> legal, {bool interactive = true}) => _wrap(
+          PlayerHandFan(
+            cards: _hand,
+            cardWidth: 70,
+            maxWidth: 400,
+            interactive: interactive,
+            legalCards: legal,
+            onPlay: (_) {},
+          ),
+        );
+
+    testWidgets('في دورك: المخالفةُ تخفت والقانونيّةُ تامّةُ الوضوح', (t) async {
+      final legal = {_hand[2], _hand[3]}; // القلب وحدَه
+      await t.pumpWidget(fan(legal));
+      await t.pumpAndSettle();
+
+      for (final c in _hand) {
+        expect(opacityOf(t, c), closeTo(legal.contains(c) ? 1.0 : HandFanMetrics.illegalOpacity, 1e-6),
+            reason: c.code);
+      }
+    });
+
+    /// **الفوجةُ قاعدةٌ لا خطأ** ([`docs/RULES.md`]): الواجهةُ تُمَيّز ولا تمنع.
+    /// لو منعت لَحذفت من اللعبة اعتراضًا كاملًا بُني له خادمٌ وعميلٌ وصوت.
+    testWidgets('**والمخالفةُ تُلعَب**: الخفوتُ خبرٌ لا قفل', (t) async {
+      final played = <Card>[];
+      await t.pumpWidget(_wrap(PlayerHandFan(
+        cards: _hand,
+        cardWidth: 70,
+        maxWidth: 400,
+        interactive: true,
+        legalCards: {_hand[2]},
+        onPlay: played.add,
+      )));
+      await t.pumpAndSettle();
+
+      await t.tap(_card(_hand[7]), warnIfMissed: false); // مخالفةٌ صريحة
+      await t.pump();
+      expect(played, [_hand[7]]);
+    });
+
+    testWidgets('في غير دورك: لا خفوت — لا قرارَ يُعان عليه', (t) async {
+      await t.pumpWidget(fan({_hand[0]}, interactive: false));
+      await t.pumpAndSettle();
+      for (final c in _hand) {
+        expect(opacityOf(t, c), closeTo(1.0, 1e-6), reason: c.code);
+      }
+    });
+
+    testWidgets('أوّلُ ورقةٍ في الأبلي (الكلُّ قانونيّ) ⇒ بلا أثر', (t) async {
+      await t.pumpWidget(fan(_hand.toSet()));
+      await t.pumpAndSettle();
+      for (final c in _hand) {
+        expect(opacityOf(t, c), closeTo(1.0, 1e-6), reason: c.code);
+      }
+    });
+
+    /// **الخفوتُ لونٌ لا يُسمَع**: من يقرأ بالقارئ الصوتيّ لا يرى الفرق، فيُقال
+    /// له قولًا. والأسماءُ من `docs/RULES.md` (الفالة · الديس · أرواه · الضم)
+    /// لا ترجمةً مخترَعة.
+    testWidgets('القارئُ الصوتيّ يسمع اسمَ الورقة، والمخالفةَ يسمعها مخالفة',
+        (t) async {
+      final handle = t.ensureSemantics();
+      await t.pumpWidget(fan({_hand[4]})); // الفالة كارو وحدَها قانونيّة
+      await t.pumpAndSettle();
+
+      final l = AppLocalizationsAr();
+      expect(find.bySemanticsLabel(Labels.card(l, _hand[4])), findsOneWidget);
+      expect(
+          find.bySemanticsLabel(l.foujaCardHint(Labels.card(l, _hand[0]))),
+          findsOneWidget,
+          reason: 'المخالفةُ تُقرأ ورقةً عاديّة');
+      handle.dispose();
+    });
+
+    testWidgets('بلا قائمةٍ أصلًا (الافتراضيّ) ⇒ بلا أثر', (t) async {
+      await t.pumpWidget(fan(const {}));
+      await t.pumpAndSettle();
+      for (final c in _hand) {
+        expect(opacityOf(t, c), closeTo(1.0, 1e-6), reason: c.code);
+      }
+    });
+  });
+
+  // ── الحاسوب: فأرةٌ ولوحةُ مفاتيح ──
+
+  group('اليدُ على الحاسوب', () {
+    /// ارتفاعُ ورقةٍ عن قاع الصندوق — به يُقاس الرفعُ بلا نظرٍ إلى لقطة.
+    double liftOf(WidgetTester t, Card c) =>
+        t.getRect(find.byType(PlayerHandFan)).bottom - t.getRect(_card(c)).bottom;
+
+    testWidgets('**التحويم يرفع** الورقةَ التي تحت الفأرة ويعيدها بمغادرتها',
+        (t) async {
+      await t.pumpWidget(_wrap(PlayerHandFan(
+        cards: _hand,
+        cardWidth: 70,
+        maxWidth: 400,
+        interactive: true,
+        onPlay: (_) {},
+      )));
+      await t.pumpAndSettle();
+
+      final rest = liftOf(t, _hand[3]);
+      final mouse = await t.createGesture(kind: PointerDeviceKind.mouse);
+      await mouse.addPointer(location: Offset.zero);
+      addTearDown(mouse.removePointer);
+
+      await mouse.moveTo(t.getCenter(_card(_hand[3])));
+      await t.pumpAndSettle();
+      expect(liftOf(t, _hand[3]), greaterThan(rest + 20),
+          reason: 'المحوَّم عليها لم ترتفع ⇒ لا يُعرَف ما تحت المؤشّر');
+
+      // **ولا تبقى مجهَّزةً بعد المغادرة**: وإلّا لعبها `Enter` بلا قصد.
+      await mouse.moveTo(Offset.zero);
+      await t.pumpAndSettle();
+      expect(liftOf(t, _hand[3]), closeTo(rest, 0.5));
+    });
+
+    testWidgets('التحويم **لا يلعب** — النقرُ وحدَه يلعب', (t) async {
+      final played = <Card>[];
+      await t.pumpWidget(_wrap(PlayerHandFan(
+        cards: _hand,
+        cardWidth: 70,
+        maxWidth: 400,
+        interactive: true,
+        onPlay: played.add,
+      )));
+      await t.pumpAndSettle();
+
+      final mouse = await t.createGesture(kind: PointerDeviceKind.mouse);
+      await mouse.addPointer(location: Offset.zero);
+      addTearDown(mouse.removePointer);
+      for (final c in _hand) {
+        await mouse.moveTo(t.getCenter(_card(c)));
+        await t.pump();
+      }
+      expect(played, isEmpty);
+    });
+
+    Future<List<Card>> keyboardFan(WidgetTester t,
+        {bool interactive = true}) async {
+      final played = <Card>[];
+      await t.pumpWidget(_wrap(PlayerHandFan(
+        cards: _hand,
+        cardWidth: 70,
+        maxWidth: 400,
+        interactive: interactive,
+        onPlay: played.add,
+      )));
+      await t.pumpAndSettle();
+      return played;
+    }
+
+    testWidgets('`1`..`8` تلعب ورقةً بموضعها المرئيّ (يسارًا فيمينًا)', (t) async {
+      for (var i = 0; i < _hand.length; i++) {
+        final played = await keyboardFan(t);
+        await t.sendKeyEvent(_digitKeys[i]);
+        await t.pump();
+        expect(played, [_hand[i]], reason: 'المفتاح ${i + 1}');
+      }
+    });
+
+    testWidgets('لوحةُ الأرقام كصفّها العلويّ', (t) async {
+      final played = await keyboardFan(t);
+      await t.sendKeyEvent(LogicalKeyboardKey.numpad3);
+      await t.pump();
+      expect(played, [_hand[2]]);
+    });
+
+    testWidgets('`←` `→` تُجهّز و`Enter` يلعب المجهَّزة', (t) async {
+      final played = await keyboardFan(t);
+      // بلا تجهيزٍ سابق: `→` يبدأ من أقصى اليسار.
+      await t.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await t.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await t.pumpAndSettle();
+      await t.sendKeyEvent(LogicalKeyboardKey.enter);
+      await t.pump();
+      expect(played, [_hand[1]]);
+    });
+
+    testWidgets('`Space` كـ`Enter`، و`Esc` يُلغي التجهيز فلا يلعب شيئًا',
+        (t) async {
+      final played = await keyboardFan(t);
+      await t.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await t.sendKeyEvent(LogicalKeyboardKey.escape);
+      await t.pumpAndSettle();
+      await t.sendKeyEvent(LogicalKeyboardKey.space);
+      await t.pump();
+      expect(played, isEmpty, reason: 'لُغِي التجهيزُ ثمّ لُعِب!');
+
+      await t.sendKeyEvent(LogicalKeyboardKey.arrowLeft); // يبدأ من أقصى اليمين
+      await t.pumpAndSettle();
+      await t.sendKeyEvent(LogicalKeyboardKey.space);
+      await t.pump();
+      expect(played, [_hand.last]);
+    });
+
+    /// **في غير دورك لا يلعب مفتاحٌ شيئًا** — ولوحةُ النتيجة فوق الطاولة لا
+    /// تُلعَب من تحتها ورقة.
+    testWidgets('غيرُ دورك: المفاتيحُ تُجهّز ولا تلعب', (t) async {
+      final played = await keyboardFan(t, interactive: false);
+      await t.sendKeyEvent(_digitKeys.first);
+      await t.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await t.sendKeyEvent(LogicalKeyboardKey.enter);
+      await t.pump();
+      expect(played, isEmpty);
+    });
+
+    testWidgets('مفتاحٌ لا موضعَ له (`9` بيدٍ من ثمانٍ) ⇒ لا شيء، بلا عطب',
+        (t) async {
+      final played = await keyboardFan(t);
+      await t.sendKeyEvent(LogicalKeyboardKey.digit9);
+      await t.pump();
+      expect(played, isEmpty);
+    });
+  });
 }
+
+/// مفاتيحُ الصفّ العلويّ `1`..`8` — مرتّبةٌ كترتيب الأوراق المرئيّ.
+const _digitKeys = [
+  LogicalKeyboardKey.digit1,
+  LogicalKeyboardKey.digit2,
+  LogicalKeyboardKey.digit3,
+  LogicalKeyboardKey.digit4,
+  LogicalKeyboardKey.digit5,
+  LogicalKeyboardKey.digit6,
+  LogicalKeyboardKey.digit7,
+  LogicalKeyboardKey.digit8,
+];

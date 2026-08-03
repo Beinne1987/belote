@@ -10,12 +10,29 @@
   "bidAkwins": "أكوينس",
   "bidPass": "تمرير",
   "bidYours": "ضمانتك",
+  "turnYours": "دورك الآن",
   "bidSans": "صن",
   "bidTout": "تو",
   "suitTrefle": "أتريف",
   "suitCarreau": "كارو",
   "suitCoeur": "كير",
   "suitPique": "أبيك",
+  "rankNameA": "الآس",
+  "rankName10": "الديس",
+  "rankNameK": "أرواه",
+  "rankNameQ": "الضم",
+  "rankNameJ": "الفالة",
+  "rankName9": "النيف",
+  "rankName8": "الويت",
+  "rankName7": "الست",
+  "cardName": "{rank} {suit}",
+  "@cardName": {
+    "placeholders": { "rank": {"type": "String"}, "suit": {"type": "String"} }
+  },
+  "foujaCardHint": "{card} — مخالفة",
+  "@foujaCardHint": {
+    "placeholders": { "card": {"type": "String"} }
+  },
   "bidWithAkwins": "{bid} · أكوينس",
   "@bidWithAkwins": {
     "description": "الضمانة الجارية ومعها الأكوينس",

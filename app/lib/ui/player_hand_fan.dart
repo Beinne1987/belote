@@ -2,7 +2,12 @@ import 'dart:math' as math;
 
 import 'package:belote_engine/belote_engine.dart';
 import 'package:flutter/material.dart' hide Card;
+import 'package:flutter/services.dart'
+    show KeyDownEvent, KeyRepeatEvent, LogicalKeyboardKey;
 
+import '../l10n/app_text.dart';
+import '../l10n/labels.dart';
+import '../motion.dart';
 import '../theme/belote_theme.dart';
 import 'card_face.dart';
 import 'app_frame.dart';
@@ -32,6 +37,15 @@ class PlayerHandFan extends StatefulWidget {
   /// دورك ⇒ اللمسُ يلعب فورًا. وإلّا فاللمسُ تجهيزٌ (رفعٌ وتوهّج) لا أكثر.
   final bool interactive;
 
+  /// **الأوراقُ القانونيّةُ في هذا الأبلي** — تخفت ما سواها في دورك وحدَه.
+  ///
+  /// **ولا تُمنَع ورقةٌ أبدًا**: الفوجةُ في هذه اللعبة فعلٌ مقصودٌ يُعترَض عليه
+  /// ([`docs/RULES.md`])، فمنعُها في الواجهة يحذف قاعدةً من اللعبة. الخفوتُ
+  /// يقول «هذه مخالفة» ويترك القرارَ للاعب — فتصير الفوجةُ قصدًا لا زلّةَ إصبع.
+  ///
+  /// فارغةٌ أو تشمل اليدَ كلَّها ⇒ **بلا أثرٍ بكسلًا** (أوّلُ ورقةٍ في الأبلي).
+  final Set<Card> legalCards;
+
   final void Function(Card card) onPlay;
 
   const PlayerHandFan({
@@ -41,6 +55,7 @@ class PlayerHandFan extends StatefulWidget {
     required this.maxWidth,
     required this.interactive,
     required this.onPlay,
+    this.legalCards = const {},
   });
 
   @override
@@ -84,6 +99,12 @@ class HandFanMetrics {
 
   /// تكبيرُ المحدَّدة — طلبُ المالك: تكبيرٌ **بسيط** يُحسّ ولا يُقحم.
   static const double selectedScale = 1.08;
+
+  /// كم يبقى من وضوح الورقة المخالفة أثناء دورك (قرارُ المالك 2026-08-03).
+  ///
+  /// **خافتةٌ لا مطفأة**: 0.55 يكفي لتُقرأ قيمتُها ولونُها — فمن أراد الفوجةَ
+  /// اختارها عن علم — ويكفي ليقع البصرُ على القانونيّة أوّلًا.
+  static const double illegalOpacity = 0.55;
 
   final int count;
   final double cardWidth;
@@ -185,7 +206,7 @@ class _PlayerHandFanState extends State<PlayerHandFan>
   /// يُتلَف مع الودجت (لا مؤقّتاتٍ معلّقة خلف الاختبارات).
   late final AnimationController _entry = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 620),
+    duration: Motion.handOpen,
   );
 
   /// آخرُ تأخيرٍ لورقة (كسرًا من مدّة المُتحكّم) — الباقي مدّةُ حركتها.
@@ -194,6 +215,14 @@ class _PlayerHandFanState extends State<PlayerHandFan>
 
   Card? _armed; // مُجهَّزةٌ (لمسٌ في غير دورك) أو مرفوعةٌ أثناء السحب
   Card? _drag;
+
+  /// **الورقةُ تحت الفأرة** — الحاسوبُ وحدَه يولّد هذا الحدث.
+  ///
+  /// على الهاتف لا تحويمَ أصلًا ⇒ يبقى `null` أبدًا فلا تتغيّر تجربتُه بحرف.
+  /// وهو يرفع الورقةَ ولا **يُجهّزها**: التجهيزُ قرارُ لاعبٍ يُتبَع بلعب، والتحويمُ
+  /// مرورُ فأرةٍ — لو ساواهما لَبقيت آخرُ ورقةٍ مرّت فوقها الفأرةُ مجهّزةً بعد أن
+  /// غادرتها، فيلعبها `Enter` بلا قصد.
+  Card? _hover;
   Offset _dragDelta = Offset.zero;
 
   @override
@@ -207,6 +236,7 @@ class _PlayerHandFanState extends State<PlayerHandFan>
     super.didUpdateWidget(old);
     // غادرت الورقةُ اليدَ (لُعِبت) ⇒ لا تبقَ مُجهَّزةً ولا مسحوبة.
     if (_armed != null && !widget.cards.contains(_armed)) _armed = null;
+    if (_hover != null && !widget.cards.contains(_hover)) _hover = null;
     if (_drag != null && !widget.cards.contains(_drag)) {
       _drag = null;
       _dragDelta = Offset.zero;
@@ -233,6 +263,92 @@ class _PlayerHandFanState extends State<PlayerHandFan>
       setState(() => _armed = _armed == card ? null : card);
     }
   }
+
+  /// **لوحةُ المفاتيح على الحاسوب** — يدٌ تُلعَب بلا فأرة.
+  ///
+  /// لا سلوكَ جديدٌ هنا: كلُّ مفتاحٍ اختصارٌ لِما يفعله الإصبعُ أصلًا (تجهيزٌ ثمّ
+  /// لعب)، فلا يفترق الطريقان يومَ يتغيّر أحدُهما.
+  ///
+  /// - `←` `→`: تنقّلُ التجهيز في اليد **بترتيبها المرئيّ** (0 أقصى اليسار)،
+  ///   لا بترتيبٍ منطقيٍّ ينقلب مع اللغة — العينُ تتبع الحركةَ لا النصّ.
+  /// - `Enter` / `Space`: يلعب المجهَّزة.
+  /// - `1`..`8`: يلعب ورقةً بموضعها مباشرةً (الأسرعُ لمن حفظ يدَه).
+  /// - `Esc`: يُلغي التجهيز — مخرجٌ بلا لعب.
+  ///
+  /// **وكلُّها محكومةٌ بـ[PlayerHandFan.interactive]**: ضغطةُ `Enter` في غير
+  /// دورك لا تلعب شيئًا، ولوحةُ النتيجة فوق الطاولة لا تُلعَب من تحتها ورقة.
+  KeyEventResult _onKey(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
+    final cards = widget.cards;
+    if (cards.isEmpty) return KeyEventResult.ignored;
+    final key = event.logicalKey;
+
+    if (key == LogicalKeyboardKey.escape) {
+      if (_armed == null) return KeyEventResult.ignored;
+      setState(() => _armed = null);
+      return KeyEventResult.handled;
+    }
+
+    if (key == LogicalKeyboardKey.arrowLeft ||
+        key == LogicalKeyboardKey.arrowRight) {
+      final delta = key == LogicalKeyboardKey.arrowRight ? 1 : -1;
+      final from = _armed == null ? -1 : cards.indexOf(_armed!);
+      // بلا تجهيزٍ سابقٍ: `→` يبدأ من اليسار و`←` من اليمين — من حيث يأتي السهم.
+      final next = from < 0
+          ? (delta > 0 ? 0 : cards.length - 1)
+          : (from + delta).clamp(0, cards.length - 1);
+      setState(() => _armed = cards[next]);
+      return KeyEventResult.handled;
+    }
+
+    if (key == LogicalKeyboardKey.enter ||
+        key == LogicalKeyboardKey.numpadEnter ||
+        key == LogicalKeyboardKey.space) {
+      if (!widget.interactive || _armed == null) return KeyEventResult.ignored;
+      final card = _armed!;
+      setState(() => _armed = null);
+      widget.onPlay(card);
+      return KeyEventResult.handled;
+    }
+
+    final top = _digits.indexOf(key);
+    final slot = top >= 0 ? top : _numpad.indexOf(key);
+    if (slot >= 0 && slot < cards.length) {
+      if (!widget.interactive) return KeyEventResult.ignored;
+      final card = cards[slot];
+      setState(() => _armed = null);
+      widget.onPlay(card);
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
+  }
+
+  /// `1`..`8` من الصفّ العلويّ — ثمانٍ لأنّها أقصى يد.
+  static const List<LogicalKeyboardKey> _digits = [
+    LogicalKeyboardKey.digit1,
+    LogicalKeyboardKey.digit2,
+    LogicalKeyboardKey.digit3,
+    LogicalKeyboardKey.digit4,
+    LogicalKeyboardKey.digit5,
+    LogicalKeyboardKey.digit6,
+    LogicalKeyboardKey.digit7,
+    LogicalKeyboardKey.digit8,
+  ];
+
+  /// ونظائرُها في لوحة الأرقام — **لا تُشتَقّ من `keyLabel`**: هناك تختلف
+  /// التسميةُ باختلاف تخطيط لوحة المفاتيح، فتموت الاختصاراتُ على لوحةٍ عربيّة.
+  static const List<LogicalKeyboardKey> _numpad = [
+    LogicalKeyboardKey.numpad1,
+    LogicalKeyboardKey.numpad2,
+    LogicalKeyboardKey.numpad3,
+    LogicalKeyboardKey.numpad4,
+    LogicalKeyboardKey.numpad5,
+    LogicalKeyboardKey.numpad6,
+    LogicalKeyboardKey.numpad7,
+    LogicalKeyboardKey.numpad8,
+  ];
 
   void _endDrag(Card card, double cardHeight) {
     // **سحبٌ للأعلى فوق نصف ارتفاع الورقة ⇒ لعبٌ** (في دورك)؛ وإلّا عودةٌ بسلاسة.
@@ -269,10 +385,17 @@ class _PlayerHandFanState extends State<PlayerHandFan>
     // **كلُّ الشجرة داخل الـbuilder**: لو بُنيت البطاقاتُ خارجَه لَالتقطت تقدّمَ
     // الانفتاح مرّةً واحدةً (صفرًا) وبقيت اليدُ **كومةً لا تنفتح أبدًا** —
     // و`AnimatedBuilder` يُعيد بناءَ الصندوق وحدَه بأطفالٍ محفوظين.
+    // **التمييزُ في دورك وحدَه، وحين يكون فيه خبر**: قائمةٌ فارغةٌ (لا دور) أو
+    // شاملةٌ لليد (أوّلُ ورقةٍ في الأبلي ⇒ كلُّ شيءٍ قانونيّ) لا تُخفت شيئًا.
+    final marking = widget.interactive &&
+        widget.legalCards.isNotEmpty &&
+        widget.legalCards.length < cards.length;
+
     Widget slot(int i) {
       final card = cards[i];
       final dragging = card == _drag;
-      final lifted = card == _armed || dragging;
+      final lifted = card == _armed || dragging || card == _hover;
+      final legal = !marking || widget.legalCards.contains(card);
       final p = _progress(i);
 
       // الانفتاح: من كومةِ المنتصف (قائمةً، شفّافة) إلى موضعها وميلِها.
@@ -284,7 +407,8 @@ class _PlayerHandFanState extends State<PlayerHandFan>
         left: left + (dragging ? _dragDelta.dx : 0),
         bottom: m.bottom(i) - (dragging ? _dragDelta.dy : 0),
         child: Opacity(
-          opacity: p,
+          // انفتاحُ اليد × تمييزُ القانونيّة: أثرانِ يضربان لا يتنازعان.
+          opacity: p * (legal ? 1.0 : HandFanMetrics.illegalOpacity),
           child: Transform.rotate(
             // **المحورُ عند القاعدة**: أوراقٌ تخرج من قبضةٍ واحدةٍ تحتها، وهو
             // الفرقُ بين يدٍ مُمسَكةٍ وأوراقٍ موزّعةٍ على قوس.
@@ -294,7 +418,7 @@ class _PlayerHandFanState extends State<PlayerHandFan>
               // **رفعُ التحديد بمُتحكّمٍ خاصٍّ به**: يبدأ من حيث بلغ لا من الصفر،
               // فتبديلُ الورقة المحدَّدة سلسٌ لا قفزة.
               tween: Tween(begin: 0, end: lifted ? 1 : 0),
-              duration: const Duration(milliseconds: 180),
+              duration: Motion.cardLift,
               curve: Curves.easeOutCubic,
               builder: (context, lift, child) => Transform.translate(
                 offset: Offset(0, -HandFanMetrics.selectedLift * lift),
@@ -312,18 +436,38 @@ class _PlayerHandFanState extends State<PlayerHandFan>
               // مساحة لمسها (136 خليّةً بدل 308 في القياس): الجارةُ المائلةُ لا
               // تغطّي مستطيلًا قائمًا، فما بين الشريط وحافّة الجارة **مرئيٌّ
               // ومُلمَسٌ** وكان يُهدر. الصندوقُ الكاملُ يكسبه.
-              child: Clickable(
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => _tap(card),
-                  onPanStart: (_) => setState(() {
-                    _drag = card;
-                    _dragDelta = Offset.zero;
-                  }),
-                  onPanUpdate: (d) => setState(() => _dragDelta += d.delta),
-                  onPanEnd: (_) => _endDrag(card, m.cardHeight),
-                  child:
-                      _FanCard(card: card, width: m.cardWidth, armed: lifted),
+              // **ورقةٌ يقرؤها القارئُ الصوتيّ زرًّا باسمها**: بلا هذا هي رسمٌ
+              // صامت. والمخالفةُ تُقال قولًا — الخفوتُ لونٌ لا يُسمَع.
+              child: Semantics(
+                button: true,
+                enabled: widget.interactive,
+                // **وجهُ الورقة رسمٌ لا نصّ**: حروفُه ورموزُه تُدمَج في الزرّ
+                // فتُقرأ «الآس أبيك A A ♠» — الاسمُ مرّةً واحدةً يكفي.
+                excludeSemantics: true,
+                label: legal
+                    ? Labels.card(context.l10n, card)
+                    : context.l10n
+                        .foujaCardHint(Labels.card(context.l10n, card)),
+                child: Clickable(
+                // **التحويمُ يرفع الورقةَ كما ترفعها الإصبعُ المجهِّزة**: على
+                // الحاسوب لا لمسَ يسبق النقر، فبلا هذا تبقى اليدُ صفًّا جامدًا
+                // لا يُعرَف أيُّ ورقةٍ تحت المؤشّر إلّا بالنقر — وهو نقرٌ يلعب.
+                onHover: (over) {
+                  if (over == (card == _hover)) return;
+                  setState(() => _hover = over ? card : null);
+                },
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => _tap(card),
+                    onPanStart: (_) => setState(() {
+                      _drag = card;
+                      _dragDelta = Offset.zero;
+                    }),
+                    onPanUpdate: (d) => setState(() => _dragDelta += d.delta),
+                    onPanEnd: (_) => _endDrag(card, m.cardHeight),
+                    child:
+                        _FanCard(card: card, width: m.cardWidth, armed: lifted),
+                  ),
                 ),
               ),
             ),
@@ -333,16 +477,23 @@ class _PlayerHandFanState extends State<PlayerHandFan>
     }
 
     // المرفوعةُ تُرسَم فوق جاراتها (تُؤخَّر في المكدّس) بلا تغيّرِ موضعها.
-    bool onTop(Card c) => c == _drag || c == _armed;
+    bool onTop(Card c) => c == _drag || c == _armed || c == _hover;
 
-    return AnimatedBuilder(
-      animation: _entry,
-      builder: (context, _) => SizedBox(
-        width: m.width,
-        height: m.height,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
+    return Focus(
+      // **يُمسك التركيزَ ما دامت اليدُ على الطاولة** — بلا هذا لا تصل ضغطةُ
+      // مفتاحٍ إلى الشجرة أصلًا. وهو عقيمٌ على الهاتف (لا لوحةَ مفاتيح) ⇒ لا
+      // يغيّر شيئًا هناك، ولا يسرق تركيزَ حقلٍ نصّيّ: صفحاتُ الدردشة والرسائل
+      // مساراتٌ فوق الطاولة، والتركيزُ يعود إلى هنا حين تُغلَق.
+      autofocus: true,
+      onKeyEvent: _onKey,
+      child: AnimatedBuilder(
+        animation: _entry,
+        builder: (context, _) => SizedBox(
+          width: m.width,
+          height: m.height,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
             // **اليمنى فوق اليسرى — لأنّ الرمزَ في الزاوية العليا اليسرى.**
             // الورقةُ المبنيّةُ لا يظهر منها إلّا شريطُها الأيسر، وفيه الرمزُ
             // معتدلًا. جرّبتُ العكسَ (2026-07-21) لأكسب مساحةَ لمسٍ للطرف
@@ -350,11 +501,12 @@ class _PlayerHandFanState extends State<PlayerHandFan>
             // 180°** في الزاوية السفلى: «تُجبرنا على قراءتها من تحت» — وهي
             // مقايضةٌ خاسرة، فاليدُ تُقرأ قبل أن تُلمَس. اللمسُ حُلّ بنطاقاتٍ
             // منفصلة (`_TouchStrip`) لا بترتيب الرسم.
-            for (var i = 0; i < cards.length; i++)
-              if (!onTop(cards[i])) slot(i),
-            for (var i = 0; i < cards.length; i++)
-              if (onTop(cards[i])) slot(i),
-          ],
+              for (var i = 0; i < cards.length; i++)
+                if (!onTop(cards[i])) slot(i),
+              for (var i = 0; i < cards.length; i++)
+                if (onTop(cards[i])) slot(i),
+            ],
+          ),
         ),
       ),
     );

@@ -5,13 +5,20 @@ import 'package:flutter/material.dart';
 
 import '../theme/belote_theme.dart';
 
-/// **مسرحُ اللعب** — الصندوقُ الذي تُرسَم فيه كلُّ شاشات التطبيق.
+/// **مسرحُ اللعب** — الصندوقُ الذي تُرسَم فيه **الطاولة**.
 ///
 /// على الهاتف هو الشاشةُ نفسُها بلا زيادةٍ ولا نقصان. وعلى الحاسوب — حيث النافذةُ
 /// عريضةٌ قد تبلغ 3840 بكسلًا — **لا تُمطّ الطاولةُ على العرض كلِّه**: مقاعدُ
 /// الخصمين مرساهما ‎±0.99 من العرض، فنافذةٌ بعرض 2000 تضع اللاعبَين على بُعد
 /// مترٍ من بعضهما وتترك الوسطَ خواءً. بدلَ ذلك يُقتطَع **مسرحٌ متمركزٌ** بنسبةٍ
 /// قريبةٍ من نسبة الهاتف، ويكبر بكبر النافذة حتى سقف، وما حولَه خلفيّةُ المجلس.
+///
+/// **الطاولةُ وحدَها** (2026-08-03): كان المسرحُ يلفّ شجرةَ التطبيق كلَّها من
+/// `MaterialApp.builder`، فتُقصّ معه شاشاتُ اللوبي — والرئيسيّةُ ليس فيها مقعدٌ
+/// مرساه ‎±0.99، فلا شيءَ ينهار باتّساعها وإنّما تكسب. النتيجةُ كانت عمودَ هاتفٍ
+/// في وسط شاشةٍ عريضةٍ وفراغين على جانبيه: «واجهةُ هاتفٍ مكبَّرة» لا واجهةَ
+/// حاسوب. اليومَ يلفّ [TableStage] صفحتَي اللعب (أوفلاين وأونلاين) وحدَهما،
+/// وسائرُ الشاشات تأخذ النافذةَ كاملةً وتوزّعها بـ[AppLayout].
 ///
 /// **كلُّ الحساب هنا خالصٌ في [AppStage]** ⇒ يُفحَص بالأرقام بلا رسم.
 class AppStage {
@@ -41,16 +48,15 @@ class AppStage {
   }
 }
 
-/// يلفّ شجرةَ التطبيق كلَّها: يقتطع [AppStage] في الوسط، ويُصلح `MediaQuery`
-/// ليطابقه.
+/// يلفّ **صفحةَ اللعب**: يقتطع [AppStage] في الوسط، ويُصلح `MediaQuery` ليطابقه.
 ///
 /// **إصلاحُ `MediaQuery` ليس تفصيلًا**: شاشاتٌ تقيس بـ`MediaQuery.sizeOf`
 /// (لوحةُ النتيجة · فقاعاتُ الدردشة · الأوراقُ في الرسائل) — لو بقيت ترى عرضَ
 /// النافذة لَقاست على شاشةٍ لا ترسم فيها، فتفيض فقاعةٌ عرضُها 0.75 من 2000 بكسل
 /// خارجَ مسرحٍ عرضُه 800.
-class AppFrame extends StatelessWidget {
+class TableStage extends StatelessWidget {
   final Widget child;
-  const AppFrame({super.key, required this.child});
+  const TableStage({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -134,14 +140,28 @@ class AppScrollBehavior extends MaterialScrollBehavior {
 /// على الهاتف لا مؤشّرَ أصلًا فلا أثرَ لها؛ وعلى الحاسوب هي الفرقُ بين واجهةٍ
 /// تبدو حيّةً وأخرى تبدو صورة. تُلَفُّ بها الأوراقُ وأزرارُ المقعد وأدواتُ
 /// الطاولة — لا كلُّ شيءٍ: مؤشّرٌ على ما لا يُضغَط يكذب.
+/// **وهي أيضًا مكانُ التحويم**: من أراد أن يستجيب عنصرٌ لمرور الفأرة فوقه مرّر
+/// [onHover]. منطقةُ فأرةٍ واحدةٌ للمؤشّر والتحويم معًا — لا اثنتان متداخلتان
+/// تختلفان في حدودهما فيضيء عنصرٌ ومؤشّرُه على جاره.
 class Clickable extends StatelessWidget {
   final Widget child;
   final bool enabled;
-  const Clickable({super.key, required this.child, this.enabled = true});
+
+  /// `true` دخلت الفأرةُ، `false` غادرت. `null` ⇒ مؤشّرٌ بلا تحويم.
+  final ValueChanged<bool>? onHover;
+
+  const Clickable({
+    super.key,
+    required this.child,
+    this.enabled = true,
+    this.onHover,
+  });
 
   @override
   Widget build(BuildContext context) => MouseRegion(
         cursor: enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
+        onEnter: onHover == null ? null : (_) => onHover!(true),
+        onExit: onHover == null ? null : (_) => onHover!(false),
         child: child,
       );
 }

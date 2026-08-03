@@ -140,6 +140,12 @@ abstract class AppLocalizations {
   /// **'ضمانتك'**
   String get bidYours;
 
+  /// No description provided for @turnYours.
+  ///
+  /// In ar, this message translates to:
+  /// **'دورك الآن'**
+  String get turnYours;
+
   /// No description provided for @bidSans.
   ///
   /// In ar, this message translates to:
@@ -175,6 +181,66 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'أبيك'**
   String get suitPique;
+
+  /// No description provided for @rankNameA.
+  ///
+  /// In ar, this message translates to:
+  /// **'الآس'**
+  String get rankNameA;
+
+  /// No description provided for @rankName10.
+  ///
+  /// In ar, this message translates to:
+  /// **'الديس'**
+  String get rankName10;
+
+  /// No description provided for @rankNameK.
+  ///
+  /// In ar, this message translates to:
+  /// **'أرواه'**
+  String get rankNameK;
+
+  /// No description provided for @rankNameQ.
+  ///
+  /// In ar, this message translates to:
+  /// **'الضم'**
+  String get rankNameQ;
+
+  /// No description provided for @rankNameJ.
+  ///
+  /// In ar, this message translates to:
+  /// **'الفالة'**
+  String get rankNameJ;
+
+  /// No description provided for @rankName9.
+  ///
+  /// In ar, this message translates to:
+  /// **'النيف'**
+  String get rankName9;
+
+  /// No description provided for @rankName8.
+  ///
+  /// In ar, this message translates to:
+  /// **'الويت'**
+  String get rankName8;
+
+  /// No description provided for @rankName7.
+  ///
+  /// In ar, this message translates to:
+  /// **'الست'**
+  String get rankName7;
+
+  /// No description provided for @cardName.
+  ///
+  /// In ar, this message translates to:
+  /// **'{rank} {suit}'**
+  String cardName(String rank, String suit);
+
+  /// No description provided for @foujaCardHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'{card} — مخالفة'**
+  String foujaCardHint(String card);
 
   /// الضمانة الجارية ومعها الأكوينس
   ///

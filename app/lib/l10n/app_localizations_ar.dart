@@ -30,6 +30,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get bidYours => 'ضمانتك';
 
   @override
+  String get turnYours => 'دورك الآن';
+
+  @override
   String get bidSans => 'صن';
 
   @override
@@ -46,6 +49,40 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get suitPique => 'أبيك';
+
+  @override
+  String get rankNameA => 'الآس';
+
+  @override
+  String get rankName10 => 'الديس';
+
+  @override
+  String get rankNameK => 'أرواه';
+
+  @override
+  String get rankNameQ => 'الضم';
+
+  @override
+  String get rankNameJ => 'الفالة';
+
+  @override
+  String get rankName9 => 'النيف';
+
+  @override
+  String get rankName8 => 'الويت';
+
+  @override
+  String get rankName7 => 'الست';
+
+  @override
+  String cardName(String rank, String suit) {
+    return '$rank $suit';
+  }
+
+  @override
+  String foujaCardHint(String card) {
+    return '$card — مخالفة';
+  }
 
   @override
   String bidWithAkwins(String bid) {

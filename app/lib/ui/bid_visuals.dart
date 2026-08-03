@@ -93,14 +93,24 @@ class BidPill extends StatelessWidget {
   /// في الشريط يملأ الزرُّ نصيبَه من الصفّ؛ في الفقاعة يلتصق بنصّه.
   final bool shrinkWrap;
 
+  /// ارتفاعُ الزرّ. يكبر مع الطاولة في الشريط ([TableMetrics.bidPillHeight])،
+  /// ويبقى [height] في الفقاعة — تلك خبرٌ يُقرأ لا هدفٌ يُضغَط.
+  final double? boxHeight;
+
   const BidPill({
     super.key,
     required this.label,
     required this.tone,
     this.shrinkWrap = false,
+    this.boxHeight,
   });
 
+  /// ارتفاعُ الهاتف — وأرضيّةُ كلّ ما فوقه.
   static const double height = 38;
+
+  /// حجمُ الخطّ نسبةً إلى الارتفاع: نمَتِ العلبةُ فنما نصُّها معها، وإلّا صارت
+  /// كلمةٌ صغيرةٌ في زرٍّ كبيرٍ تقرأ زرًّا مُمطَّطًا لا زرًّا أكبر.
+  static const double _fontRatio = 14.5 / height;
 
   @override
   Widget build(BuildContext context) {
@@ -129,26 +139,28 @@ class BidPill extends StatelessWidget {
 
     // النصُّ **يضمر ولا ينكسر**: كلمةٌ طويلةٌ («أكوينس») على هاتفٍ ضيّقٍ تصغر
     // قليلًا بدل أن تنزل سطرًا فينكسر الصفُّ الواحد.
+    final box = boxHeight ?? height;
     final text = FittedBox(
       fit: BoxFit.scaleDown,
       child: Text(
         label,
         maxLines: 1,
         softWrap: false,
-        style: TextStyle(color: fg, fontSize: 14.5, fontWeight: FontWeight.w700),
+        style: TextStyle(
+            color: fg, fontSize: box * _fontRatio, fontWeight: FontWeight.w700),
       ),
     );
 
     return SizedBox(
-      height: height,
+      height: box,
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: bg,
-          borderRadius: BorderRadius.circular(height * 0.58),
+          borderRadius: BorderRadius.circular(box * 0.58),
           border: Border.all(color: border, width: 1.2),
         ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: EdgeInsets.symmetric(horizontal: box * (12 / height)),
           child: Center(widthFactor: shrinkWrap ? 1 : null, child: text),
         ),
       ),
