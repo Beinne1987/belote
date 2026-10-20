@@ -11,7 +11,8 @@ void main() {
     expect(BeloteThemes.all.length, 5);
     final names = BeloteThemes.all.map((t) => t.name).toSet();
     expect(names.length, 5, reason: 'أسماء الثيمات يجب أن تكون فريدة');
-    expect(BeloteThemes.all.first, BeloteThemes.classic, reason: 'الافتراضي أولًا');
+    expect(BeloteThemes.all.first, BeloteThemes.defaultTheme, reason: 'الافتراضي أولًا');
+    expect(BeloteThemes.defaultTheme, BeloteThemes.royal);
   });
 
   test('Marble فاتح والبقية داكنة', () {
@@ -23,13 +24,13 @@ void main() {
 
   test('ThemeManager يبدّل الثيم ويُخطر', () {
     final m = ThemeManager();
-    expect(m.current, BeloteThemes.classic);
+    expect(m.current, BeloteThemes.royal);
     var notified = 0;
     m.addListener(() => notified++);
-    m.setTheme(BeloteThemes.royal);
-    expect(m.current, BeloteThemes.royal);
+    m.setTheme(BeloteThemes.classic);
+    expect(m.current, BeloteThemes.classic);
     expect(notified, 1);
-    m.setTheme(BeloteThemes.royal); // نفس الثيم ⇒ لا إخطار
+    m.setTheme(BeloteThemes.classic); // نفس الثيم ⇒ لا إخطار
     expect(notified, 1);
   });
 
@@ -43,6 +44,6 @@ void main() {
         return const SizedBox();
       }),
     ));
-    expect(seen, BeloteThemes.classic);
+    expect(seen, BeloteThemes.royal);
   });
 }

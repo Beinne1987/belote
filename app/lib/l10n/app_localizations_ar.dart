@@ -221,9 +221,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get supportSection => 'الدعم الفنّي';
 
   @override
-  String get supportWhatsapp => 'واتساب';
-
-  @override
   String get supportEmail => 'البريد الإلكتروني';
 
   @override
@@ -1308,7 +1305,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get desktopAuthNote =>
-      'إنشاءُ الحساب واستعادةُ كلمة السرّ يحتاجان رمزًا بالرسائل ⇒ من تطبيق الهاتف. وتسجيلُ الدخول هنا يعمل كاملًا.';
+      'إنشاءُ الحساب واستعادةُ كلمة السرّ هنا للأرقام الموريتانيّة (+222)؛ والأرقامُ الأخرى من تطبيق الهاتف. وتسجيلُ الدخول يعمل كاملًا.';
 
   @override
   String get continueAsGuest => 'الدخول كضيف';
@@ -2033,4 +2030,186 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get errUpdateGeneric =>
       'تعذّر التحديث — تحقّق من الاتصال وحاول لاحقًا';
+
+  @override
+  String get bankilyBuy => 'شراء عبر بنكيلي';
+
+  @override
+  String get bankilySoonBadge => 'قريبًا';
+
+  @override
+  String get bankilyTitle => 'الدفع عبر بنكيلي';
+
+  @override
+  String get bankilySoonBanner =>
+      'الدفع عبر بنكيلي قريبًا. هذه هي الخطوات، وسيعمل زرّ التأكيد فور تفعيله — دون تحديث التطبيق.';
+
+  @override
+  String bankilyStepOf(int step) {
+    return 'الخطوة $step من 4';
+  }
+
+  @override
+  String get bankilyStep1Title => 'افتح تطبيق بنكيلي';
+
+  @override
+  String get bankilyStep1Body => 'افتح بنكيلي على هاتفك واذهب إلى قسم B-PAY.';
+
+  @override
+  String get bankilyStep2Title => 'أدخل رمز التاجر والمبلغ';
+
+  @override
+  String get bankilyStep2Body =>
+      'في B-PAY أدخل رمز التاجر والمبلغ كما هما هنا بالضبط.';
+
+  @override
+  String get bankilyMerchantCode => 'رمز التاجر';
+
+  @override
+  String get bankilyAmount => 'المبلغ';
+
+  @override
+  String get bankilyStep3Title => 'استلم الرمز';
+
+  @override
+  String get bankilyStep3Body =>
+      'سيرسل لك بنكيلي رمزًا من 4 أرقام لتأكيد العملية.';
+
+  @override
+  String get bankilyStep4Title => 'أكمل الدفع';
+
+  @override
+  String get bankilyStep4Body => 'أدخل رقم هاتف بنكيلي والرمز الذي وصلك.';
+
+  @override
+  String get bankilyPhone => 'رقم هاتف بنكيلي';
+
+  @override
+  String get bankilyCode => 'الرمز المستلم من بنكيلي';
+
+  @override
+  String get bankilyConfirm => 'تأكيد الدفع';
+
+  @override
+  String get bankilyNext => 'متابعة';
+
+  @override
+  String get bankilyBack => 'رجوع';
+
+  @override
+  String get bankilyCopied => 'نُسخ';
+
+  @override
+  String bankilyYouGet(int diamonds) {
+    return 'ستحصل على $diamonds ماسة';
+  }
+
+  @override
+  String bankilySuccess(int diamonds) {
+    return 'وصل ماسُك! أُضيفت $diamonds ماسة إلى رصيدك.';
+  }
+
+  @override
+  String get bankilyErrPhone => 'رقم الهاتف 8 أرقام يبدأ بـ 2 أو 3 أو 4';
+
+  @override
+  String get bankilyErrCode => 'الرمز 4 أرقام';
+
+  @override
+  String get bankilyErrRejected =>
+      'رفض بنكيلي العملية — تحقّق من الرمز وحاول مجددًا';
+
+  @override
+  String get bankilyErrUnreachable => 'تعذّر الوصول إلى بنكيلي — حاول بعد قليل';
+
+  @override
+  String get devCredit => 'برمجة وتطوير';
+
+  @override
+  String get devName => 'محمد الأمين بينة';
+
+  @override
+  String get bankilyTapToCopy => 'اضغط للنسخ';
+
+  @override
+  String get storeBuyChoose => 'اختر طريقة الدفع';
+
+  @override
+  String get storeBuyViaApple => 'الدفع عبر Apple';
+
+  @override
+  String get storeBuyViaGoogle => 'الدفع عبر Google Play';
+
+  @override
+  String get storeBuyViaStoreSub => 'بطاقة أو رصيد المتجر';
+
+  @override
+  String get storeBuyViaBankilySub => 'من محفظتك في بنكيلي';
+
+  @override
+  String get storeBuyCancelled => 'أُلغيت العملية';
+
+  @override
+  String get storeBuyUnavailable => 'الشراء من المتجر غير متاح الآن';
+
+  @override
+  String get storeBuyFailed =>
+      'تعذّر إتمام الشراء — إن خُصم المبلغ فسيصلك الماس تلقائيًا عند فتح التطبيق مجددًا';
+
+  @override
+  String get pulseTopPlayers => 'أفضل اللاعبين';
+
+  @override
+  String get pulseLiveNow => 'مباريات جارية الآن';
+
+  @override
+  String pulseWatchers(int count) {
+    return '$count يشاهدون';
+  }
+
+  @override
+  String get pulseSeeAll => 'عرض الكل';
+
+  @override
+  String get privacyPolicy => 'سياسة الخصوصية';
+
+  @override
+  String get helpAndSupport => 'المساعدة والدعم';
+
+  @override
+  String get appStoreBuySoon => 'الشراء عبر App Store — قريبًا.';
+
+  @override
+  String get errLoginFailed => 'تعذّر إكمال تسجيل الدخول. حاول مرة أخرى.';
+
+  @override
+  String errCodeInvalidLeft(int count) {
+    return 'الرمز غير صحيح — بقيت $count محاولات';
+  }
+
+  @override
+  String errOtpRetryAfter(int seconds) {
+    return 'طلباتٌ كثيرة — حاول بعد $seconds ثانية';
+  }
+
+  @override
+  String get errOtpUnavailable =>
+      'خدمةُ الرسائل غير متاحةٍ الآن — حاول بعد قليل';
+
+  @override
+  String get errPhoneTaken => 'لهذا الرقم حسابٌ مسبقًا — سجّل الدخول';
+
+  @override
+  String get errPhoneUnknown => 'لا يوجد حسابٌ بهذا الرقم';
+
+  @override
+  String resendCodeIn(int seconds) {
+    return 'إعادة الإرسال بعد $seconds ث';
+  }
+
+  @override
+  String get resendCode => 'أعد إرسال الرمز';
+
+  @override
+  String get sendViaWhatsApp => 'أرسل الرمز عبر واتساب';
 }

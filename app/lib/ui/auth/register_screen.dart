@@ -9,8 +9,8 @@ import '../../theme/belote_theme.dart';
 import 'auth_common.dart';
 
 /// إنشاء حساب ثلاثيّ المراحل:
-///   ١) الهاتف → إرسال رمز OTP (Firebase) لتأكيد الرقم.
-///   ٢) الرمز  → تحقّق ⇒ توكن هويّة Firebase.
+///   ١) الهاتف → إرسال رمز OTP لتأكيد الرقم (+222 عبر خادمنا/ChinqIT، غيره Firebase).
+///   ٢) الرمز  → تحقّق ⇒ إثباتُ الهاتف (PhoneCredential).
 ///   ٣) التفاصيل → كلمة سرّ + اسم + دولة + مدينة ⇒ إنشاء الحساب على الخادم.
 class RegisterScreen extends StatefulWidget {
   final ApiClient api;
@@ -32,8 +32,9 @@ class RegisterScreen extends StatefulWidget {
 
 enum _Phase { phone, code, details }
 
-class _RegisterScreenState extends State<RegisterScreen> {
-  late final PhoneAuthenticator _auth = widget.phoneAuth ?? PhoneAuthService();
+class _RegisterScreenState extends State<RegisterScreen> with ResendCountdown {
+  late final PhoneAuthenticator _auth =
+      widget.phoneAuth ?? RoutedPhoneAuth.standard(widget.api, OtpPurpose.register);
 
   final _phone = TextEditingController();
   final _code = TextEditingController();
@@ -48,7 +49,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _obscure = true;
   String? _error;
   String _sentPhone = '';
-  String? _idToken;
+  PhoneCredential? _credential;
 
   @override
   void dispose() {
@@ -60,13 +61,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  Future<void> _sendCode() async {
+  Future<void> _sendCode({OtpChannel channel = OtpChannel.sms, bool resend = false}) async {
     final local = _phone.text.replaceAll(RegExp(r'[^0-9]'), '');
     if (local.length < 6) {
       setState(() => _error = context.l10n.invalidPhone);
       return;
     }
-    if (!_auth.supported) {
+    final phone = toE164(_dial, _phone.text);
+    if (!_auth.supportsPhone(phone)) {
       setState(() => _error = context.l10n.phoneAuthUnsupported);
       return;
     }
@@ -74,21 +76,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _busy = true;
       _error = null;
     });
-    final phone = toE164(_dial, _phone.text);
     await _auth.sendCode(
       phoneE164: phone,
+      channel: channel,
+      resend: resend,
       onCodeSent: () {
         if (!mounted) return;
+        startResendCountdown();
         setState(() {
           _sentPhone = phone;
           _phase = _Phase.code;
           _busy = false;
         });
       },
-      onAutoVerified: (idToken) {
+      onAutoVerified: (credential) {
         if (!mounted) return;
         setState(() {
-          _idToken = idToken;
+          _credential = credential; stopResendCountdown();
           _phase = _Phase.details;
           _busy = false;
         });
@@ -106,8 +110,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
     setState(() { _busy = true; _error = null; });
     try {
-      _idToken = await _auth.verifyCode(_code.text.trim());
+      _credential = await _auth.verifyCode(_code.text.trim());
       if (!mounted) return;
+      stopResendCountdown();
       setState(() { _phase = _Phase.details; _busy = false; });
     } on PhoneAuthException catch (e) {
       if (mounted) setState(() { _error = e.message; _busy = false; });
@@ -130,7 +135,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() { _busy = true; _error = null; });
     try {
       final session = await widget.api.register(
-        idToken: _idToken!,
+        credential: _credential!,
         password: _password.text,
         displayName: _name.text.trim(),
         countryCode: _country.code,
@@ -153,7 +158,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           l.createAccount,
           l.registerPhoneSub,
           l.sendCode,
-          _sendCode
+          () => _sendCode()
         ),
       _Phase.code => (
           Icons.sms_outlined,
@@ -183,15 +188,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _Phase.code => [_codeField(t)],
         _Phase.details => _detailFields(t),
       },
-      secondary: _phase == _Phase.phone
-          ? [
+      secondary: switch (_phase) {
+        _Phase.phone => [
               TextButton(
                 onPressed: _busy ? null : widget.onLogin,
                 child: Text(l.haveAccountSignIn,
                     style: TextStyle(color: t.accentBright, fontWeight: FontWeight.w700)),
               ),
-            ]
-          : const [],
+            ],
+        _Phase.code => resendActions(
+          context,
+          secondsLeft: resendLeft,
+          busy: _busy,
+          onResend: () => _sendCode(resend: true),
+          onWhatsApp: _auth.supportsWhatsApp(_sentPhone)
+              ? () => _sendCode(channel: OtpChannel.whatsapp, resend: true)
+              : null,
+        ),
+        _ => const <Widget>[],
+      },
     );
   }
 

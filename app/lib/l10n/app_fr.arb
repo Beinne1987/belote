@@ -24,11 +24,22 @@
   "rankName7": "Sept",
   "cardName": "{rank} de {suit}",
   "@cardName": {
-    "placeholders": { "rank": {"type": "String"}, "suit": {"type": "String"} }
+    "placeholders": {
+      "rank": {
+        "type": "String"
+      },
+      "suit": {
+        "type": "String"
+      }
+    }
   },
   "foujaCardHint": "{card} — irrégulière",
   "@foujaCardHint": {
-    "placeholders": { "card": {"type": "String"} }
+    "placeholders": {
+      "card": {
+        "type": "String"
+      }
+    }
   },
   "bidWithAkwins": "{bid} · Coinche",
   "phaseDealing": "Distribution",
@@ -74,7 +85,6 @@
   "settingsSound": "Son",
   "howToPlay": "Comment jouer",
   "supportSection": "Assistance",
-  "supportWhatsapp": "WhatsApp",
   "supportEmail": "E-mail",
   "openFailed": "Impossible d'ouvrir sur cet appareil.",
   "save": "Enregistrer",
@@ -381,7 +391,7 @@
   "youSuffix": "{name} (vous)",
   "authTagline": "Jouez avec vos amis dans le monde entier",
   "createAccount": "Créer un compte",
-  "desktopAuthNote": "La création de compte et la réinitialisation du mot de passe passent par un code SMS ⇒ depuis l'application mobile. La connexion fonctionne pleinement ici.",
+  "desktopAuthNote": "Ici, création de compte et réinitialisation du mot de passe pour les numéros mauritaniens (+222) ; les autres numéros depuis l'application mobile. La connexion fonctionne pleinement.",
   "continueAsGuest": "Continuer en invité",
   "invalidPhone": "Saisissez un numéro de téléphone valide",
   "phoneAuthUnsupported": "La connexion par téléphone n'est pas prise en charge sur cette plateforme",
@@ -599,5 +609,59 @@
   "errDownloadFailed": "Échec du téléchargement (code {code})",
   "errDownloadIncomplete": "Téléchargement incomplet — réessayez plus tard",
   "errInstallerOpen": "Impossible d'ouvrir l'installateur ({reason})",
-  "errUpdateGeneric": "Mise à jour impossible — vérifiez la connexion et réessayez"
+  "errUpdateGeneric": "Mise à jour impossible — vérifiez la connexion et réessayez",
+  "bankilyBuy": "Acheter via Bankily",
+  "bankilySoonBadge": "Bientôt",
+  "bankilyTitle": "Paiement via Bankily",
+  "bankilySoonBanner": "Le paiement Bankily arrive bientôt. Voici les étapes ; le bouton de confirmation fonctionnera dès son activation — sans mise à jour de l'application.",
+  "bankilyStepOf": "Étape {step} sur 4",
+  "bankilyStep1Title": "Ouvrez Bankily",
+  "bankilyStep1Body": "Ouvrez Bankily sur votre téléphone et allez dans B-PAY.",
+  "bankilyStep2Title": "Saisissez le code commerçant et le montant",
+  "bankilyStep2Body": "Dans B-PAY, saisissez le code commerçant et le montant exactement comme ici.",
+  "bankilyMerchantCode": "Code commerçant",
+  "bankilyAmount": "Montant",
+  "bankilyStep3Title": "Recevez le code",
+  "bankilyStep3Body": "Bankily vous envoie un code à 4 chiffres pour confirmer l'opération.",
+  "bankilyStep4Title": "Finalisez le paiement",
+  "bankilyStep4Body": "Saisissez votre numéro Bankily et le code reçu.",
+  "bankilyPhone": "Numéro Bankily",
+  "bankilyCode": "Code reçu de Bankily",
+  "bankilyConfirm": "Confirmer le paiement",
+  "bankilyNext": "Continuer",
+  "bankilyBack": "Retour",
+  "bankilyCopied": "Copié",
+  "bankilyYouGet": "Vous recevrez {diamonds} diamants",
+  "bankilySuccess": "Diamants reçus ! {diamonds} diamants ajoutés à votre solde.",
+  "bankilyErrPhone": "Numéro à 8 chiffres commençant par 2, 3 ou 4",
+  "bankilyErrCode": "Le code fait 4 chiffres",
+  "bankilyErrRejected": "Bankily a refusé l'opération — vérifiez le code et réessayez",
+  "bankilyErrUnreachable": "Bankily est injoignable — réessayez dans un instant",
+  "devCredit": "Conception et développement",
+  "devName": "Mohamed Leminne Beine",
+  "bankilyTapToCopy": "Touchez pour copier",
+  "storeBuyChoose": "Choisissez le mode de paiement",
+  "storeBuyViaApple": "Payer avec Apple",
+  "storeBuyViaGoogle": "Payer avec Google Play",
+  "storeBuyViaStoreSub": "Carte ou solde du store",
+  "storeBuyViaBankilySub": "Depuis votre portefeuille Bankily",
+  "storeBuyCancelled": "Opération annulée",
+  "storeBuyUnavailable": "L'achat via le store n'est pas disponible pour le moment",
+  "storeBuyFailed": "Achat impossible — si le montant a été débité, les diamants arriveront automatiquement à la prochaine ouverture de l'application",
+  "pulseTopPlayers": "Meilleurs joueurs",
+  "pulseLiveNow": "Parties en cours",
+  "pulseWatchers": "{count} spectateurs",
+  "pulseSeeAll": "Tout voir",
+  "privacyPolicy": "Politique de confidentialité",
+  "helpAndSupport": "Aide et assistance",
+  "appStoreBuySoon": "Achat via l'App Store — bientôt.",
+  "errLoginFailed": "Impossible de terminer la connexion. Réessayez.",
+  "errCodeInvalidLeft": "Code invalide — {count} tentatives restantes",
+  "errOtpRetryAfter": "Trop de demandes — réessayez dans {seconds} s",
+  "errOtpUnavailable": "Le service SMS est indisponible pour le moment — réessayez bientôt",
+  "errPhoneTaken": "Ce numéro a déjà un compte — connectez-vous",
+  "errPhoneUnknown": "Aucun compte avec ce numéro",
+  "resendCodeIn": "Renvoyer dans {seconds} s",
+  "resendCode": "Renvoyer le code",
+  "sendViaWhatsApp": "Envoyer le code par WhatsApp"
 }

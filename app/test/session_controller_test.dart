@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 
 import 'package:app/net/api_client.dart';
 import 'package:app/net/api_config.dart';
@@ -37,10 +38,11 @@ void main() {
     expect(c.isSignedIn, false);
   });
 
-  test('signIn ⇒ يجلب المحفظة والإحصائيات ويحفظ الجلسة', () async {
+  test('signIn لا ينتظر تحديث الحساب ويحفظ الجلسة', () async {
+    final wallet = Completer<http.Response>();
     final c = _controller(MockClient((req) async {
       if (req.url.path == '/me/wallet') {
-        return _json({'diamonds': 5, 'gift:rose': 3});
+        return wallet.future;
       }
       if (req.url.path == '/me/stats') {
         return _json({'rating': 1200, 'matches': 8, 'wins': 5, 'losses': 3, 'winStreak': 2, 'bestStreak': 4, 'winRate': 62});
@@ -49,6 +51,13 @@ void main() {
     }));
     await c.signIn(_session('tok'));
     expect(c.isSignedIn, true);
+    expect(c.diamonds, 0);
+
+    // حُفِظت ⇒ استعادةٌ لاحقة تجدها.
+    final restored = await SessionStore().load();
+    expect(restored!.token, 'tok');
+    wallet.complete(_json({'diamonds': 5, 'gift:rose': 3}));
+    await c.refresh();
     expect(c.diamonds, 5);
     // المخزونُ يصل في المحفظة نفسِها — لا مسارَ ثانٍ له.
     expect(c.giftStock('rose'), 3);
@@ -56,9 +65,6 @@ void main() {
     expect(c.stats!.rating, 1200);
     expect(c.stats!.winRatePct, 62);
 
-    // حُفِظت ⇒ استعادةٌ لاحقة تجدها.
-    final restored = await SessionStore().load();
-    expect(restored!.token, 'tok');
   });
 
   test('refresh بتوكن منتهٍ (401) ⇒ خروجٌ تلقائيّ', () async {
@@ -66,6 +72,7 @@ void main() {
         http.Response(jsonEncode({'error': 'توكن غير صالح'}), 401,
             headers: {'content-type': 'application/json; charset=utf-8'})));
     await c.signIn(_session('expired'));
+    await Future<void>.delayed(const Duration(milliseconds: 20));
     expect(c.isSignedIn, false); // signIn استدعى refresh فأخرج
     expect(await SessionStore().load(), isNull);
   });

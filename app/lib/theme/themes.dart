@@ -3,12 +3,12 @@ import 'package:flutter/widgets.dart';
 import 'belote_theme.dart';
 
 /// الثيمات الخمسة كبياناتٍ ثابتة. **إضافة ثيم جديد = ثابتٌ هنا فقط**، بلا تعديل أي شاشة.
-/// القيم من الدليل الحيّ (`docs/DESIGN-SYSTEM.md`). الافتراضي: Classic Casino.
+/// القيم من الدليل الحيّ (`docs/DESIGN-SYSTEM.md`). الافتراضي: Classic Green.
 class BeloteThemes {
   const BeloteThemes._();
 
   static const classic = BeloteTheme(
-    name: 'Classic Casino',
+    name: 'Classic Green',
     brightness: Brightness.dark,
     bg: Color(0xFF0F3D2E),
     gradTop: Color(0xFF15533D),
@@ -147,6 +147,11 @@ class BeloteThemes {
     shadow: Color(0x335A503C),
   );
 
+  /// **الافتراضيّ: Royal Black** (اختيار المالك 2026-09-29: «اختر واحدًا… المهمّ أن
+  /// يكون الشكل جميلًا وجذّابًا») — أسودٌ وذهبٌ فاخرٌ والجوخُ الأخضرُ يبقى للطاولة.
+  /// من حفظ ثيمًا يبقى عليه؛ الجديدُ ومن لم يختر يبدأ به.
+  static const defaultTheme = royal;
+
   /// كل الثيمات بالترتيب (للتبديل والاختبار). الأول هو الافتراضي.
-  static const all = <BeloteTheme>[classic, royal, wood, darkGold, marble];
+  static const all = <BeloteTheme>[royal, classic, wood, darkGold, marble];
 }

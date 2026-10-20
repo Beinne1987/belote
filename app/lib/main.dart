@@ -41,6 +41,11 @@ import 'ui/tournaments_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  // منصّةُ الجهاز وقناتُه لكلّ طلب (لوحة التحكّم تفصل الدخلَ والأجهزة بها).
+  // Dart خالص لا إضافةً أصليّة ⇒ آمنٌ قبل `runApp`.
+  setClientHeaders(
+      platform: AppPlatform.name,
+      channel: AppPlatform.isStore || AppPlatform.appleStore ? 'store' : 'direct');
   // **النافذةُ أوّلًا.** لا نداءَ لإضافةٍ أصليّةٍ قبل `runApp`: خيطُ الواجهة
   // مدموجٌ بالخيط الرئيس في فلاتر الحديث، فإضافةٌ متعثّرةٌ هنا تعني تطبيقًا حيًّا
   // **بلا نافذة** — وهو ما حدث فعلًا على ماك. التفصيلُ في [AppBoot].
@@ -185,13 +190,14 @@ class _BeloteAppState extends State<BeloteApp> with WidgetsBindingObserver {
           child: PresenceScope(
             link: _presence,
             child: ListenableBuilder(
-              listenable: _settings,
+              // الثيمُ أيضًا: خلفيّةُ `Scaffold` في [buildTheme] تتبعه.
+              listenable: Listenable.merge([_settings, _theme]),
               builder: (context, _) => MaterialApp(
                 navigatorKey: _navKey,
                 onGenerateTitle: (context) =>
                     context.l10n.appTitle,
                 debugShowCheckedModeBanner: false,
-                theme: buildTheme(),
+                theme: buildTheme(_theme.current),
                 // **الفأرةُ تسحب القوائمَ كالإصبع** على ويندوز وماك.
                 scrollBehavior: const AppScrollBehavior(),
                 // اللغةُ من اختيار اللاعب لا من لغة الهاتف — والعربيّةُ الافتراض.

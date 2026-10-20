@@ -223,9 +223,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get supportSection => 'Assistance';
 
   @override
-  String get supportWhatsapp => 'WhatsApp';
-
-  @override
   String get supportEmail => 'E-mail';
 
   @override
@@ -1331,7 +1328,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get desktopAuthNote =>
-      'La création de compte et la réinitialisation du mot de passe passent par un code SMS ⇒ depuis l\'application mobile. La connexion fonctionne pleinement ici.';
+      'Ici, création de compte et réinitialisation du mot de passe pour les numéros mauritaniens (+222) ; les autres numéros depuis l\'application mobile. La connexion fonctionne pleinement.';
 
   @override
   String get continueAsGuest => 'Continuer en invité';
@@ -2080,4 +2077,191 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get errUpdateGeneric =>
       'Mise à jour impossible — vérifiez la connexion et réessayez';
+
+  @override
+  String get bankilyBuy => 'Acheter via Bankily';
+
+  @override
+  String get bankilySoonBadge => 'Bientôt';
+
+  @override
+  String get bankilyTitle => 'Paiement via Bankily';
+
+  @override
+  String get bankilySoonBanner =>
+      'Le paiement Bankily arrive bientôt. Voici les étapes ; le bouton de confirmation fonctionnera dès son activation — sans mise à jour de l\'application.';
+
+  @override
+  String bankilyStepOf(int step) {
+    return 'Étape $step sur 4';
+  }
+
+  @override
+  String get bankilyStep1Title => 'Ouvrez Bankily';
+
+  @override
+  String get bankilyStep1Body =>
+      'Ouvrez Bankily sur votre téléphone et allez dans B-PAY.';
+
+  @override
+  String get bankilyStep2Title => 'Saisissez le code commerçant et le montant';
+
+  @override
+  String get bankilyStep2Body =>
+      'Dans B-PAY, saisissez le code commerçant et le montant exactement comme ici.';
+
+  @override
+  String get bankilyMerchantCode => 'Code commerçant';
+
+  @override
+  String get bankilyAmount => 'Montant';
+
+  @override
+  String get bankilyStep3Title => 'Recevez le code';
+
+  @override
+  String get bankilyStep3Body =>
+      'Bankily vous envoie un code à 4 chiffres pour confirmer l\'opération.';
+
+  @override
+  String get bankilyStep4Title => 'Finalisez le paiement';
+
+  @override
+  String get bankilyStep4Body =>
+      'Saisissez votre numéro Bankily et le code reçu.';
+
+  @override
+  String get bankilyPhone => 'Numéro Bankily';
+
+  @override
+  String get bankilyCode => 'Code reçu de Bankily';
+
+  @override
+  String get bankilyConfirm => 'Confirmer le paiement';
+
+  @override
+  String get bankilyNext => 'Continuer';
+
+  @override
+  String get bankilyBack => 'Retour';
+
+  @override
+  String get bankilyCopied => 'Copié';
+
+  @override
+  String bankilyYouGet(int diamonds) {
+    return 'Vous recevrez $diamonds diamants';
+  }
+
+  @override
+  String bankilySuccess(int diamonds) {
+    return 'Diamants reçus ! $diamonds diamants ajoutés à votre solde.';
+  }
+
+  @override
+  String get bankilyErrPhone => 'Numéro à 8 chiffres commençant par 2, 3 ou 4';
+
+  @override
+  String get bankilyErrCode => 'Le code fait 4 chiffres';
+
+  @override
+  String get bankilyErrRejected =>
+      'Bankily a refusé l\'opération — vérifiez le code et réessayez';
+
+  @override
+  String get bankilyErrUnreachable =>
+      'Bankily est injoignable — réessayez dans un instant';
+
+  @override
+  String get devCredit => 'Conception et développement';
+
+  @override
+  String get devName => 'Mohamed Leminne Beine';
+
+  @override
+  String get bankilyTapToCopy => 'Touchez pour copier';
+
+  @override
+  String get storeBuyChoose => 'Choisissez le mode de paiement';
+
+  @override
+  String get storeBuyViaApple => 'Payer avec Apple';
+
+  @override
+  String get storeBuyViaGoogle => 'Payer avec Google Play';
+
+  @override
+  String get storeBuyViaStoreSub => 'Carte ou solde du store';
+
+  @override
+  String get storeBuyViaBankilySub => 'Depuis votre portefeuille Bankily';
+
+  @override
+  String get storeBuyCancelled => 'Opération annulée';
+
+  @override
+  String get storeBuyUnavailable =>
+      'L\'achat via le store n\'est pas disponible pour le moment';
+
+  @override
+  String get storeBuyFailed =>
+      'Achat impossible — si le montant a été débité, les diamants arriveront automatiquement à la prochaine ouverture de l\'application';
+
+  @override
+  String get pulseTopPlayers => 'Meilleurs joueurs';
+
+  @override
+  String get pulseLiveNow => 'Parties en cours';
+
+  @override
+  String pulseWatchers(int count) {
+    return '$count spectateurs';
+  }
+
+  @override
+  String get pulseSeeAll => 'Tout voir';
+
+  @override
+  String get privacyPolicy => 'Politique de confidentialité';
+
+  @override
+  String get helpAndSupport => 'Aide et assistance';
+
+  @override
+  String get appStoreBuySoon => 'Achat via l\'App Store — bientôt.';
+
+  @override
+  String get errLoginFailed =>
+      'Impossible de terminer la connexion. Réessayez.';
+
+  @override
+  String errCodeInvalidLeft(int count) {
+    return 'Code invalide — $count tentatives restantes';
+  }
+
+  @override
+  String errOtpRetryAfter(int seconds) {
+    return 'Trop de demandes — réessayez dans $seconds s';
+  }
+
+  @override
+  String get errOtpUnavailable =>
+      'Le service SMS est indisponible pour le moment — réessayez bientôt';
+
+  @override
+  String get errPhoneTaken => 'Ce numéro a déjà un compte — connectez-vous';
+
+  @override
+  String get errPhoneUnknown => 'Aucun compte avec ce numéro';
+
+  @override
+  String resendCodeIn(int seconds) {
+    return 'Renvoyer dans $seconds s';
+  }
+
+  @override
+  String get resendCode => 'Renvoyer le code';
+
+  @override
+  String get sendViaWhatsApp => 'Envoyer le code par WhatsApp';
 }

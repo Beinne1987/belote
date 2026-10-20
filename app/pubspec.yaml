@@ -18,7 +18,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # of the product and file versions while build-number is used as the build suffix.
 # الاسمُ المعروض 1.8.0؛ رقمُ البناء يُمرَّر في سطر الأمر (--build-number=2062
 # ⇒ versionCode 4062 مع --split-per-abi على arm64). لا تكتب 4xxx هنا.
-version: 1.18.11+2089
+version: 1.19.0+4095
 
 environment:
   sdk: ^3.5.0
@@ -99,6 +99,7 @@ dependencies:
   # إشعارات خارج التطبيق. **الدعوةُ لا تصل إلّا لمن التطبيقُ مفتوحٌ عنده** بلا هذه
   # (`presence.sendTo` في الخادم) ⇒ لا سبيلَ لاستدعاء صاحبك إلى طاولة.
   firebase_messaging: ^16.4.3
+  in_app_purchase: ^3.3.1
 
 dev_dependencies:
   flutter_test:

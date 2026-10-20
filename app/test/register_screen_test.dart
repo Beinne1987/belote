@@ -18,20 +18,24 @@ class _FakeAuth implements PhoneAuthenticator {
   _FakeAuth(this.idToken);
 
   @override
-  bool get supported => true;
+  bool supportsPhone(String phoneE164) => true;
+
+  @override
+  bool supportsWhatsApp(String phoneE164) => false;
 
   @override
   Future<void> sendCode({
     required String phoneE164,
     required void Function() onCodeSent,
     required void Function(String message) onError,
-    void Function(String idToken)? onAutoVerified,
+    void Function(PhoneCredential credential)? onAutoVerified,
     bool resend = false,
+    OtpChannel channel = OtpChannel.sms,
   }) async =>
       onCodeSent();
 
   @override
-  Future<String> verifyCode(String smsCode) async => idToken;
+  Future<PhoneCredential> verifyCode(String smsCode) async => PhoneCredential.firebase(idToken);
 }
 
 Widget _wrap(Widget child) => ThemeScope(

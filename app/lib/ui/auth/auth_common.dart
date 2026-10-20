@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../data/countries.dart';
@@ -204,4 +206,58 @@ class AuthScaffold extends StatelessWidget {
       ),
     );
   }
+}
+
+/// عدّادُ إعادة إرسال الرمز (60ث) لشاشات OTP. يُلغى مع الشاشة.
+mixin ResendCountdown<T extends StatefulWidget> on State<T> {
+  static const resendAfter = 60;
+  Timer? _resendTimer;
+  int resendLeft = 0;
+
+  void startResendCountdown() {
+    _resendTimer?.cancel();
+    setState(() => resendLeft = resendAfter);
+    _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return timer.cancel();
+      setState(() => resendLeft--);
+      if (resendLeft <= 0) timer.cancel();
+    });
+  }
+
+  void stopResendCountdown() => _resendTimer?.cancel();
+
+  @override
+  void dispose() {
+    _resendTimer?.cancel();
+    super.dispose();
+  }
+}
+
+/// سطرُ إعادة الإرسال تحت حقل الرمز: عدٌّ تنازليّ، ثمّ «أعد إرسال الرمز»
+/// و(للأرقام الموريتانيّة) «أرسل الرمز عبر واتساب».
+List<Widget> resendActions(
+  BuildContext context, {
+  required int secondsLeft,
+  required bool busy,
+  required VoidCallback onResend,
+  VoidCallback? onWhatsApp,
+}) {
+  final t = BeloteTheme.of(context);
+  final l = context.l10n;
+  if (secondsLeft > 0) {
+    return [
+      Text(l.resendCodeIn(secondsLeft),
+          textAlign: TextAlign.center, style: TextStyle(color: t.text3, fontSize: 14)),
+    ];
+  }
+  final style = TextStyle(color: t.accentBright, fontWeight: FontWeight.w700);
+  return [
+    TextButton(onPressed: busy ? null : onResend, child: Text(l.resendCode, style: style)),
+    if (onWhatsApp != null)
+      TextButton.icon(
+        onPressed: busy ? null : onWhatsApp,
+        icon: Icon(Icons.chat, color: t.accentBright, size: 20),
+        label: Text(l.sendViaWhatsApp, style: style),
+      ),
+  ];
 }

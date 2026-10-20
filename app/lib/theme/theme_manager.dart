@@ -8,7 +8,7 @@ import 'themes.dart';
 class ThemeManager extends ChangeNotifier {
   static const _prefKey = 'belote_theme';
   BeloteTheme _current;
-  ThemeManager([BeloteTheme? initial]) : _current = initial ?? BeloteThemes.classic;
+  ThemeManager([BeloteTheme? initial]) : _current = initial ?? BeloteThemes.defaultTheme;
 
   BeloteTheme get current => _current;
 

@@ -9,6 +9,7 @@ import '../net/session_controller.dart';
 import '../theme/belote_theme.dart';
 import 'content_strip.dart';
 import 'home_bottom_bar.dart';
+import 'desktop_pulse.dart';
 import 'honor_board.dart';
 import 'layout.dart';
 import 'player_avatar.dart';
@@ -60,8 +61,9 @@ class HomeScreen extends StatelessWidget {
     final session = SessionScope.of(context);
     final signedIn = session.isSignedIn;
     final serverName = session.player?.displayName ?? '';
-    final display =
-        (signedIn && serverName.isNotEmpty) ? serverName : (localName.isEmpty ? l.playerDefaultName : localName);
+    final display = (signedIn && serverName.isNotEmpty)
+        ? serverName
+        : (localName.isEmpty ? l.playerDefaultName : localName);
 
     // **وجهاتٌ واحدةٌ لشريطين**: التصنيفُ والمتجرُ والأصدقاءُ وحول اللعبة —
     // خرجت من قائمة البطاقات إلى الشريط، فبطاقةٌ وزرٌّ لشيءٍ واحدٍ مدخلان.
@@ -71,7 +73,9 @@ class HomeScreen extends StatelessWidget {
       HomeBarItem(icon: Icons.shopping_cart, label: l.navStore),
       // شارةُ الرسائل غير المقروءة تلزم الأصدقاءَ أينما ذهب زرُّهم.
       HomeBarItem(
-          icon: Icons.group, label: l.navFriends, badge: session.unreadMessages),
+          icon: Icons.group,
+          label: l.navFriends,
+          badge: session.unreadMessages),
       HomeBarItem(icon: Icons.info_outline, label: l.navAbout),
     ];
     void navTap(int i) {
@@ -169,7 +173,15 @@ class HomeScreen extends StatelessWidget {
           Expanded(
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 8, 8, 24),
-              children: _playSection(context, size),
+              children: [
+                ..._playSection(context, size),
+                // **أسفلَ البطاقات**: كان نصفُ الشاشة فارغًا على الحاسوب.
+                DesktopPulse(
+                  session: SessionScope.of(context),
+                  onLeaderboard: onLeaderboard,
+                  onWatchLive: onWatchLive,
+                ),
+              ],
             ),
           ),
           SizedBox(
@@ -254,7 +266,8 @@ class HomeScreen extends StatelessWidget {
     return [
       _CardRow(children: [play, online]),
       for (var i = 0; i < secondary.length; i += 2)
-        _CardRow(children: secondary.sublist(i, math.min(i + 2, secondary.length))),
+        _CardRow(
+            children: secondary.sublist(i, math.min(i + 2, secondary.length))),
     ];
   }
 
@@ -262,8 +275,7 @@ class HomeScreen extends StatelessWidget {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(
-        content: Text(context.l10n.comingSoon,
-            textAlign: TextAlign.center),
+        content: Text(context.l10n.comingSoon, textAlign: TextAlign.center),
         duration: const Duration(milliseconds: 1000),
         behavior: SnackBarBehavior.floating,
       ));
@@ -313,7 +325,10 @@ class _BellButton extends StatelessWidget {
       clipBehavior: Clip.none, // الشارةُ تتجاوز حدَّ الزرّ عمدًا
       children: [
         IconButton(
-          icon: Icon(unread > 0 ? Icons.notifications_active : Icons.notifications_none,
+          icon: Icon(
+              unread > 0
+                  ? Icons.notifications_active
+                  : Icons.notifications_none,
               color: unread > 0 ? t.accent : t.text2),
           tooltip: context.l10n.notifications,
           onPressed: onTap,
@@ -339,7 +354,9 @@ class _BellButton extends StatelessWidget {
                   // قلب «+99» إلى «99+».
                   textDirection: TextDirection.ltr,
                   style: const TextStyle(
-                      color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800),
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800),
                 ),
               ),
             ),
@@ -399,7 +416,9 @@ class _PlayerBar extends StatelessWidget {
         color: t.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: t.line),
-        boxShadow: [BoxShadow(color: t.shadow, blurRadius: 16, offset: const Offset(0, 6))],
+        boxShadow: [
+          BoxShadow(color: t.shadow, blurRadius: 16, offset: const Offset(0, 6))
+        ],
       ),
       child: Row(
         children: [
@@ -495,7 +514,8 @@ class _PlayerBar extends StatelessWidget {
                             if (tag.isNotEmpty)
                               Text('#$tag',
                                   textDirection: TextDirection.ltr,
-                                  style: TextStyle(color: t.text3, fontSize: 11)),
+                                  style:
+                                      TextStyle(color: t.text3, fontSize: 11)),
                           ])
                         else
                           Text(context.l10n.offline,
@@ -515,7 +535,8 @@ class _PlayerBar extends StatelessWidget {
               style: FilledButton.styleFrom(
                 backgroundColor: t.accent,
                 foregroundColor: t.onAccent,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
@@ -524,8 +545,7 @@ class _PlayerBar extends StatelessWidget {
             ),
           // الجرس **للمسجَّلين وحدهم**: بلا حسابٍ لا صندوقَ في الخادم أصلًا،
           // وجرسٌ فارغٌ أبدًا زينةٌ تُربك.
-          if (signedIn)
-            _BellButton(unread: unread, onTap: onNotifications),
+          if (signedIn) _BellButton(unread: unread, onTap: onNotifications),
           IconButton(
             icon: Icon(Icons.settings, color: t.text2),
             tooltip: context.l10n.settingsTitle,
@@ -538,13 +558,16 @@ class _PlayerBar extends StatelessWidget {
 
   Widget _ratingChip(BeloteTheme t, int rating) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
-        decoration: BoxDecoration(color: t.accent, borderRadius: BorderRadius.circular(999)),
+        decoration: BoxDecoration(
+            color: t.accent, borderRadius: BorderRadius.circular(999)),
         child: Text('★ $rating',
             textDirection: TextDirection.ltr,
-            style: TextStyle(color: t.onAccent, fontSize: 10, fontWeight: FontWeight.w800)),
+            style: TextStyle(
+                color: t.onAccent, fontSize: 10, fontWeight: FontWeight.w800)),
       );
 
-  Widget _purse(BeloteTheme t, IconData icon, Color color, int value) => Container(
+  Widget _purse(BeloteTheme t, IconData icon, Color color, int value) =>
+      Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
         decoration: BoxDecoration(
           color: t.bg,
@@ -556,7 +579,8 @@ class _PlayerBar extends StatelessWidget {
           const SizedBox(width: 4),
           Text('$value',
               textDirection: TextDirection.ltr,
-              style: TextStyle(color: t.text, fontWeight: FontWeight.w700, fontSize: 13)),
+              style: TextStyle(
+                  color: t.text, fontWeight: FontWeight.w700, fontSize: 13)),
         ]),
       );
 }
@@ -627,7 +651,9 @@ class _PlayCounter extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
       decoration: BoxDecoration(
-        color: out ? t.error.withValues(alpha: 0.16) : t.accent.withValues(alpha: 0.16),
+        color: out
+            ? t.error.withValues(alpha: 0.16)
+            : t.accent.withValues(alpha: 0.16),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(color: out ? t.error : t.accent),
       ),
@@ -713,7 +739,8 @@ class _CategoryCardState extends State<_CategoryCard> {
               width: big ? 2 : 1,
             ),
             boxShadow: [
-              BoxShadow(color: t.shadow, blurRadius: 14, offset: const Offset(0, 6)),
+              BoxShadow(
+                  color: t.shadow, blurRadius: 14, offset: const Offset(0, 6)),
               // توهّجٌ حول البطاقة القائدة — يرفعها عن الخلفيّة بلا تكبيرِ حجمها.
               if (big)
                 BoxShadow(
@@ -732,81 +759,83 @@ class _CategoryCardState extends State<_CategoryCard> {
               button: true,
               label: widget.title,
               child: InkWell(
-              onTap: widget.onTap,
-              borderRadius: BorderRadius.circular(18),
-              splashColor: ink.withValues(alpha: 0.10),
-              highlightColor: Colors.transparent,
-              onTapDown: (_) => _setPressed(true),
-              onTapUp: (_) => _setPressed(false),
-              onTapCancel: () => _setPressed(false),
-              child: Padding(
-                padding: EdgeInsets.all(big ? 22 : 16),
-                child: Row(
-                  children: [
-                    Container(
-                      width: big ? 56 : 46,
-                      height: big ? 56 : 46,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: big
-                            ? t.onAccent.withValues(alpha: 0.13)
-                            : t.accent.withValues(alpha: 0.16),
-                        border: Border.all(
+                onTap: widget.onTap,
+                borderRadius: BorderRadius.circular(18),
+                splashColor: ink.withValues(alpha: 0.10),
+                highlightColor: Colors.transparent,
+                onTapDown: (_) => _setPressed(true),
+                onTapUp: (_) => _setPressed(false),
+                onTapCancel: () => _setPressed(false),
+                child: Padding(
+                  padding: EdgeInsets.all(big ? 22 : 16),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: big ? 56 : 46,
+                        height: big ? 56 : 46,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
                           color: big
-                              ? t.onAccent.withValues(alpha: 0.26)
-                              : t.accent.withValues(alpha: 0.5),
+                              ? t.onAccent.withValues(alpha: 0.13)
+                              : t.accent.withValues(alpha: 0.16),
+                          border: Border.all(
+                            color: big
+                                ? t.onAccent.withValues(alpha: 0.26)
+                                : t.accent.withValues(alpha: 0.5),
+                          ),
+                        ),
+                        child: Icon(widget.icon,
+                            color: big ? t.onAccent : t.accentBright,
+                            size: big ? 28 : 22),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(widget.title,
+                                style: TextStyle(
+                                    color: ink,
+                                    fontSize: big ? 20 : 16,
+                                    fontWeight: FontWeight.w800)),
+                            const SizedBox(height: 2),
+                            Text(widget.subtitle,
+                                style:
+                                    TextStyle(color: inkSoft, fontSize: 12.5)),
+                          ],
                         ),
                       ),
-                      child: Icon(widget.icon,
-                          color: big ? t.onAccent : t.accentBright,
-                          size: big ? 28 : 22),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(widget.title,
-                              style: TextStyle(
-                                  color: ink,
-                                  fontSize: big ? 20 : 16,
-                                  fontWeight: FontWeight.w800)),
-                          const SizedBox(height: 2),
-                          Text(widget.subtitle,
-                              style: TextStyle(color: inkSoft, fontSize: 12.5)),
-                        ],
+                      if (widget.badge != null) ...[
+                        // **الشارةُ مرسومةٌ بألوان `accent`** (عدّادُ اللعبات، علامةُ VIP)
+                        // وهي تختفي فوق تدرّجٍ ذهبيّ. الحُقُّ الداكن يُعيد لها خلفيّةَ
+                        // `onAccent` التي صُمِّمت عليها — بلا لمسِ الشارات نفسها.
+                        if (big)
+                          Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: BoxDecoration(
+                              color: t.onAccent,
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: widget.badge!,
+                          )
+                        else
+                          widget.badge!,
+                        const SizedBox(width: 8),
+                      ],
+                      // **السهمُ يتبع اتّجاه اللغة**: في العربيّة يمضي يسارًا وفي
+                      // الفرنسيّة يمينًا. كان `chevron_left` مثبَّتًا ⇒ يشير في
+                      // الواجهة الفرنسيّة إلى **خارج** البطاقة عكسَ ما يفتح.
+                      Icon(
+                        Directionality.of(context) == TextDirection.rtl
+                            ? Icons.chevron_left
+                            : Icons.chevron_right,
+                        color:
+                            big ? t.onAccent.withValues(alpha: 0.55) : t.text3,
                       ),
-                    ),
-                    if (widget.badge != null) ...[
-                      // **الشارةُ مرسومةٌ بألوان `accent`** (عدّادُ اللعبات، علامةُ VIP)
-                      // وهي تختفي فوق تدرّجٍ ذهبيّ. الحُقُّ الداكن يُعيد لها خلفيّةَ
-                      // `onAccent` التي صُمِّمت عليها — بلا لمسِ الشارات نفسها.
-                      if (big)
-                        Container(
-                          padding: const EdgeInsets.all(3),
-                          decoration: BoxDecoration(
-                            color: t.onAccent,
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: widget.badge!,
-                        )
-                      else
-                        widget.badge!,
-                      const SizedBox(width: 8),
                     ],
-                    // **السهمُ يتبع اتّجاه اللغة**: في العربيّة يمضي يسارًا وفي
-                    // الفرنسيّة يمينًا. كان `chevron_left` مثبَّتًا ⇒ يشير في
-                    // الواجهة الفرنسيّة إلى **خارج** البطاقة عكسَ ما يفتح.
-                    Icon(
-                      Directionality.of(context) == TextDirection.rtl
-                          ? Icons.chevron_left
-                          : Icons.chevron_right,
-                      color: big ? t.onAccent.withValues(alpha: 0.55) : t.text3,
-                    ),
-                  ],
+                  ),
                 ),
-              ),
               ),
             ),
           ),

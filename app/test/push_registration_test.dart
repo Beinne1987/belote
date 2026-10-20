@@ -85,6 +85,15 @@ class _BrokenPush implements PushTokens {
   Future<Map<String, String>?> initialTap() async => null;
 }
 
+/// التسجيلُ يجري في الخلفية بعد الدخول (لا يُنتظر — رفضُ Apple للماك 2026-10-11).
+Future<void> _settle() => Future<void>.delayed(const Duration(milliseconds: 30));
+
+/// إشعاراتٌ لا تُجيب أبدًا (ماك بلا توكن APNs).
+class _HangingPush extends _FakePush {
+  @override
+  Future<String?> requestToken() => Completer<String?>().future;
+}
+
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
@@ -115,6 +124,8 @@ void main() {
 
     await c.signIn(_sess());
 
+    await _settle();
+
     expect(push.requested, 1);
     expect(calls.single.$1, endsWith('/me/device-token'));
     expect(calls.single.$2['token'], 'DEVICE-1');
@@ -128,6 +139,8 @@ void main() {
 
     await c.signIn(_sess());
 
+    await _settle();
+
     expect(push.requested, 1);
     expect(calls, isEmpty);
     expect(c.isSignedIn, isTrue, reason: 'الدخول تمّ رغم رفض الإشعارات');
@@ -136,6 +149,7 @@ void main() {
   test('منصّةٌ بلا Firebase (رمي) ⇒ الدخول يمضي', () async {
     final (c, calls) = harness(_BrokenPush());
     await c.signIn(_sess());
+    await _settle();
     expect(c.isSignedIn, isTrue);
     expect(calls, isEmpty);
   });
@@ -148,6 +162,8 @@ void main() {
 
     await c.loadSaved();
 
+    await _settle();
+
     expect(calls.single.$2['token'], 'DEVICE-1');
   });
 
@@ -156,6 +172,7 @@ void main() {
     final push = _FakePush();
     final (c, calls) = harness(push);
     await c.signIn(_sess());
+    await _settle();
     calls.clear();
 
     push._refresh.add('DEVICE-2');
@@ -181,6 +198,7 @@ void main() {
       final push = _FakePush();
       final (c, calls) = harness(push);
       await c.signIn(_sess());
+      await _settle();
       calls.clear();
 
       await c.signOut();
@@ -196,6 +214,7 @@ void main() {
       final push = _FakePush(null); // رفض الإذن ⇒ لا توكن
       final (c, calls) = harness(push);
       await c.signIn(_sess());
+      await _settle();
 
       await c.signOut();
 
@@ -206,12 +225,19 @@ void main() {
     test('عطبُ المنصّة عند المحو ⇒ الخروج يتمّ', () async {
       final (c, _) = harness(_BrokenPush());
       await c.signIn(_sess());
+      await _settle();
       await c.signOut();
       expect(c.isSignedIn, isFalse);
     });
   });
 
   // الإشعارات رفاهيّة: خادمٌ قديمٌ (404) أو معطَّل (503) لا يكسر الدخول.
+  test('إشعاراتٌ معلّقة إلى الأبد ⇒ الدخولُ لا ينتظرها', () async {
+    final (c, _) = harness(_HangingPush());
+    await c.signIn(_sess()).timeout(const Duration(seconds: 2));
+    expect(c.isSignedIn, isTrue);
+  });
+
   test('خادمٌ يرفض التسجيل ⇒ الدخول سليم', () async {
     final client = MockClient((req) async {
       final common = _common(req);
@@ -229,6 +255,8 @@ void main() {
     );
 
     await c.signIn(_sess());
+
+    await _settle();
     expect(c.isSignedIn, isTrue);
   });
 }

@@ -22,18 +22,47 @@ class AppPlatform {
 
   /// إشعاراتُ الدفع (FCM): للهاتف وحدَه. على الحاسوب يبقى **صندوقُ الإشعارات
   /// داخل التطبيق** يعمل كما هو — الجرسُ يجلب من الخادم بلا توكن.
-  static bool get push => isMobile;
+  ///
+  /// **ماك: نسخةُ المتجر وحدَها** ([isMacStore]) — الإشعاراتُ تحتاج توقيعًا بملفّ
+  /// تعريفٍ من Apple وصلاحيّاتٍ مقيَّدةً ([Store.entitlements])، وحزمةُ الـDMG المباشرة
+  /// موقَّعةٌ ad-hoc فلا تستطيعها ولا يجوز أن تحاول (تهيئةُ Firebase هناك بلا صلاحيّاتها
+  /// فشلٌ مضمون). ويندوز: لا.
+  static bool get push => isMobile || isMacStore;
 
-  /// تحديثٌ ذاتيٌّ بتنزيل APK وتثبيته: أندرويد وحدَه.
-  static bool get inAppUpdate => !kIsWeb && Platform.isAndroid;
+  /// **نسخةُ المتجر** (`--dart-define=DISTRIBUTION=store`): App Store · Play · Mac App
+  /// Store. الـ APK المباشر والـ DMG بلا العلم = `direct`. **المتاجرُ تُحدّث نفسَها**
+  /// ومَنعُ Google Play التحديثَ الذاتيَّ صريح.
+  static const bool isStore =
+      String.fromEnvironment('DISTRIBUTION', defaultValue: 'direct') == 'store';
+
+  /// تحديثٌ ذاتيٌّ بتنزيل APK وتثبيته: أندرويد **المباشر** وحدَه — لا نسخةَ المتجر.
+  static bool get inAppUpdate => !kIsWeb && Platform.isAndroid && !isStore;
 
   /// المحادثةُ الصوتيّة: تحتاج إذنَ ميكروفونٍ من `permission_handler` — ولا
   /// تنفيذَ له على سطح المكتب. تُخفى أزرارُها بدل أن تُضغَط فترمي.
   static bool get voice => isMobile;
 
-  /// **Firebase**: للهاتف وحدَه. حزمةُ الحاسوب لا تحوي ملفَّ الإعداد
+  /// **Firebase**: للهاتف، ولماك من المتجر ([isMacStore]). حزمةُ الـDMG المباشرة لا تحوي الصلاحيّات
   /// (`GoogleService-Info.plist`) — يقولها سجلُّ النظام على ماك صراحةً — فتهيئتُه
   /// هناك فشلٌ مضمون. ولا يُبنى عليه على الحاسوب شيء: الدفعُ ([push]) مُطفأ،
   /// والدخولُ بكلمة السرّ يمرّ بخادمنا لا بـFirebase.
-  static bool get firebase => isMobile;
+  static bool get firebase => isMobile || isMacStore;
+
+  /// ماك **من المتجر** (Mac App Store): موقَّعٌ كاملًا بصلاحيّاتِ الإشعارات.
+  static bool get isMacStore => !kIsWeb && Platform.isMacOS && isStore;
+
+  /// **متاجرُ Apple** (iOS دائمًا — لا توزيعَ مباشرَ له — وماك من المتجر): الدفعُ الرقميّ
+  /// عبر App Store وحده (إرشاد 3.1.1)؛ بنكيلي لا يُعرَض فيها إطلاقًا (قرار المالك
+  /// 2026-10-02 بعد رفض Hisabi). أندرويد/ويندوز/DMG المباشر يبقى بنكيلي كما هو.
+  /// اسمُ المنصّة كما يُرسَل للخادم: ios · android · macos · windows · linux · web.
+  static String get name {
+    if (kIsWeb) return 'web';
+    if (Platform.isIOS) return 'ios';
+    if (Platform.isAndroid) return 'android';
+    if (Platform.isMacOS) return 'macos';
+    if (Platform.isWindows) return 'windows';
+    return 'linux';
+  }
+
+  static bool get appleStore => !kIsWeb && (Platform.isIOS || isMacStore);
 }

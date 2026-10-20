@@ -680,7 +680,7 @@ class TableScreen extends StatelessWidget {
                   // ── توزيع الورق: أوراق تنطلق من مقعد الموزّع إلى الجميع ──
                   if (view.phase == GamePhase.dealing)
                     Positioned.fill(
-                      child: _DealingLayer(
+                      child: DealingLayer(
                         // مفتاح يُعيد بناء الطبقة بين نافذتَي التوزيع (افتتاح ثم الباقي).
                         key: ValueKey(view.dealingRest),
                         dealerSeat: view.dealerSeat,
@@ -1562,12 +1562,15 @@ class _BidBubble extends StatelessWidget {
 
 /// طبقة التوزيع: أوراق (ظهرها) تنطلق من حافة مقعد الموزّع إلى الجميع بالتتابع،
 /// ثم تتلاشى عند الوصول لتحلّ محلّها المراوح الحقيقية. عرضٌ محض عابر.
-class _DealingLayer extends StatefulWidget {
+/// طبقةُ حركة التوزيع (أوراقٌ تطير من الموزّع). عامّةٌ **للاختبار وحدَه** — انظر
+/// `test/deal_fade_test.dart`: كانت ترمي `Opacity` سالبًا عند وصول آخر ورقة.
+@visibleForTesting
+class DealingLayer extends StatefulWidget {
   final int dealerSeat;
   final double cardW;
   final int count; // كم ورقة تمثيلية تنطلق (٨ للافتتاح، ١٢ للثلاث الباقية)
   final Duration duration;
-  const _DealingLayer({
+  const DealingLayer({
     super.key,
     required this.dealerSeat,
     required this.cardW,
@@ -1576,10 +1579,10 @@ class _DealingLayer extends StatefulWidget {
   });
 
   @override
-  State<_DealingLayer> createState() => _DealingLayerState();
+  State<DealingLayer> createState() => DealingLayerState();
 }
 
-class _DealingLayerState extends State<_DealingLayer>
+class DealingLayerState extends State<DealingLayer>
     with SingleTickerProviderStateMixin {
   late final AnimationController _c =
       AnimationController(vsync: this, duration: widget.duration)..forward();
@@ -1624,7 +1627,12 @@ class _DealingLayerState extends State<_DealingLayer>
   }
 
   // تبقى ظاهرة طوال الرحلة ثم تتلاشى في آخر 15% عند الاستقرار.
-  double _fade(double raw) => raw < 0.85 ? 1.0 : (1 - (raw - 0.85) / 0.15);
+  ///
+  /// **`clamp` ضروريّ لا تجميل**: الفاصلةُ العائمة تجعل `1 - (1.0 - 0.85) / 0.15` يساوي
+  /// `-2.2e-16` لا صفرًا، و`Opacity` يرفض أيَّ قيمةٍ خارجَ [0،1] — فكانت شاشةُ خطأٍ
+  /// حمراءُ تومض لحظةَ وصول آخر ورقة في نسخة التطوير (`test/deal_fade_test.dart`).
+  double _fade(double raw) =>
+      raw < 0.85 ? 1.0 : (1 - (raw - 0.85) / 0.15).clamp(0.0, 1.0);
 }
 
 class _TrickCard extends StatefulWidget {

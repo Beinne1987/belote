@@ -1,14 +1,11 @@
 name: Belote macOS Release
 
 # يُشغَّل يدوياً أو عند الدفع إلى main — يبني Belote.app ويحزّمه DMG كـ artifact
+# ⛔ مُلغى من التشغيل التلقائيّ (قرار المالك 2026-09-30): نسخةُ ماك تُبنى **على الماك
+# نفسِه** (توقيعٌ وإشعاراتٌ ولا يصحّ بناءٌ غيرُ موقَّع). يبقى `workflow_dispatch` يدويًّا
+# احتياطًا فقط — لا تُشغَّل من تلقاء نفسها ولا تستهلك دقائقَ Actions.
 on:
   workflow_dispatch:
-  push:
-    branches: [ main ]
-    paths:
-      - 'app/**'
-      - 'packages/**'
-      - '.github/workflows/belote-macos.yml'
 
 concurrency:
   group: belote-macos-${{ github.ref }}

@@ -27,8 +27,9 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 enum _Phase { phone, code, password }
 
-class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
-  late final PhoneAuthenticator _auth = widget.phoneAuth ?? PhoneAuthService();
+class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> with ResendCountdown {
+  late final PhoneAuthenticator _auth =
+      widget.phoneAuth ?? RoutedPhoneAuth.standard(widget.api, OtpPurpose.reset);
 
   final _phone = TextEditingController();
   final _code = TextEditingController();
@@ -40,7 +41,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   bool _obscure = true;
   String? _error;
   String _sentPhone = '';
-  String? _idToken;
+  PhoneCredential? _credential;
 
   @override
   void dispose() {
@@ -50,27 +51,30 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     super.dispose();
   }
 
-  Future<void> _sendCode() async {
+  Future<void> _sendCode({OtpChannel channel = OtpChannel.sms, bool resend = false}) async {
     final local = _phone.text.replaceAll(RegExp(r'[^0-9]'), '');
     if (local.length < 6) {
       setState(() => _error = context.l10n.invalidPhone);
       return;
     }
-    if (!_auth.supported) {
+    final phone = toE164(_dial, _phone.text);
+    if (!_auth.supportsPhone(phone)) {
       setState(() => _error = context.l10n.phoneAuthUnsupported);
       return;
     }
     setState(() { _busy = true; _error = null; });
-    final phone = toE164(_dial, _phone.text);
     await _auth.sendCode(
       phoneE164: phone,
+      channel: channel,
+      resend: resend,
       onCodeSent: () {
         if (!mounted) return;
+        startResendCountdown();
         setState(() { _sentPhone = phone; _phase = _Phase.code; _busy = false; });
       },
-      onAutoVerified: (idToken) {
+      onAutoVerified: (credential) {
         if (!mounted) return;
-        setState(() { _idToken = idToken; _phase = _Phase.password; _busy = false; });
+        setState(() { _credential = credential; stopResendCountdown(); _phase = _Phase.password; _busy = false; });
       },
       onError: (msg) {
         if (mounted) setState(() { _error = msg; _busy = false; });
@@ -85,8 +89,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     }
     setState(() { _busy = true; _error = null; });
     try {
-      _idToken = await _auth.verifyCode(_code.text.trim());
+      _credential = await _auth.verifyCode(_code.text.trim());
       if (!mounted) return;
+      stopResendCountdown();
       setState(() { _phase = _Phase.password; _busy = false; });
     } on PhoneAuthException catch (e) {
       if (mounted) setState(() { _error = e.message; _busy = false; });
@@ -100,7 +105,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     }
     setState(() { _busy = true; _error = null; });
     try {
-      final session = await widget.api.resetPassword(idToken: _idToken!, password: _password.text);
+      final session = await widget.api.resetPassword(credential: _credential!, password: _password.text);
       if (!mounted) return;
       await widget.onAuthenticated(session);
     } on ApiException catch (e) {
@@ -118,7 +123,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           l.resetPasswordTitle,
           l.resetPasswordSub,
           l.sendCode,
-          _sendCode
+          () => _sendCode()
         ),
       _Phase.code => (
           Icons.sms_outlined,
@@ -143,6 +148,18 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       error: _error,
       primaryLabel: label,
       onPrimary: action,
+      secondary: switch (_phase) {
+        _Phase.code => resendActions(
+          context,
+          secondsLeft: resendLeft,
+          busy: _busy,
+          onResend: () => _sendCode(resend: true),
+          onWhatsApp: _auth.supportsWhatsApp(_sentPhone)
+              ? () => _sendCode(channel: OtpChannel.whatsapp, resend: true)
+              : null,
+        ),
+        _ => const <Widget>[],
+      },
       fields: switch (_phase) {
         _Phase.phone => [
             Row(

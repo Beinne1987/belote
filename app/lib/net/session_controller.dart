@@ -121,18 +121,31 @@ class SessionController extends ChangeNotifier {
       await refresh();
       // **كلُّ إقلاعٍ يُسجّل**: التوكن يُدوَّر، والخادم قد يفقد صفَّه، ولاعبٌ
       // مسجَّلٌ منذ شهرٍ قد لا يكون له عنوانٌ صالحٌ اليوم. التسجيل رخيصٌ (`put`
-      // تُحدّث صفًّا) وثمنُ إغفاله دعوةٌ لا تصل.
-      await _registerDevice();
+      // تُحدّث صفًّا) وثمنُ إغفاله دعوةٌ لا تصل. ولا يُنتظر (انظر [signIn]).
+      unawaited(_registerDevice());
     }
   }
 
-  /// مصادقة جديدة: يحفظ الجلسة ويجلب بياناتها.
+  /// مصادقة جديدة: يحفظ الجلسة فورًا، ثم يحدّث بيانات الحساب في الخلفية.
   Future<void> signIn(AuthSession s) async {
     _session = s;
     await store.save(s);
     notifyListeners();
-    await refresh();
-    await _registerDevice();
+    // لا نؤخر الانتقال إلى التطبيق بانتظار طلبات ثانوية (المحفظة، الإحصاءات،
+    // الإشعارات...). قد تتعطل هذه الطلبات على macOS رغم نجاح تسجيل الدخول.
+    unawaited(_refreshAfterSignIn());
+    // **لا ننتظره**: على ماك قد لا يصل توكنُ APNs أبدًا فيعلّق `getToken()` —
+    // رفضُ مراجعة Apple (2026-10-11): «الدخول يدور بلا نهاية». الإشعاراتُ تحسينٌ
+    // لا شرطٌ للدخول.
+    unawaited(_registerDevice());
+  }
+
+  Future<void> _refreshAfterSignIn() async {
+    try {
+      await refresh();
+    } catch (_) {
+      // فشل تحديث بيانات الحساب لا يلغي جلسةً حُفظت بنجاح.
+    }
   }
 
   /// يطلب الإذن ويُسجّل التوكن. **لا يرمي ولا يُبطئ**: من رفض الإذن يلعب كما كان.
@@ -141,7 +154,9 @@ class SessionController extends ChangeNotifier {
     final s = _session;
     if (p == null || s == null) return;
     try {
-      final t = await p.requestToken();
+      final t = await p
+          .requestToken()
+          .timeout(const Duration(seconds: 15), onTimeout: () => null);
       if (t == null) return; // رُفض الإذن — ليس عطبًا
       _deviceToken = t;
       await api.putDeviceToken(s.token, t);
@@ -245,6 +260,30 @@ class SessionController extends ChangeNotifier {
     if (s == null) return;
     _wallet = await api.buyGiftBundle(s.token, bundleId);
     notifyListeners();
+  }
+
+  /// يدفع باقةَ ماسٍ ببنكيلي ويُحدّث المحفظةَ من الردّ نفسِه. يُعيد الماسَ الممنوح
+  /// (صفرٌ لعمليّةٍ مكرّرةٍ مُنحت سابقًا). يُمرِّر [ApiException] كما هي.
+  Future<int> bankilyPay(String packId, String phone, String code) async {
+    final s = _session;
+    if (s == null) return 0;
+    final r = await api.bankilyPay(s.token, packId, phone, code);
+    _wallet = r.wallet;
+    notifyListeners();
+    return r.diamonds;
+  }
+
+  /// يُرسل إيصالَ شراءٍ من المتجر ويُحدّث المحفظةَ. يُعيد `true` إن أنجز الخادمُ
+  /// العمليّةَ (ممنوحةً الآن أو سبق منحُها) — **فحينها وحدَها** يُنهي التطبيقُ
+  /// العمليّةَ عند المتجر. يُمرِّر [ApiException] كما هي.
+  Future<bool> verifyStorePurchase(
+      String platform, String productId, String data) async {
+    final s = _session;
+    if (s == null) return false;
+    final r = await api.verifyStorePurchase(s.token, platform, productId, data);
+    _wallet = r.wallet;
+    notifyListeners();
+    return true;
   }
 
   /// يشتري تذكرةً ويُحدّث **المحفظةَ والعدّادَ من ردّ الشراء نفسِه**.

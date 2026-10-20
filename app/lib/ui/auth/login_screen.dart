@@ -67,6 +67,13 @@ class _LoginScreenState extends State<LoginScreen> {
           _busy = false;
         });
       }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _error = AppText.s.errLoginFailed;
+          _busy = false;
+        });
+      }
     }
   }
 

@@ -506,12 +506,6 @@ abstract class AppLocalizations {
   /// **'الدعم الفنّي'**
   String get supportSection;
 
-  /// No description provided for @supportWhatsapp.
-  ///
-  /// In ar, this message translates to:
-  /// **'واتساب'**
-  String get supportWhatsapp;
-
   /// No description provided for @supportEmail.
   ///
   /// In ar, this message translates to:
@@ -2351,7 +2345,7 @@ abstract class AppLocalizations {
   /// No description provided for @desktopAuthNote.
   ///
   /// In ar, this message translates to:
-  /// **'إنشاءُ الحساب واستعادةُ كلمة السرّ يحتاجان رمزًا بالرسائل ⇒ من تطبيق الهاتف. وتسجيلُ الدخول هنا يعمل كاملًا.'**
+  /// **'إنشاءُ الحساب واستعادةُ كلمة السرّ هنا للأرقام الموريتانيّة (+222)؛ والأرقامُ الأخرى من تطبيق الهاتف. وتسجيلُ الدخول يعمل كاملًا.'**
   String get desktopAuthNote;
 
   /// No description provided for @continueAsGuest.
@@ -3661,6 +3655,330 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'تعذّر التحديث — تحقّق من الاتصال وحاول لاحقًا'**
   String get errUpdateGeneric;
+
+  /// No description provided for @bankilyBuy.
+  ///
+  /// In ar, this message translates to:
+  /// **'شراء عبر بنكيلي'**
+  String get bankilyBuy;
+
+  /// No description provided for @bankilySoonBadge.
+  ///
+  /// In ar, this message translates to:
+  /// **'قريبًا'**
+  String get bankilySoonBadge;
+
+  /// No description provided for @bankilyTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'الدفع عبر بنكيلي'**
+  String get bankilyTitle;
+
+  /// No description provided for @bankilySoonBanner.
+  ///
+  /// In ar, this message translates to:
+  /// **'الدفع عبر بنكيلي قريبًا. هذه هي الخطوات، وسيعمل زرّ التأكيد فور تفعيله — دون تحديث التطبيق.'**
+  String get bankilySoonBanner;
+
+  /// No description provided for @bankilyStepOf.
+  ///
+  /// In ar, this message translates to:
+  /// **'الخطوة {step} من 4'**
+  String bankilyStepOf(int step);
+
+  /// No description provided for @bankilyStep1Title.
+  ///
+  /// In ar, this message translates to:
+  /// **'افتح تطبيق بنكيلي'**
+  String get bankilyStep1Title;
+
+  /// No description provided for @bankilyStep1Body.
+  ///
+  /// In ar, this message translates to:
+  /// **'افتح بنكيلي على هاتفك واذهب إلى قسم B-PAY.'**
+  String get bankilyStep1Body;
+
+  /// No description provided for @bankilyStep2Title.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدخل رمز التاجر والمبلغ'**
+  String get bankilyStep2Title;
+
+  /// No description provided for @bankilyStep2Body.
+  ///
+  /// In ar, this message translates to:
+  /// **'في B-PAY أدخل رمز التاجر والمبلغ كما هما هنا بالضبط.'**
+  String get bankilyStep2Body;
+
+  /// No description provided for @bankilyMerchantCode.
+  ///
+  /// In ar, this message translates to:
+  /// **'رمز التاجر'**
+  String get bankilyMerchantCode;
+
+  /// No description provided for @bankilyAmount.
+  ///
+  /// In ar, this message translates to:
+  /// **'المبلغ'**
+  String get bankilyAmount;
+
+  /// No description provided for @bankilyStep3Title.
+  ///
+  /// In ar, this message translates to:
+  /// **'استلم الرمز'**
+  String get bankilyStep3Title;
+
+  /// No description provided for @bankilyStep3Body.
+  ///
+  /// In ar, this message translates to:
+  /// **'سيرسل لك بنكيلي رمزًا من 4 أرقام لتأكيد العملية.'**
+  String get bankilyStep3Body;
+
+  /// No description provided for @bankilyStep4Title.
+  ///
+  /// In ar, this message translates to:
+  /// **'أكمل الدفع'**
+  String get bankilyStep4Title;
+
+  /// No description provided for @bankilyStep4Body.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدخل رقم هاتف بنكيلي والرمز الذي وصلك.'**
+  String get bankilyStep4Body;
+
+  /// No description provided for @bankilyPhone.
+  ///
+  /// In ar, this message translates to:
+  /// **'رقم هاتف بنكيلي'**
+  String get bankilyPhone;
+
+  /// No description provided for @bankilyCode.
+  ///
+  /// In ar, this message translates to:
+  /// **'الرمز المستلم من بنكيلي'**
+  String get bankilyCode;
+
+  /// No description provided for @bankilyConfirm.
+  ///
+  /// In ar, this message translates to:
+  /// **'تأكيد الدفع'**
+  String get bankilyConfirm;
+
+  /// No description provided for @bankilyNext.
+  ///
+  /// In ar, this message translates to:
+  /// **'متابعة'**
+  String get bankilyNext;
+
+  /// No description provided for @bankilyBack.
+  ///
+  /// In ar, this message translates to:
+  /// **'رجوع'**
+  String get bankilyBack;
+
+  /// No description provided for @bankilyCopied.
+  ///
+  /// In ar, this message translates to:
+  /// **'نُسخ'**
+  String get bankilyCopied;
+
+  /// No description provided for @bankilyYouGet.
+  ///
+  /// In ar, this message translates to:
+  /// **'ستحصل على {diamonds} ماسة'**
+  String bankilyYouGet(int diamonds);
+
+  /// No description provided for @bankilySuccess.
+  ///
+  /// In ar, this message translates to:
+  /// **'وصل ماسُك! أُضيفت {diamonds} ماسة إلى رصيدك.'**
+  String bankilySuccess(int diamonds);
+
+  /// No description provided for @bankilyErrPhone.
+  ///
+  /// In ar, this message translates to:
+  /// **'رقم الهاتف 8 أرقام يبدأ بـ 2 أو 3 أو 4'**
+  String get bankilyErrPhone;
+
+  /// No description provided for @bankilyErrCode.
+  ///
+  /// In ar, this message translates to:
+  /// **'الرمز 4 أرقام'**
+  String get bankilyErrCode;
+
+  /// No description provided for @bankilyErrRejected.
+  ///
+  /// In ar, this message translates to:
+  /// **'رفض بنكيلي العملية — تحقّق من الرمز وحاول مجددًا'**
+  String get bankilyErrRejected;
+
+  /// No description provided for @bankilyErrUnreachable.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر الوصول إلى بنكيلي — حاول بعد قليل'**
+  String get bankilyErrUnreachable;
+
+  /// No description provided for @devCredit.
+  ///
+  /// In ar, this message translates to:
+  /// **'برمجة وتطوير'**
+  String get devCredit;
+
+  /// No description provided for @devName.
+  ///
+  /// In ar, this message translates to:
+  /// **'محمد الأمين بينة'**
+  String get devName;
+
+  /// No description provided for @bankilyTapToCopy.
+  ///
+  /// In ar, this message translates to:
+  /// **'اضغط للنسخ'**
+  String get bankilyTapToCopy;
+
+  /// No description provided for @storeBuyChoose.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختر طريقة الدفع'**
+  String get storeBuyChoose;
+
+  /// No description provided for @storeBuyViaApple.
+  ///
+  /// In ar, this message translates to:
+  /// **'الدفع عبر Apple'**
+  String get storeBuyViaApple;
+
+  /// No description provided for @storeBuyViaGoogle.
+  ///
+  /// In ar, this message translates to:
+  /// **'الدفع عبر Google Play'**
+  String get storeBuyViaGoogle;
+
+  /// No description provided for @storeBuyViaStoreSub.
+  ///
+  /// In ar, this message translates to:
+  /// **'بطاقة أو رصيد المتجر'**
+  String get storeBuyViaStoreSub;
+
+  /// No description provided for @storeBuyViaBankilySub.
+  ///
+  /// In ar, this message translates to:
+  /// **'من محفظتك في بنكيلي'**
+  String get storeBuyViaBankilySub;
+
+  /// No description provided for @storeBuyCancelled.
+  ///
+  /// In ar, this message translates to:
+  /// **'أُلغيت العملية'**
+  String get storeBuyCancelled;
+
+  /// No description provided for @storeBuyUnavailable.
+  ///
+  /// In ar, this message translates to:
+  /// **'الشراء من المتجر غير متاح الآن'**
+  String get storeBuyUnavailable;
+
+  /// No description provided for @storeBuyFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر إتمام الشراء — إن خُصم المبلغ فسيصلك الماس تلقائيًا عند فتح التطبيق مجددًا'**
+  String get storeBuyFailed;
+
+  /// No description provided for @pulseTopPlayers.
+  ///
+  /// In ar, this message translates to:
+  /// **'أفضل اللاعبين'**
+  String get pulseTopPlayers;
+
+  /// No description provided for @pulseLiveNow.
+  ///
+  /// In ar, this message translates to:
+  /// **'مباريات جارية الآن'**
+  String get pulseLiveNow;
+
+  /// No description provided for @pulseWatchers.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count} يشاهدون'**
+  String pulseWatchers(int count);
+
+  /// No description provided for @pulseSeeAll.
+  ///
+  /// In ar, this message translates to:
+  /// **'عرض الكل'**
+  String get pulseSeeAll;
+
+  /// No description provided for @privacyPolicy.
+  ///
+  /// In ar, this message translates to:
+  /// **'سياسة الخصوصية'**
+  String get privacyPolicy;
+
+  /// No description provided for @helpAndSupport.
+  ///
+  /// In ar, this message translates to:
+  /// **'المساعدة والدعم'**
+  String get helpAndSupport;
+
+  /// No description provided for @appStoreBuySoon.
+  ///
+  /// In ar, this message translates to:
+  /// **'الشراء عبر App Store — قريبًا.'**
+  String get appStoreBuySoon;
+
+  /// No description provided for @errLoginFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر إكمال تسجيل الدخول. حاول مرة أخرى.'**
+  String get errLoginFailed;
+
+  /// No description provided for @errCodeInvalidLeft.
+  ///
+  /// In ar, this message translates to:
+  /// **'الرمز غير صحيح — بقيت {count} محاولات'**
+  String errCodeInvalidLeft(int count);
+
+  /// No description provided for @errOtpRetryAfter.
+  ///
+  /// In ar, this message translates to:
+  /// **'طلباتٌ كثيرة — حاول بعد {seconds} ثانية'**
+  String errOtpRetryAfter(int seconds);
+
+  /// No description provided for @errOtpUnavailable.
+  ///
+  /// In ar, this message translates to:
+  /// **'خدمةُ الرسائل غير متاحةٍ الآن — حاول بعد قليل'**
+  String get errOtpUnavailable;
+
+  /// No description provided for @errPhoneTaken.
+  ///
+  /// In ar, this message translates to:
+  /// **'لهذا الرقم حسابٌ مسبقًا — سجّل الدخول'**
+  String get errPhoneTaken;
+
+  /// No description provided for @errPhoneUnknown.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا يوجد حسابٌ بهذا الرقم'**
+  String get errPhoneUnknown;
+
+  /// No description provided for @resendCodeIn.
+  ///
+  /// In ar, this message translates to:
+  /// **'إعادة الإرسال بعد {seconds} ث'**
+  String resendCodeIn(int seconds);
+
+  /// No description provided for @resendCode.
+  ///
+  /// In ar, this message translates to:
+  /// **'أعد إرسال الرمز'**
+  String get resendCode;
+
+  /// No description provided for @sendViaWhatsApp.
+  ///
+  /// In ar, this message translates to:
+  /// **'أرسل الرمز عبر واتساب'**
+  String get sendViaWhatsApp;
 }
 
 class _AppLocalizationsDelegate

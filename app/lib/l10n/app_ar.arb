@@ -27,11 +27,22 @@
   "rankName7": "الست",
   "cardName": "{rank} {suit}",
   "@cardName": {
-    "placeholders": { "rank": {"type": "String"}, "suit": {"type": "String"} }
+    "placeholders": {
+      "rank": {
+        "type": "String"
+      },
+      "suit": {
+        "type": "String"
+      }
+    }
   },
   "foujaCardHint": "{card} — مخالفة",
   "@foujaCardHint": {
-    "placeholders": { "card": {"type": "String"} }
+    "placeholders": {
+      "card": {
+        "type": "String"
+      }
+    }
   },
   "bidWithAkwins": "{bid} · أكوينس",
   "@bidWithAkwins": {
@@ -92,7 +103,6 @@
   "settingsSound": "الصوت",
   "howToPlay": "كيف تلعب",
   "supportSection": "الدعم الفنّي",
-  "supportWhatsapp": "واتساب",
   "supportEmail": "البريد الإلكتروني",
   "openFailed": "تعذّر الفتح على هذا الجهاز.",
   "save": "حفظ",
@@ -852,7 +862,7 @@
   },
   "authTagline": "العب مع أصدقائك حول العالم",
   "createAccount": "إنشاء حساب",
-  "desktopAuthNote": "إنشاءُ الحساب واستعادةُ كلمة السرّ يحتاجان رمزًا بالرسائل ⇒ من تطبيق الهاتف. وتسجيلُ الدخول هنا يعمل كاملًا.",
+  "desktopAuthNote": "إنشاءُ الحساب واستعادةُ كلمة السرّ هنا للأرقام الموريتانيّة (+222)؛ والأرقامُ الأخرى من تطبيق الهاتف. وتسجيلُ الدخول يعمل كاملًا.",
   "continueAsGuest": "الدخول كضيف",
   "invalidPhone": "أدخل رقم هاتف صالحًا",
   "phoneAuthUnsupported": "الدخول بالهاتف غير مدعوم على هذه المنصّة",
@@ -1257,5 +1267,108 @@
       }
     }
   },
-  "errUpdateGeneric": "تعذّر التحديث — تحقّق من الاتصال وحاول لاحقًا"
+  "errUpdateGeneric": "تعذّر التحديث — تحقّق من الاتصال وحاول لاحقًا",
+  "bankilyBuy": "شراء عبر بنكيلي",
+  "bankilySoonBadge": "قريبًا",
+  "bankilyTitle": "الدفع عبر بنكيلي",
+  "bankilySoonBanner": "الدفع عبر بنكيلي قريبًا. هذه هي الخطوات، وسيعمل زرّ التأكيد فور تفعيله — دون تحديث التطبيق.",
+  "bankilyStepOf": "الخطوة {step} من 4",
+  "@bankilyStepOf": {
+    "placeholders": {
+      "step": {
+        "type": "int"
+      }
+    }
+  },
+  "bankilyStep1Title": "افتح تطبيق بنكيلي",
+  "bankilyStep1Body": "افتح بنكيلي على هاتفك واذهب إلى قسم B-PAY.",
+  "bankilyStep2Title": "أدخل رمز التاجر والمبلغ",
+  "bankilyStep2Body": "في B-PAY أدخل رمز التاجر والمبلغ كما هما هنا بالضبط.",
+  "bankilyMerchantCode": "رمز التاجر",
+  "bankilyAmount": "المبلغ",
+  "bankilyStep3Title": "استلم الرمز",
+  "bankilyStep3Body": "سيرسل لك بنكيلي رمزًا من 4 أرقام لتأكيد العملية.",
+  "bankilyStep4Title": "أكمل الدفع",
+  "bankilyStep4Body": "أدخل رقم هاتف بنكيلي والرمز الذي وصلك.",
+  "bankilyPhone": "رقم هاتف بنكيلي",
+  "bankilyCode": "الرمز المستلم من بنكيلي",
+  "bankilyConfirm": "تأكيد الدفع",
+  "bankilyNext": "متابعة",
+  "bankilyBack": "رجوع",
+  "bankilyCopied": "نُسخ",
+  "bankilyYouGet": "ستحصل على {diamonds} ماسة",
+  "@bankilyYouGet": {
+    "placeholders": {
+      "diamonds": {
+        "type": "int"
+      }
+    }
+  },
+  "bankilySuccess": "وصل ماسُك! أُضيفت {diamonds} ماسة إلى رصيدك.",
+  "@bankilySuccess": {
+    "placeholders": {
+      "diamonds": {
+        "type": "int"
+      }
+    }
+  },
+  "bankilyErrPhone": "رقم الهاتف 8 أرقام يبدأ بـ 2 أو 3 أو 4",
+  "bankilyErrCode": "الرمز 4 أرقام",
+  "bankilyErrRejected": "رفض بنكيلي العملية — تحقّق من الرمز وحاول مجددًا",
+  "bankilyErrUnreachable": "تعذّر الوصول إلى بنكيلي — حاول بعد قليل",
+  "devCredit": "برمجة وتطوير",
+  "devName": "محمد الأمين بينة",
+  "bankilyTapToCopy": "اضغط للنسخ",
+  "storeBuyChoose": "اختر طريقة الدفع",
+  "storeBuyViaApple": "الدفع عبر Apple",
+  "storeBuyViaGoogle": "الدفع عبر Google Play",
+  "storeBuyViaStoreSub": "بطاقة أو رصيد المتجر",
+  "storeBuyViaBankilySub": "من محفظتك في بنكيلي",
+  "storeBuyCancelled": "أُلغيت العملية",
+  "storeBuyUnavailable": "الشراء من المتجر غير متاح الآن",
+  "storeBuyFailed": "تعذّر إتمام الشراء — إن خُصم المبلغ فسيصلك الماس تلقائيًا عند فتح التطبيق مجددًا",
+  "pulseTopPlayers": "أفضل اللاعبين",
+  "pulseLiveNow": "مباريات جارية الآن",
+  "pulseWatchers": "{count} يشاهدون",
+  "@pulseWatchers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pulseSeeAll": "عرض الكل",
+  "privacyPolicy": "سياسة الخصوصية",
+  "helpAndSupport": "المساعدة والدعم",
+  "appStoreBuySoon": "الشراء عبر App Store — قريبًا.",
+  "errLoginFailed": "تعذّر إكمال تسجيل الدخول. حاول مرة أخرى.",
+  "errCodeInvalidLeft": "الرمز غير صحيح — بقيت {count} محاولات",
+  "@errCodeInvalidLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "errOtpRetryAfter": "طلباتٌ كثيرة — حاول بعد {seconds} ثانية",
+  "@errOtpRetryAfter": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "errOtpUnavailable": "خدمةُ الرسائل غير متاحةٍ الآن — حاول بعد قليل",
+  "errPhoneTaken": "لهذا الرقم حسابٌ مسبقًا — سجّل الدخول",
+  "errPhoneUnknown": "لا يوجد حسابٌ بهذا الرقم",
+  "resendCodeIn": "إعادة الإرسال بعد {seconds} ث",
+  "@resendCodeIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "resendCode": "أعد إرسال الرمز",
+  "sendViaWhatsApp": "أرسل الرمز عبر واتساب"
 }

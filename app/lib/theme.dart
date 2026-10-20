@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'theme/belote_theme.dart';
+
 /// ألوان الواجهة وأنسجتها — **المصدر الوحيد** للّون.
 ///
 /// لا تُكتب قيمة لون (Color(0x…)) مباشرةً في أي ملف آخر؛ خذها من هنا.
@@ -47,17 +49,20 @@ class Palette {
   static const Color cardShadow = Color(0x55000000);
 }
 
-/// السمة العامة: خلفية داكنة، Material 3، اتجاه سيُضبط RTL في التطبيق.
-/// الخط `null` = خط النظام مؤقتاً.
-ThemeData buildTheme() {
+/// السمة العامة: Material 3، اتجاه سيُضبط RTL في التطبيق. الخط `null` = خط النظام مؤقتاً.
+///
+/// **من الثيم النشط لا من ثابتٍ أخضر**: خلفيّةُ `Scaffold` تظهر حيث لا تغطّي الشاشةُ
+/// (تحت الشريط السفليّ على الهاتف، أطرافُ الحوارات…) — كانت `Palette.feltEdge`
+/// الخضراءَ فظهر شريطٌ أخضرُ أسفلَ كلِّ ثيمٍ غير الكلاسيكيّ.
+ThemeData buildTheme([BeloteTheme? theme]) {
   final scheme = ColorScheme.fromSeed(
-    seedColor: Palette.feltCenter,
-    brightness: Brightness.dark,
+    seedColor: theme?.bg ?? Palette.feltCenter,
+    brightness: theme?.brightness ?? Brightness.dark,
   );
   return ThemeData(
     useMaterial3: true,
     colorScheme: scheme,
-    scaffoldBackgroundColor: Palette.feltEdge,
+    scaffoldBackgroundColor: theme?.gradBottom ?? Palette.feltEdge,
     fontFamily: null,
   );
 }

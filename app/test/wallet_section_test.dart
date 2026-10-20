@@ -56,6 +56,7 @@ Future<SessionController> _session(MockClient client) async {
       api: ApiClient(config: _config, httpClient: client), store: SessionStore());
   await s.signIn(AuthSession(
       token: 'TOK', player: AccountPlayer.fromJson(_player()), isNew: false));
+  await s.refresh(); // signIn لا ينتظر التحديث (لا يعلّق الدخول) — ننتظره هنا
   return s;
 }
 

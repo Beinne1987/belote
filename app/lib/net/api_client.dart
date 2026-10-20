@@ -7,6 +7,19 @@ import 'api_config.dart';
 import '../l10n/app_text.dart';
 import 'player_rank.dart';
 
+/// **ترويسةُ العميل** على كلّ طلب: المنصّةُ وقناةُ التوزيع والإصدار — تسمح للوحة
+/// التحكّم بفصل الدخل والأجهزة حسب Apple/أندرويد/ويندوز (طلب المالك 2026-10-03).
+/// تُملأ مرّةً عند الإقلاع ([setClientHeaders]). لا بياناتٍ شخصيّةَ فيها.
+Map<String, String> clientHeaders = const {};
+
+void setClientHeaders(
+        {required String platform, required String channel, String? version}) =>
+    clientHeaders = {
+      'x-belote-platform': platform,
+      'x-belote-channel': channel,
+      if (version != null) 'x-belote-version': version,
+    };
+
 /// نوعُ الإشعار — يُملي **أين تذهب اللمسة** وأيُّ أيقونةٍ تُرسم.
 ///
 /// **`unknown` عضوٌ أصيلٌ لا خطأ**: خادمٌ أحدثُ سيبثّ أنواعًا لم تكن يوم بُنيت
@@ -280,6 +293,39 @@ class LeaderEntry {
 ///
 /// [price] بالأوقية و[total] ماسًا — وهما متساويان أساسًا (`1💎 = 1 أوقية`)،
 /// والفرقُ بونصٌ فوق السعر لا خصمٌ عليه.
+/// **إعدادُ بنكيلي كما يدفعه الخادم** (`/store/payment`): رمزُ التاجر يتبدّل من
+/// لوحة التحكّم بلا بناء، و[live] يقول هل يعمل الدفعُ الآن أم «قريبًا».
+class BankilyConfig {
+  final String merchantCode;
+  final bool live;
+
+  /// هل يتحقّق الخادمُ من إيصالات المتجر؟ (`store.ios` / `store.android`) —
+  /// مُطفأٌ حتى يجهز الحسابُ البنكيّ ومفاتيحُ التحقّق.
+  final bool storeIos;
+  final bool storeAndroid;
+
+  const BankilyConfig({
+    required this.merchantCode,
+    required this.live,
+    this.storeIos = false,
+    this.storeAndroid = false,
+  });
+
+  /// خادمٌ قديمٌ بلا المسار ⇒ «قريبًا» بالرمز الافتراضيّ — لا زرَّ يفشل.
+  static const fallback = BankilyConfig(merchantCode: '0017', live: false);
+
+  factory BankilyConfig.fromJson(Map<String, dynamic> j) {
+    final b = j['bankily'] as Map<String, dynamic>? ?? const {};
+    final s = j['store'] as Map<String, dynamic>? ?? const {};
+    return BankilyConfig(
+      merchantCode: b['merchantCode'] as String? ?? fallback.merchantCode,
+      live: b['live'] as bool? ?? false,
+      storeIos: s['ios'] as bool? ?? false,
+      storeAndroid: s['android'] as bool? ?? false,
+    );
+  }
+}
+
 class DiamondPackView {
   final String id;
   final int price; // أوقية
@@ -584,10 +630,28 @@ class AuthSession {
 }
 
 /// خطأٌ من الخادم برسالةٍ عربيّة جاهزة للعرض. الحقل `status` = رمز HTTP (0 = فشل شبكة).
+/// إثباتُ ملكيّة رقم الهاتف كما يقبله `/auth/register` و`/auth/reset-password`:
+/// توكن هويّة Firebase (كلّ الأرقام)، أو `phoneProof` من خادمنا (+222 عبر ChinqIT).
+class PhoneCredential {
+  final String? idToken;
+  final String? phoneProof;
+  const PhoneCredential.firebase(String this.idToken) : phoneProof = null;
+  const PhoneCredential.proof(String this.phoneProof) : idToken = null;
+
+  Map<String, String> toJson() =>
+      idToken != null ? {'idToken': idToken!} : {'phoneProof': phoneProof!};
+}
+
 class ApiException implements Exception {
   final int status;
   final String message;
-  const ApiException(this.status, this.message);
+
+  /// جسمُ ردّ الخطأ كما هو (رموزٌ ثابتة مثل `error`/`retriesLeft`/`retryAfter`) — فارغٌ لفشل الشبكة.
+  final Map<String, dynamic> body;
+  const ApiException(this.status, this.message, {this.body = const {}});
+
+  /// رمزُ الخطأ الثابت إن أرسله الخادم (مسارات OTP).
+  String? get code => body['error'] as String?;
   @override
   String toString() => 'ApiException($status): $message';
 }
@@ -1142,16 +1206,16 @@ class ApiClient {
     return _session(j);
   }
 
-  /// **إنشاء حساب:** توكن هويّة Firebase (يُثبت الهاتف بعد OTP) + كلمة سرّ + ملف.
+  /// **إنشاء حساب:** إثباتُ الهاتف (توكن Firebase أو إثباتُ خادمنا لـ +222) + كلمة سرّ + ملف.
   Future<AuthSession> register({
-    required String idToken,
+    required PhoneCredential credential,
     required String password,
     String? displayName,
     String? countryCode,
     String? city,
   }) async {
     final j = await _post('/auth/register', {
-      'idToken': idToken,
+      ...credential.toJson(),
       'password': password,
       if (displayName != null) 'displayName': displayName,
       if (countryCode != null) 'countryCode': countryCode,
@@ -1160,13 +1224,46 @@ class ApiClient {
     return _session(j);
   }
 
-  /// **استعادة كلمة السرّ:** توكن هويّة Firebase (بعد OTP) + كلمة سرّ جديدة ⇒ جلسة.
+  /// **استعادة كلمة السرّ:** إثباتُ الهاتف (بعد OTP) + كلمة سرّ جديدة ⇒ جلسة.
   Future<AuthSession> resetPassword({
-    required String idToken,
+    required PhoneCredential credential,
     required String password,
   }) async {
-    final j = await _post('/auth/reset-password', {'idToken': idToken, 'password': password});
+    final j = await _post('/auth/reset-password', {...credential.toJson(), 'password': password});
     return _session(j);
+  }
+
+  /// **OTP موريتانيّ (ChinqIT عبر خادمنا):** يرسل رمزًا إلى رقم +222.
+  /// [purpose] `register|reset` ⇒ الخادم يرفض قبل الإرسال رقمًا مأخوذًا/مجهولًا (لا رصيدَ محروق).
+  Future<void> otpSend({
+    required String phone,
+    required String channel,
+    required String purpose,
+    required String lang,
+    required String deviceId,
+  }) =>
+      _post('/otp/send', {
+        'phone': phone,
+        'channel': channel,
+        'purpose': purpose,
+        'lang': lang,
+        'deviceId': deviceId,
+      });
+
+  /// يتحقّق من رمز ChinqIT ⇒ `phoneProof` (إثباتٌ قصيرٌ لمرّةٍ واحدة يقبله التسجيل/الاستعادة).
+  Future<String> otpVerify({
+    required String phone,
+    required String otp,
+    required String channel,
+    required String deviceId,
+  }) async {
+    final j = await _post('/otp/verify',
+        {'phone': phone, 'otp': otp, 'channel': channel, 'deviceId': deviceId});
+    final proof = j['phoneProof'];
+    if (proof is! String || proof.isEmpty) {
+      throw ApiException(500, AppText.s.errTokenFailed);
+    }
+    return proof;
   }
 
   AuthSession _session(Map<String, dynamic> j) => AuthSession(
@@ -1214,6 +1311,7 @@ class ApiClient {
     final j = await _send(() => _http.post(
           config.http('/me/avatar'),
           headers: {
+            ...clientHeaders,
             'authorization': 'Bearer $token',
             'content-type': 'application/octet-stream',
           },
@@ -1297,14 +1395,11 @@ class ApiClient {
   // ── الأصدقاء ──
 
   /// قوائمي الثلاث: أصدقاءٌ · طلباتٌ واردة · طلباتٌ صادرة.
-  /// قنواتُ الدعم الفنّي (واتساب/بريد) — يدفعها الخادم فتُضبَط يومَ تجهز الوسائل
-  /// بلا تحديث تطبيق. حقلٌ فارغٌ ⇒ القناة غير جاهزة (يُخفيها قسمُ الإعدادات).
-  Future<({String whatsapp, String email})> support() async {
+  /// بريدُ الدعم الفنّي — يدفعه الخادم فيُضبَط بلا تحديث تطبيق. فارغٌ ⇒ غير
+  /// جاهز (يُخفيه قسمُ الإعدادات). لا واتساب (أُزيل بطلب المالك 2026-09-29).
+  Future<String> supportEmail() async {
     final j = await _get('/support');
-    return (
-      whatsapp: j['whatsapp'] as String? ?? '',
-      email: j['email'] as String? ?? '',
-    );
+    return j['email'] as String? ?? '';
   }
 
   /// المباريات الحيّة القابلة للمشاهدة — الأكثرُ جمهورًا أوّلًا ([[spectator-system]]).
@@ -1632,6 +1727,46 @@ class ApiClient {
     ];
   }
 
+  /// **إعدادُ بنكيلي** — عامٌّ بلا توكن. يفشل ⇒ «قريبًا» ([BankilyConfig.fallback]).
+  Future<BankilyConfig> bankilyConfig() async {
+    try {
+      return BankilyConfig.fromJson(await _get('/store/payment'));
+    } catch (_) {
+      return BankilyConfig.fallback;
+    }
+  }
+
+  /// **يؤكّد دفعةَ بنكيلي** لباقة [packId]: الخادمُ يتحقّق عند بنكيلي ثمّ يمنح.
+  /// يُعيد الماسَ الممنوحَ والمحفظة. يرمي [ApiException] برمزٍ في `message`
+  /// (`bankily_soon` · `bad_phone` · `bad_code` · `bankily_unreachable` …).
+  Future<({int diamonds, Map<String, int> wallet})> bankilyPay(
+      String token, String packId, String phone, String code) async {
+    final j = await _post('/me/bankily/pay',
+        {'pack': packId, 'phone': phone, 'code': code},
+        token: token);
+    final w = j['wallet'] as Map<String, dynamic>? ?? const {};
+    return (
+      diamonds: (j['diamonds'] as num?)?.toInt() ?? 0,
+      wallet: {for (final e in w.entries) e.key: (e.value as num?)?.toInt() ?? 0},
+    );
+  }
+
+  /// **يرسل إيصالَ المتجر للتحقّق** ثمّ يُمنَح الماس. [productId] معرّفُ المنتج،
+  /// و[data] ما في `verificationData.serverVerificationData`. يرمي [ApiException]
+  /// برمزٍ في `message` (`iap_unavailable` · `bad_receipt` · `store_unreachable`).
+  Future<({int diamonds, Map<String, int> wallet, bool duplicate})> verifyStorePurchase(
+      String token, String platform, String productId, String data) async {
+    final j = await _post('/me/iap/verify',
+        {'platform': platform, 'productId': productId, 'data': data},
+        token: token);
+    final w = j['wallet'] as Map<String, dynamic>? ?? const {};
+    return (
+      diamonds: (j['diamonds'] as num?)?.toInt() ?? 0,
+      wallet: {for (final e in w.entries) e.key: (e.value as num?)?.toInt() ?? 0},
+      duplicate: j['duplicate'] as bool? ?? false,
+    );
+  }
+
   /// **باقات الهدايا المعروضة** — بلا توكن: الأسعار ليست سرًّا.
   ///
   /// الثمنُ يأتي من الخادم ولا يُحسَب هنا: نسخةٌ ثانيةٌ من معادلة الخصم تنجرف عن
@@ -1687,6 +1822,7 @@ class ApiClient {
       _send(() => _http.post(
             config.http(path),
             headers: {
+              ...clientHeaders,
               'content-type': 'application/json',
               if (token != null) 'authorization': 'Bearer $token',
             },
@@ -1696,7 +1832,7 @@ class ApiClient {
   Future<Map<String, dynamic>> _delete(String path, {String? token}) =>
       _send(() => _http.delete(
             config.http(path),
-            headers: {if (token != null) 'authorization': 'Bearer $token'},
+            headers: {...clientHeaders, if (token != null) 'authorization': 'Bearer $token'},
           ));
 
   /// GET، بتوكن Bearer اختياريّ (المسارات العامّة كالتصنيف بلا توكن).
@@ -1706,7 +1842,7 @@ class ApiClient {
             query == null || query.isEmpty
                 ? config.http(path)
                 : config.http(path).replace(queryParameters: query),
-            headers: {if (token != null) 'authorization': 'Bearer $token'},
+            headers: {...clientHeaders, if (token != null) 'authorization': 'Bearer $token'},
           ));
 
   /// ينفّذ الطلب ويوحّد معالجة الأخطاء: يقرأ `error` العربيّ من الخادم عند فشل الحالة،
@@ -1725,7 +1861,8 @@ class ApiClient {
       j = {};
     }
     if (res.statusCode >= 200 && res.statusCode < 300) return j;
-    throw ApiException(res.statusCode, (j['error'] as String?) ?? AppText.s.errUnexpectedShort);
+    throw ApiException(res.statusCode, (j['error'] as String?) ?? AppText.s.errUnexpectedShort,
+        body: j);
   }
 
   void close() => _http.close();

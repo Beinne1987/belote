@@ -64,7 +64,7 @@ void main() {
           headers: {'content-type': 'application/json; charset=utf-8'});
     }));
     final s = await api.register(
-        idToken: 'fb.tok', password: 'secret1', displayName: 'محمد', countryCode: 'MR', city: 'نواكشوط');
+        credential: const PhoneCredential.firebase('fb.tok'), password: 'secret1', displayName: 'محمد', countryCode: 'MR', city: 'نواكشوط');
     expect(seen!.url.path, '/auth/register');
     final body = jsonDecode(seen!.body) as Map<String, dynamic>;
     expect(body['idToken'], 'fb.tok');

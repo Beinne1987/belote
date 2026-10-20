@@ -19,8 +19,9 @@ class Sfx {
   // في `sfx_src/` (حلقةُ تكتكات · مكتبةُ محاولات · تسجيلٌ متّصلٌ خافت) — القصّ ووصفتُه
   // وأرقام المحاولات التي اختارها بأذنه كلّها في `tools/cut_sfx.py`.
   static const _assets = <GameSound, String>{
-    GameSound.cardPlay: 'sfx/card_play.mp3', // 0.62ث — يُطلَق لحظةَ هبوط الورقة
-    GameSound.cardCollect: 'sfx/collect_trick.mp3', // 0.50ث — مع بداية حركة الجمع
+    // الاثنان مقصوصا الصمت الافتتاحيّ (~0.2ث) بـ`tools/cut_sfx.py` ⇒ الضربةُ من أوّل عيّنة.
+    GameSound.cardPlay: 'sfx/card_play.wav', // 0.43ث — يُطلَق لحظةَ هبوط الورقة
+    GameSound.cardCollect: 'sfx/collect_trick.wav', // 0.30ث — مع بداية حركة الجمع
     GameSound.win: 'sfx/game_win.mp3', // 5ث — الفوز بالمباراة
     GameSound.roundEnd: 'sfx/round_win.mp3', // 3.9ث — نهاية الجولة
     GameSound.fouja: 'sfx/round_win.mp3', // نفس صوت نهاية الجولة (قرار المالك)
@@ -28,21 +29,33 @@ class Sfx {
     GameSound.deal: 'sfx/deal_card.wav', // 0.28ث — مع كلّ ورقةٍ تُوزَّع (٣٢ مرّة)
     GameSound.turnTick: 'sfx/turn_tick.wav', // 1.0ث — دورةُ تكتكةٍ كلَّ ثانيةٍ في آخر ٥ث
     // ثانويّة (لم يطلب المالك لها ملفّات — مُعارةٌ من صوت الورقة/الفوز):
-    GameSound.cardFlip: 'sfx/card_play.mp3',
+    GameSound.cardFlip: 'sfx/card_play.wav',
     GameSound.pointWin: 'sfx/game_win.mp3',
-    GameSound.buttonClick: 'sfx/card_play.mp3',
+    GameSound.buttonClick: 'sfx/card_play.wav',
     // ── الهدايا ── **مُعارةٌ مؤقّتًا** ريثما يسجّل المالكُ أربعةَ أصوات (لا يسجّل
     // غيرُه). المفاتيحُ نهائيّةٌ والملفّاتُ وحدَها تتبدّل ⇒ يومَ تصل التسجيلاتُ
     // يتغيّر هذا الجدولُ ولا سطرَ في المحرّك ولا في الكتالوج.
-    GameSound.giftLaunch: 'sfx/card_play.mp3', // نقرةٌ قصيرةٌ للانطلاق
-    GameSound.giftArrive: 'sfx/collect_trick.mp3', // وصولٌ خفيف
-    GameSound.giftArriveEpic: 'sfx/collect_trick.mp3',
+    GameSound.giftLaunch: 'sfx/card_play.wav', // نقرةٌ قصيرةٌ للانطلاق
+    GameSound.giftArrive: 'sfx/collect_trick.wav', // وصولٌ خفيف
+    GameSound.giftArriveEpic: 'sfx/collect_trick.wav',
     GameSound.giftArriveLegendary: 'sfx/round_win.mp3', // حصريّةٌ ⇒ نغمةٌ كاملة
   };
 
   final List<AudioPlayer> _pool = [];
   int _next = 0;
   bool _ready = false;
+
+  /// **الأصواتُ الساخنة**: تتكرّر في قلب اللعب فلها مشغّلاتٌ **محمَّلةٌ مسبقًا**
+  /// (مصدرُها مضبوطٌ مرّةً عند التهيئة). الحوضُ العامّ يضبط المصدرَ مع كلّ نغمة ⇒
+  /// تحميلٌ وفكٌّ قبل أن يُسمَع شيء، وهو تأخّرٌ يُحَسّ خلف ورقةٍ هبطت.
+  /// القيمة = عددُ الأصوات المتزامنة (التوزيع سريعٌ فيحتاج أكثر).
+  static const _hot = <GameSound, int>{
+    GameSound.cardPlay: 3,
+    GameSound.deal: 4,
+    GameSound.cardCollect: 2,
+  };
+  final Map<GameSound, List<AudioPlayer>> _hotPools = {};
+  final Map<GameSound, int> _hotNext = {};
 
   /// الأحداث الطويلة (نغمات الفوز/نهاية الجولة/الفوجة): وضع `lowLatency` (SoundPool على
   /// أندرويد) يبترها (~أطول من ٣ث)، فتُشغَّل عبر مشغّلٍ **مؤقّتٍ** بوضع mediaPlayer يُنشأ
@@ -67,6 +80,18 @@ class Sfx {
         await p.setPlayerMode(PlayerMode.lowLatency);
         _pool.add(p);
       }
+      for (final e in _hot.entries) {
+        final players = <AudioPlayer>[];
+        for (var i = 0; i < e.value; i++) {
+          final p = AudioPlayer();
+          await p.setReleaseMode(ReleaseMode.stop);
+          await p.setPlayerMode(PlayerMode.lowLatency);
+          await p.setSource(AssetSource(_assets[e.key]!));
+          players.add(p);
+        }
+        _hotPools[e.key] = players;
+        _hotNext[e.key] = 0;
+      }
       _ready = true;
     } catch (e) {
       enabled = false;
@@ -81,6 +106,15 @@ class Sfx {
     if (asset == null) return;
     if (_long.contains(sound)) {
       _playLong(asset);
+      return;
+    }
+    final hot = _hotPools[sound];
+    if (hot != null && hot.isNotEmpty) {
+      final i = _hotNext[sound]!;
+      _hotNext[sound] = (i + 1) % hot.length;
+      final h = hot[i];
+      // المصدرُ محمَّلٌ ⇒ رجوعٌ للبداية وتشغيلٌ فوريّ بلا تحميل.
+      h.stop().then((_) => h.resume()).catchError((_) {});
       return;
     }
     if (_pool.isEmpty) return;

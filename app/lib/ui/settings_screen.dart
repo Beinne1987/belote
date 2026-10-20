@@ -82,6 +82,27 @@ class SettingsScreen extends StatelessWidget {
                     // **الدعم الفنّي** (طلب المالك 2026-07-17): القنوات تصل من
                     // الخادم — ما لم يجهز منها لا يُعرَض، فلا زرَّ ميّتًا أبدًا.
                     const _SupportSection(),
+                    // **روابطُ قانونيّة ثابتة** (تشترطها App Store وGoogle Play داخل
+                    // التطبيق نفسِه): لا تتوقّف على الخادم، فتظهر دائمًا.
+                    const SizedBox(height: 10),
+                    _tile(
+                      t,
+                      icon: Icons.privacy_tip_outlined,
+                      title: l.privacyPolicy,
+                      trailing:
+                          Icon(Icons.open_in_new, size: 18, color: t.text3),
+                      onTap: () =>
+                          openExternalLink(context, LegalLinks.privacy),
+                    ),
+                    _tile(
+                      t,
+                      icon: Icons.help_outline,
+                      title: l.helpAndSupport,
+                      trailing:
+                          Icon(Icons.open_in_new, size: 18, color: t.text3),
+                      onTap: () =>
+                          openExternalLink(context, LegalLinks.support),
+                    ),
                     const SizedBox(height: 10),
                     _about(t),
                   ],
@@ -108,7 +129,8 @@ class SettingsScreen extends StatelessWidget {
         ),
         child: ListTile(
           leading: Icon(icon, color: t.accent),
-          title: Text(title, style: TextStyle(color: t.text, fontWeight: FontWeight.w600)),
+          title: Text(title,
+              style: TextStyle(color: t.text, fontWeight: FontWeight.w600)),
           trailing: trailing,
           onTap: onTap,
         ),
@@ -128,7 +150,8 @@ class SettingsScreen extends StatelessWidget {
         ),
         child: SwitchListTile(
           secondary: Icon(icon, color: t.accent),
-          title: Text(title, style: TextStyle(color: t.text, fontWeight: FontWeight.w600)),
+          title: Text(title,
+              style: TextStyle(color: t.text, fontWeight: FontWeight.w600)),
           value: value,
           activeThumbColor: t.accent,
           onChanged: onChanged,
@@ -146,10 +169,22 @@ class SettingsScreen extends StatelessWidget {
               children: [
                 Text('Belote',
                     style: TextStyle(
-                        color: t.text2, fontWeight: FontWeight.w700, fontSize: 15)),
+                        color: t.text2,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15)),
                 const SizedBox(height: 2),
                 Text(context.l10n.appVersion(v),
                     style: TextStyle(color: t.text3, fontSize: 12)),
+                // **توقيعُ المطوّر** (طلب المالك 2026-09-29): تحت رقم الإصدار.
+                const SizedBox(height: 14),
+                Text(context.l10n.devCredit,
+                    style: TextStyle(color: t.text3, fontSize: 11.5)),
+                const SizedBox(height: 2),
+                Text(context.l10n.devName,
+                    style: TextStyle(
+                        color: t.accent,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13.5)),
               ],
             ),
           );
@@ -175,7 +210,9 @@ class SettingsScreen extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
               child: Text(l.settingsLanguage,
                   style: TextStyle(
-                      color: t.text, fontSize: 16, fontWeight: FontWeight.w800)),
+                      color: t.text,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800)),
             ),
             for (final locale in AppSettings.supportedLocales)
               ListTile(
@@ -215,8 +252,7 @@ class SettingsScreen extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: t.surface,
-        title: Text(context.l10n.settingsName,
-            style: TextStyle(color: t.text)),
+        title: Text(context.l10n.settingsName, style: TextStyle(color: t.text)),
         content: TextField(
           controller: controller,
           autofocus: true,
@@ -233,8 +269,7 @@ class SettingsScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text(context.l10n.cancel,
-                style: TextStyle(color: t.text3)),
+            child: Text(context.l10n.cancel, style: TextStyle(color: t.text3)),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
@@ -253,6 +288,30 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
+/// روابطُ الصفحات التي تشترطها المتاجر. مصدرُها `web/*.html` في المشروع، تُنشَر على
+/// `hisabipro.com/projects/` (انظر `docs/SERVER-REQUEST-REVIEW-ACCOUNT.md`).
+class LegalLinks {
+  const LegalLinks._();
+  static const _base = 'https://hisabipro.com/projects';
+  static const privacy = '$_base/belote-privacy.html';
+  static const support = '$_base/belote-support.html';
+  static const deleteAccount = '$_base/belote-delete-account.html';
+}
+
+/// يفتح رابطًا خارجيًّا؛ الفشلُ يُقال بصدق.
+Future<void> openExternalLink(BuildContext context, String url) async {
+  final ok =
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+  if (!ok && context.mounted) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        content: Text(context.l10n.openFailed, textAlign: TextAlign.center),
+        behavior: SnackBarBehavior.floating,
+      ));
+  }
+}
+
 /// **قسم الدعم الفنّي** (طلب المالك 2026-07-17): واتساب وبريد. القيم من الخادم
 /// (`GET /support`) ⇒ يومَ تجهز الوسائلُ تُضبَط في بيئة الخادم بلا تحديث تطبيق.
 /// لا قيمَ بعد ⇒ لا قسمَ أصلًا: زرُّ دعمٍ لا يفتح شيئًا أسوأُ من غيابه.
@@ -264,7 +323,6 @@ class _SupportSection extends StatefulWidget {
 }
 
 class _SupportSectionState extends State<_SupportSection> {
-  String _whatsapp = '';
   String _email = '';
 
   @override
@@ -275,27 +333,21 @@ class _SupportSectionState extends State<_SupportSection> {
 
   Future<void> _load() async {
     try {
-      final s = await ApiClient().support();
-      if (mounted) {
-        setState(() {
-          _whatsapp = s.whatsapp;
-          _email = s.email;
-        });
-      }
+      final email = await ApiClient().supportEmail();
+      if (mounted) setState(() => _email = email);
     } catch (_) {
       // شبكةٌ غائبة ⇒ يبقى القسم مخفيًّا — الإعدادات تعمل بلا دعم.
     }
   }
 
-  /// يفتح رابطًا خارجيًّا؛ الفشل (لا واتساب على الجهاز مثلًا) يُقال بصدق.
+  /// يفتح رابطًا خارجيًّا؛ الفشل (لا تطبيقَ بريدٍ على الجهاز مثلًا) يُقال بصدق.
   Future<void> _open(Uri uri) async {
     final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!ok && mounted) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(SnackBar(
-          content: Text(context.l10n.openFailed,
-              textAlign: TextAlign.center),
+          content: Text(context.l10n.openFailed, textAlign: TextAlign.center),
           behavior: SnackBarBehavior.floating,
         ));
     }
@@ -303,7 +355,7 @@ class _SupportSectionState extends State<_SupportSection> {
 
   @override
   Widget build(BuildContext context) {
-    if (_whatsapp.isEmpty && _email.isEmpty) return const SizedBox.shrink();
+    if (_email.isEmpty) return const SizedBox.shrink();
     final t = BeloteTheme.of(context);
 
     Widget tile(
@@ -340,20 +392,12 @@ class _SupportSectionState extends State<_SupportSection> {
               style: TextStyle(
                   color: t.text2, fontSize: 13, fontWeight: FontWeight.w800)),
         ),
-        if (_whatsapp.isNotEmpty)
-          tile(
-            icon: Icons.chat,
-            title: context.l10n.supportWhatsapp,
-            subtitle: '+$_whatsapp',
-            onTap: () => _open(Uri.parse('https://wa.me/$_whatsapp')),
-          ),
-        if (_email.isNotEmpty)
-          tile(
-            icon: Icons.mail_outline,
-            title: context.l10n.supportEmail,
-            subtitle: _email,
-            onTap: () => _open(Uri(scheme: 'mailto', path: _email)),
-          ),
+        tile(
+          icon: Icons.mail_outline,
+          title: context.l10n.supportEmail,
+          subtitle: _email,
+          onTap: () => _open(Uri(scheme: 'mailto', path: _email)),
+        ),
       ],
     );
   }
